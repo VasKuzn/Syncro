@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35222.181
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NeDiscord.Server", "NeDiscord.Server\NeDiscord.Server.csproj", "{D2A351A8-859D-4171-8B3B-9C96B9907B7F}"
+EndProject
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "nediscord.client", "nediscord.client\nediscord.client.esproj", "{03BD9224-BFBB-453B-83BF-FF828BD630BA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D2A351A8-859D-4171-8B3B-9C96B9907B7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2A351A8-859D-4171-8B3B-9C96B9907B7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2A351A8-859D-4171-8B3B-9C96B9907B7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2A351A8-859D-4171-8B3B-9C96B9907B7F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{03BD9224-BFBB-453B-83BF-FF828BD630BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03BD9224-BFBB-453B-83BF-FF828BD630BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03BD9224-BFBB-453B-83BF-FF828BD630BA}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{03BD9224-BFBB-453B-83BF-FF828BD630BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03BD9224-BFBB-453B-83BF-FF828BD630BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{03BD9224-BFBB-453B-83BF-FF828BD630BA}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FFF08FB7-F30D-405F-AECB-671451A00465}
+	EndGlobalSection
+EndGlobal
