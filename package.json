@@ -1,0 +1,10 @@
+{
+  "devDependencies": {
+    "@types/css": "^0.0.38",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2"
+  },
+  "dependencies": {
+    "vite": "^6.3.0"
+  }
+}
