@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "A5dFd4sVhQI=",
+  "dgSpecHash": "e29Jz3LPpJo=",
   "success": true,
-  "projectFilePath": "D:\\visual studio code\\syncro\\Syncro\\Syncro.Server\\TodoApi\\TodoApi.csproj",
+  "projectFilePath": "D:\\visual studio code\\Syncro\\Syncro.Server\\TodoApi\\TodoApi.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Александр\\.nuget\\packages\\bogus\\35.6.3\\bogus.35.6.3.nupkg.sha512",
     "C:\\Users\\Александр\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",

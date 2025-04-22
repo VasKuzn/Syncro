@@ -6,8 +6,8 @@ namespace TodoApi.Models
         public Guid serverId { get; set; }
         public Guid accountId { get; set; }
         public DateTime joiningDate { get; set; }
-        public DateTime serverNickname {get;set;}
-        public bool isBanned {get;set;}
-        public string banReason {get;set;}
+        public DateTime serverNickname { get; set; }
+        public bool isBanned { get; set; }
+        public string? banReason { get; set; }
     }
 }

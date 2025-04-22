@@ -4,9 +4,9 @@ namespace TodoApi.Models
     {
         public Guid Id { get; set; }
         public Guid serverId { get; set; }
-        public string sectorName { get; set; }
-        public string sectorDescription { get; set; }
-        public string sectorType { get; set; }
+        public required string sectorName { get; set; }
+        public string? sectorDescription { get; set; }
+        public required string sectorType { get; set; }
         public bool isPrivate { get; set; }
     }
 }
