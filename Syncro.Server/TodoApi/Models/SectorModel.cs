@@ -1,12 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace TodoApi.Models
 {
-    public class sectorModel
+    public class SectorModel
     {
-        
+        public Guid Id { get; set; }
+        public Guid serverId { get; set; }
+        public string sectorName { get; set; }
+        public string sectorDescription { get; set; }
+        public string sectorType { get; set; }
+        public bool isPrivate { get; set; }
     }
 }

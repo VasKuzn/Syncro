@@ -1,12 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace TodoApi.Models
 {
     public class ServerModel
     {
-        
+        public Guid Id { get; set; }
+        public string serverName {get;set;}
+        public Guid ownerId { get; set; }
+        public string serverDescription { get; set; }
+        public DateTime creationDate { get; set; }
     }
 }

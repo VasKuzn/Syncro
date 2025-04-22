@@ -1,12 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace TodoApi.Models
 {
-    public class GroupConferenceMember
+    public class GroupConferenceMemberModel
     {
-        
+        public Guid Id { get; set; }
+        public Guid accountId { get; set; }
+        public Guid groupConferenceId { get; set; }
+        public DateTime joiningDate { get; set; }
+        public string? groupConferenceNickname { get; set; }
     }
 }
