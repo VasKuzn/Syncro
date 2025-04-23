@@ -3,9 +3,9 @@ namespace SyncroBackend.Models
     public class FriendsModel
     {
         public Guid Id { get; set; }
-        public Guid userWhoSent { get; set; }
-        public Guid userWhoRecieved { get; set; }
-        public required string status { get; set; }
-        public DateTime friendsSince { get; set; }
+        public required Guid userWhoSent { get; set; }
+        public required Guid userWhoRecieved { get; set; }
+        public required FriendsStatusEnum status { get; set; }
+        public required DateTime friendsSince { get; set; }
     }
 }

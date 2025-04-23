@@ -6,7 +6,7 @@ namespace SyncroBackend.Models
         public Guid serverId { get; set; }
         public required string sectorName { get; set; }
         public string? sectorDescription { get; set; }
-        public required string sectorType { get; set; }
+        public required CallTypesEnum sectorType { get; set; }
         public bool isPrivate { get; set; }
     }
 }

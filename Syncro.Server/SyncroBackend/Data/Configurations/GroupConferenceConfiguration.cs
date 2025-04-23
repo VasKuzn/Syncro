@@ -4,7 +4,14 @@ namespace SyncroBackend.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<GroupConferenceModel> builder)
         {
-            throw new NotImplementedException();
+            builder.ToTable("GroupConferences");
+
+            builder.HasKey(x => x.Id);
+
+            builder.Property(x => x.Id).ValueGeneratedOnAdd().HasColumnType("uuid").HasDefaultValueSql("gen_random_uuid()");
+            builder.Property(x => x.conferenceName).IsRequired().HasMaxLength(100);
+            builder.Property(x => x.groupConferenceType).IsRequired().HasMaxLength(100).HasConversion<string>(); ;
+
         }
     }
 }

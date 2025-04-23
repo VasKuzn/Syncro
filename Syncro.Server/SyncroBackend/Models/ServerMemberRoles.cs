@@ -6,6 +6,5 @@ namespace SyncroBackend.Models
         public Guid serverId { get; set; }
         public Guid accountId { get; set; }
         public Guid roleId { get; set; }
-
     }
 }

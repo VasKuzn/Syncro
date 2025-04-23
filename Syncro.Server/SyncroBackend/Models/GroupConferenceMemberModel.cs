@@ -5,7 +5,7 @@ namespace SyncroBackend.Models
         public Guid Id { get; set; }
         public Guid accountId { get; set; }
         public Guid groupConferenceId { get; set; }
-        public DateTime joiningDate { get; set; }
+        public required DateTime joiningDate { get; set; }
         public string? groupConferenceNickname { get; set; }
     }
 }

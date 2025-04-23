@@ -1,7 +1,6 @@
 global using System;
 global using System.Collections.Generic;
 global using System.Linq;
-global using System.Threading.Tasks;
 global using SyncroBackend.Models.Enums;
 global using Microsoft.EntityFrameworkCore;
 global using System.Reflection;

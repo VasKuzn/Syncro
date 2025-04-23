@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "HxU+w0VAIwM=",
+  "dgSpecHash": "WhH6yf34qMk=",
   "success": true,
   "projectFilePath": "D:\\visual studio code\\Syncro\\Syncro.Server\\SyncroBackend\\SyncroBackend.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\Александр\\.nuget\\packages\\bcrypt.net-next\\4.0.3\\bcrypt.net-next.4.0.3.nupkg.sha512",
     "C:\\Users\\Александр\\.nuget\\packages\\bogus\\35.6.3\\bogus.35.6.3.nupkg.sha512",
     "C:\\Users\\Александр\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\Александр\\.nuget\\packages\\microsoft.aspnetcore.openapi\\9.0.3\\microsoft.aspnetcore.openapi.9.0.3.nupkg.sha512",

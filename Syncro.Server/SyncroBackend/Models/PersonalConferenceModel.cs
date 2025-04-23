@@ -8,6 +8,6 @@ namespace SyncroBackend.Models
         public bool isFriend { get; set; }
         public DateTime startingDate { get; set; }
         public DateTime lastActivity { get; set; }
-        public required string callType { get; set; }
+        public required CallTypesEnum callType { get; set; }
     }
 }

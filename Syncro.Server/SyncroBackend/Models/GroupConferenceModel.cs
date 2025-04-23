@@ -4,6 +4,6 @@ namespace SyncroBackend.Models
     {
         public Guid Id { get; set; }
         public required string conferenceName { get; set; }
-        public required string groupConferenceType { get; set; }
+        public required CallTypesEnum groupConferenceType { get; set; }
     }
 }
