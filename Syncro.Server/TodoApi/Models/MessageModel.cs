@@ -3,7 +3,7 @@ namespace TodoApi.Models
     public class MessageModel
     {
         public Guid Id { get; set; }
-        public string messageContent { get; set; }
+        public required string messageContent { get; set; }
         public DateTime messageDateSent { get; set; }
         public Guid? accountId { get; set; }
         public Guid? personalConferenceId { get; set; }
