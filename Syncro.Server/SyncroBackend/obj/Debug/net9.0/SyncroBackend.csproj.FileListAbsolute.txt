@@ -134,3 +134,4 @@ D:\visual studio code\Syncro\Syncro.Server\SyncroBackend\obj\Debug\net9.0\refint
 D:\visual studio code\Syncro\Syncro.Server\SyncroBackend\obj\Debug\net9.0\SyncroBackend.pdb
 D:\visual studio code\Syncro\Syncro.Server\SyncroBackend\obj\Debug\net9.0\SyncroBackend.genruntimeconfig.cache
 D:\visual studio code\Syncro\Syncro.Server\SyncroBackend\obj\Debug\net9.0\ref\SyncroBackend.dll
+D:\visual studio code\Syncro\Syncro.Server\SyncroBackend\bin\Debug\net9.0\BCrypt.Net-Next.dll
