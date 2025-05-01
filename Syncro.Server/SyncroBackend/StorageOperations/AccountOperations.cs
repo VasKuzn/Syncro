@@ -2,10 +2,10 @@ using SyncroBackend.Data.DataBaseContext;
 
 namespace SyncroBackend.StorageOperations
 {
-    public class EfOperations
+    public class AccountOperations
     {
         private readonly DataBaseContext context;
-        public EfOperations(DataBaseContext dbcontext)
+        public AccountOperations(DataBaseContext dbcontext)
         {
             this.context = dbcontext;
         }
@@ -22,7 +22,7 @@ namespace SyncroBackend.StorageOperations
             if (await context.accounts.AnyAsync(a => a.email == account.email))
                 throw new ArgumentException("Email already exists.");
 
-            await context.AddAsync(account);
+            await context.accounts.AddAsync(account);
             await context.SaveChangesAsync();
             return account;
         }
@@ -38,7 +38,7 @@ namespace SyncroBackend.StorageOperations
             var editedAccount = await context.accounts.FirstOrDefaultAsync(a => a.Id == accountId);
             if (editedAccount == null)
             {
-                throw new KeyNotFoundException($"Аккаунт для изменения не найден");
+                throw new KeyNotFoundException($"Account for editing is not found");
             }
             editedAccount.nickname = AccountDto.nickname;
             editedAccount.password = BCrypt.Net.BCrypt.HashPassword(AccountDto.password);
