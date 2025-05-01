@@ -1,6 +1,13 @@
 # 👾 `Форма входа и регистрации`👾
 [![Typing SVG](https://readme-typing-svg.herokuapp.com?font=Fira+Code&weight=600&duration=2000&pause=1000&color=F76262&width=435&lines=%D0%A3%D0%B4%D0%B0%D1%87%D0%B8+%D0%B4%D1%80%D1%83%D0%B7%D1%8C%D1%8F!)](https://git.io/typing-svg)
 ## [![Typing SVG](https://readme-typing-svg.herokuapp.com?font=Fira+Code&weight=600&duration=2000&pause=1000&color=6575F7&width=435&lines=%D0%9D%D0%B0%D0%BF%D0%BE%D0%BB%D0%BD%D0%B5%D0%BD%D0%B8%D0%B5+%D0%B1%D0%B0%D0%B7%D1%8B)](https://git.io/typing-svg)
+
+### Развертывание базы
+```csharp
+dotnet ef migrations add InitialCreate
+dotnet ef database update
+```
+### Наполнение тестовыми данными
 ```sql
 INSERT INTO "Accounts" ("Id", nickname, email, password, firstname, lastname, phonenumber)
 VALUES 
