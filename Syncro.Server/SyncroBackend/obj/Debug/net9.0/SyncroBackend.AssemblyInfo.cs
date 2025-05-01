@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SyncroBackend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4faf682d9d7df7696684a37f714e503bdb4134b9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fc4f0317d1e22500d11e8dd76da3db1747e0b647")]
 [assembly: System.Reflection.AssemblyProductAttribute("SyncroBackend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SyncroBackend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
