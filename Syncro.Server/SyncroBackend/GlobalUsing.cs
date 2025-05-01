@@ -10,3 +10,6 @@ global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.AspNetCore.Http;
 global using SyncroBackend.ModelsDTO;
 global using SyncroBackend.Data.DataBaseContext;
+global using SyncroBackend.Interfaces;
+global using SyncroBackend.Repositories;
+global using SyncroBackend.Services;

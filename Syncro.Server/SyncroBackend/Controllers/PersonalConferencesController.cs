@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace SyncroBackend.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("[api/personalconference]")]
     public class PersonalConferencesController : ControllerBase
     {
 
