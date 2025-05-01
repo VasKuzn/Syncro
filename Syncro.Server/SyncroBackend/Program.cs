@@ -1,5 +1,3 @@
-using SyncroBackend.Data.DataBaseContext;
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -16,7 +14,10 @@ builder.Services.AddDbContext<DataBaseContext>(options =>
 builder.Services.AddCors(
                 opt => opt.AddPolicy("CorsPolicy", policy => { policy.AllowAnyMethod().AllowAnyHeader().WithOrigins("https://localhost:5173"); })
                 );
-
+//
+builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+builder.Services.AddScoped<IAccountService, AccountService>();
+//
 
 var app = builder.Build();
 
