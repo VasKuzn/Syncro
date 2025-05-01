@@ -38,7 +38,7 @@ namespace SyncroBackend.StorageOperations
             var editedAccount = await context.accounts.FirstOrDefaultAsync(a => a.Id == accountId);
             if (editedAccount == null)
             {
-                throw new Exception($"Аккаунт для изменения не найден");
+                throw new KeyNotFoundException($"Аккаунт для изменения не найден");
             }
             editedAccount.nickname = AccountDto.nickname;
             editedAccount.password = BCrypt.Net.BCrypt.HashPassword(AccountDto.password);
