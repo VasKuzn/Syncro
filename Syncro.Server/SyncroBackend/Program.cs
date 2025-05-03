@@ -19,7 +19,8 @@ builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IMessageRepository, MessageRepository>();
 builder.Services.AddScoped<IMessageService, MessageService>();
-//
+builder.Services.AddScoped<IPersonalConferenceRepository, PersonalConferenceRepository>();
+builder.Services.AddScoped<IPersonalConferenceService, PersonalConferenceService>();
 
 var app = builder.Build();
 
