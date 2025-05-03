@@ -13,3 +13,4 @@ global using SyncroBackend.Data.DataBaseContext;
 global using SyncroBackend.Interfaces;
 global using SyncroBackend.Repositories;
 global using SyncroBackend.Services;
+global using SyncroBackend.StorageOperations;
