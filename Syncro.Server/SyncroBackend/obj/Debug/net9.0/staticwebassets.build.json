@@ -1,12 +1,362 @@
 {
   "Version": 1,
-  "Hash": "W/c5mKBBPaCGMEyVJBbj0djq+NMaF6JF1qDKlaPZ5XA=",
+  "Hash": "VNDd8EK5V2ijcMZvuU97/y8Q1VsaJJMNURseeKNTelQ=",
   "Source": "SyncroBackend",
   "BasePath": "_content/SyncroBackend",
   "Mode": "Default",
   "ManifestType": "Build",
   "ReferencedProjectsConfiguration": [],
-  "DiscoveryPatterns": [],
-  "Assets": [],
-  "Endpoints": []
+  "DiscoveryPatterns": [
+    {
+      "Name": "SyncroBackend\\wwwroot",
+      "Source": "SyncroBackend",
+      "ContentRoot": "D:\\visual studio code\\Syncro\\Syncro.Server\\SyncroBackend\\wwwroot\\",
+      "BasePath": "_content/SyncroBackend",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": [
+    {
+      "Identity": "D:\\visual studio code\\Syncro\\Syncro.Server\\SyncroBackend\\obj\\Debug\\net9.0\\compressed\\eswaoa5sgw-rlpyt7m8oy.gz",
+      "SourceId": "SyncroBackend",
+      "SourceType": "Discovered",
+      "ContentRoot": "D:\\visual studio code\\Syncro\\Syncro.Server\\SyncroBackend\\obj\\Debug\\net9.0\\compressed\\",
+      "BasePath": "_content/SyncroBackend",
+      "RelativePath": "index#[.{fingerprint=rlpyt7m8oy}]?.html.gz",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Alternative",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "D:\\visual studio code\\Syncro\\Syncro.Server\\SyncroBackend\\wwwroot\\index.html",
+      "AssetTraitName": "Content-Encoding",
+      "AssetTraitValue": "gzip",
+      "Fingerprint": "ow0jkgcg8z",
+      "Integrity": "WB/FhpwhRHR6BV4l696W9AdmsrLQO72juYDLE3NJB04=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "D:\\visual studio code\\Syncro\\Syncro.Server\\SyncroBackend\\wwwroot\\index.html"
+    },
+    {
+      "Identity": "D:\\visual studio code\\Syncro\\Syncro.Server\\SyncroBackend\\wwwroot\\index.html",
+      "SourceId": "SyncroBackend",
+      "SourceType": "Discovered",
+      "ContentRoot": "D:\\visual studio code\\Syncro\\Syncro.Server\\SyncroBackend\\wwwroot\\",
+      "BasePath": "_content/SyncroBackend",
+      "RelativePath": "index#[.{fingerprint}]?.html",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "rlpyt7m8oy",
+      "Integrity": "4TDYaKV5Gs2RaNIagaw65k5iDAlhgM8VDqwd6e21KTU=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\index.html"
+    }
+  ],
+  "Endpoints": [
+    {
+      "Route": "index.html",
+      "AssetFile": "D:\\visual studio code\\Syncro\\Syncro.Server\\SyncroBackend\\obj\\Debug\\net9.0\\compressed\\eswaoa5sgw-rlpyt7m8oy.gz",
+      "Selectors": [
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip",
+          "Quality": "0.000275027503"
+        }
+      ],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "3635"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"WB/FhpwhRHR6BV4l696W9AdmsrLQO72juYDLE3NJB04=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sun, 04 May 2025 16:58:19 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/html"
+        },
+        {
+          "Name": "ETag",
+          "Value": "W/\"4TDYaKV5Gs2RaNIagaw65k5iDAlhgM8VDqwd6e21KTU=\""
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-4TDYaKV5Gs2RaNIagaw65k5iDAlhgM8VDqwd6e21KTU="
+        }
+      ]
+    },
+    {
+      "Route": "index.html",
+      "AssetFile": "D:\\visual studio code\\Syncro\\Syncro.Server\\SyncroBackend\\wwwroot\\index.html",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "16602"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/html"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"4TDYaKV5Gs2RaNIagaw65k5iDAlhgM8VDqwd6e21KTU=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sun, 04 May 2025 16:58:19 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-4TDYaKV5Gs2RaNIagaw65k5iDAlhgM8VDqwd6e21KTU="
+        }
+      ]
+    },
+    {
+      "Route": "index.html.gz",
+      "AssetFile": "D:\\visual studio code\\Syncro\\Syncro.Server\\SyncroBackend\\obj\\Debug\\net9.0\\compressed\\eswaoa5sgw-rlpyt7m8oy.gz",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "3635"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/html"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"WB/FhpwhRHR6BV4l696W9AdmsrLQO72juYDLE3NJB04=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sun, 04 May 2025 16:58:19 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-WB/FhpwhRHR6BV4l696W9AdmsrLQO72juYDLE3NJB04="
+        }
+      ]
+    },
+    {
+      "Route": "index.rlpyt7m8oy.html",
+      "AssetFile": "D:\\visual studio code\\Syncro\\Syncro.Server\\SyncroBackend\\obj\\Debug\\net9.0\\compressed\\eswaoa5sgw-rlpyt7m8oy.gz",
+      "Selectors": [
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip",
+          "Quality": "0.000275027503"
+        }
+      ],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "3635"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"WB/FhpwhRHR6BV4l696W9AdmsrLQO72juYDLE3NJB04=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sun, 04 May 2025 16:58:19 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/html"
+        },
+        {
+          "Name": "ETag",
+          "Value": "W/\"4TDYaKV5Gs2RaNIagaw65k5iDAlhgM8VDqwd6e21KTU=\""
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "rlpyt7m8oy"
+        },
+        {
+          "Name": "label",
+          "Value": "index.html"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-4TDYaKV5Gs2RaNIagaw65k5iDAlhgM8VDqwd6e21KTU="
+        }
+      ]
+    },
+    {
+      "Route": "index.rlpyt7m8oy.html",
+      "AssetFile": "D:\\visual studio code\\Syncro\\Syncro.Server\\SyncroBackend\\wwwroot\\index.html",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "16602"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/html"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"4TDYaKV5Gs2RaNIagaw65k5iDAlhgM8VDqwd6e21KTU=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sun, 04 May 2025 16:58:19 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "rlpyt7m8oy"
+        },
+        {
+          "Name": "label",
+          "Value": "index.html"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-4TDYaKV5Gs2RaNIagaw65k5iDAlhgM8VDqwd6e21KTU="
+        }
+      ]
+    },
+    {
+      "Route": "index.rlpyt7m8oy.html.gz",
+      "AssetFile": "D:\\visual studio code\\Syncro\\Syncro.Server\\SyncroBackend\\obj\\Debug\\net9.0\\compressed\\eswaoa5sgw-rlpyt7m8oy.gz",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "3635"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/html"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"WB/FhpwhRHR6BV4l696W9AdmsrLQO72juYDLE3NJB04=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sun, 04 May 2025 16:58:19 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "rlpyt7m8oy"
+        },
+        {
+          "Name": "label",
+          "Value": "index.html.gz"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-WB/FhpwhRHR6BV4l696W9AdmsrLQO72juYDLE3NJB04="
+        }
+      ]
+    }
+  ]
 }

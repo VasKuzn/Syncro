@@ -1,0 +1,29 @@
+{
+  "Files": [
+    {
+      "Id": "D:\\visual studio code\\Syncro\\Syncro.Server\\SyncroBackend\\wwwroot\\index.html",
+      "PackagePath": "staticwebassets\\index.html"
+    },
+    {
+      "Id": "obj\\Debug\\net9.0\\staticwebassets\\msbuild.SyncroBackend.Microsoft.AspNetCore.StaticWebAssetEndpoints.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssetEndpoints.props"
+    },
+    {
+      "Id": "obj\\Debug\\net9.0\\staticwebassets\\msbuild.SyncroBackend.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj\\Debug\\net9.0\\staticwebassets\\msbuild.build.SyncroBackend.props",
+      "PackagePath": "build\\SyncroBackend.props"
+    },
+    {
+      "Id": "obj\\Debug\\net9.0\\staticwebassets\\msbuild.buildMultiTargeting.SyncroBackend.props",
+      "PackagePath": "buildMultiTargeting\\SyncroBackend.props"
+    },
+    {
+      "Id": "obj\\Debug\\net9.0\\staticwebassets\\msbuild.buildTransitive.SyncroBackend.props",
+      "PackagePath": "buildTransitive\\SyncroBackend.props"
+    }
+  ],
+  "ElementsToRemove": []
+}

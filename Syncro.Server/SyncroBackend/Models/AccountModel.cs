@@ -9,5 +9,6 @@ namespace SyncroBackend.Models
         public string? firstname { get; set; }
         public string? lastname { get; set; }
         public string? phonenumber { get; set; }
+        public required bool isOnline { get; set; } = false;
     }
 }

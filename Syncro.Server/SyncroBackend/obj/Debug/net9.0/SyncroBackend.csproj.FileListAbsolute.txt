@@ -135,3 +135,5 @@ D:\visual studio code\Syncro\Syncro.Server\SyncroBackend\obj\Debug\net9.0\Syncro
 D:\visual studio code\Syncro\Syncro.Server\SyncroBackend\obj\Debug\net9.0\SyncroBackend.genruntimeconfig.cache
 D:\visual studio code\Syncro\Syncro.Server\SyncroBackend\obj\Debug\net9.0\ref\SyncroBackend.dll
 D:\visual studio code\Syncro\Syncro.Server\SyncroBackend\bin\Debug\net9.0\BCrypt.Net-Next.dll
+D:\visual studio code\Syncro\Syncro.Server\SyncroBackend\bin\Debug\net9.0\SyncroBackend.staticwebassets.runtime.json
+D:\visual studio code\Syncro\Syncro.Server\SyncroBackend\obj\Debug\net9.0\compressed\eswaoa5sgw-rlpyt7m8oy.gz

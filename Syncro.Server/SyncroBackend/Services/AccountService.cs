@@ -46,6 +46,11 @@ namespace SyncroBackend.Services
 
             return await _accountRepository.UpdateAccountAsync(existingAccount);
         }
-
+        public async Task<AccountModel> UpdateOnlineAccountAsync(Guid accountId)
+        {
+            var existingAccount = await _accountRepository.GetAccountByIdAsync(accountId);
+            existingAccount.isOnline = !existingAccount.isOnline;
+            return await _accountRepository.UpdateAccountAsync(existingAccount);
+        }
     }
 }
