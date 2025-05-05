@@ -1,0 +1,15 @@
+global using System;
+global using System.Collections.Generic;
+global using System.Linq;
+global using SyncroBackend.Models.Enums;
+global using Microsoft.EntityFrameworkCore;
+global using System.Reflection;
+global using SyncroBackend.Models;
+global using Microsoft.EntityFrameworkCore.Metadata.Builders;
+global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.AspNetCore.Http;
+global using SyncroBackend.ModelsDTO;
+global using SyncroBackend.Data.DataBaseContext;
+global using SyncroBackend.Interfaces;
+global using SyncroBackend.Repositories;
+global using SyncroBackend.Services;
