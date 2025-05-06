@@ -18,7 +18,7 @@ namespace SyncroBackend.Services
             return await _personalConferenceRepository.GetAllPersonalConferencesAsync();
         }
 
-        public async Task<PersonalConferenceModel> GetPersonalConferencesByIdAsync(Guid personalConferenceId)
+        public async Task<PersonalConferenceModel> GetPersonalConferenceByIdAsync(Guid personalConferenceId)
         {
             return await _personalConferenceRepository.GetPersonalConferenceByIdAsync(personalConferenceId);
         }

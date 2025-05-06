@@ -40,7 +40,7 @@ if (app.Environment.IsDevelopment())
 }
 
 //app.UseHttpsRedirection();
-
+//dotnet run --urls="http://localhost:5000"
 app.UseAuthorization();
 
 app.UseCors("AllowAll");

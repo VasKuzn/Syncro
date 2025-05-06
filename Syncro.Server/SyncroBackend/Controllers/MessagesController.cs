@@ -87,11 +87,11 @@ namespace SyncroBackend.Controllers
         [HttpPut("{id}/read")]
         [ProducesResponseType(typeof(MessageModel), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<MessageModel>> MarkAsRead(Guid id, [FromQuery] bool isRead)
+        public async Task<ActionResult<MessageModel>> MarkAsRead(Guid id, Guid reader, [FromQuery] bool isRead)
         {
             try
             {
-                var result = await _messageService.MarkMessageAsReadAsync(id, isRead);
+                var result = await _messageService.MarkMessageAsReadAsync(id, reader, isRead);
                 return Ok(result);
             }
             catch (KeyNotFoundException ex)

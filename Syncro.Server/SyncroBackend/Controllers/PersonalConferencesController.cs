@@ -32,7 +32,7 @@ namespace SyncroBackend.Controllers
         {
             try
             {
-                var personalConference = await _personalConferenceService.GetPersonalConferencesByIdAsync(id);
+                var personalConference = await _personalConferenceService.GetPersonalConferenceByIdAsync(id);
                 return Ok(personalConference);
             }
             catch (ArgumentException ex)

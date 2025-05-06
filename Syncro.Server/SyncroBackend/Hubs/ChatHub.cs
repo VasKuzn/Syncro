@@ -14,9 +14,8 @@ namespace SyncroBackend.Hubs
         }
         public async Task JoinPersonalConference(Guid conferenceId, Guid userId)
         {
-            var personalConference = await _conferenceService.GetPersonalConferencesByIdAsync(conferenceId);
-
-            if (personalConference.user1 != userId || personalConference.user2 != userId)
+            var personalConference = await _conferenceService.GetPersonalConferenceByIdAsync(conferenceId);
+            if (personalConference.user1 != userId && personalConference.user2 != userId)
             {
                 throw new HubException($"{userId} Access denied to this personal conference");
             }
@@ -26,7 +25,22 @@ namespace SyncroBackend.Hubs
             var otherUserId = personalConference.user1 == userId ? personalConference.user2 : personalConference.user1;
             var otherUser = await _accountService.GetAccountByIdAsync(otherUserId);
 
+            await MarkAllMessagesAsRead(conferenceId, userId);
+
             await SendInitialConferenceData(conferenceId, userId, otherUserId, otherUser.isOnline);
+        }
+        private async Task MarkAllMessagesAsRead(Guid conferenceId, Guid readerId)
+        {
+            var unreadMessages = (await _messageService.GetAllMessagesAsync())
+                .Where(m => m.personalConferenceId == conferenceId &&
+                           m.accountId != readerId &&
+                           !m.isRead)
+                .ToList();
+
+            foreach (var message in unreadMessages)
+            {
+                await _messageService.MarkMessageAsReadAsync(message.Id, readerId, true);
+            }
         }
         public async Task LeavePersonalConference(Guid conferenceId)
         {
@@ -37,7 +51,7 @@ namespace SyncroBackend.Hubs
             if (string.IsNullOrWhiteSpace(content))
                 throw new ArgumentException("Message content cannot be empty");
 
-            var conference = await _conferenceService.GetPersonalConferencesByIdAsync(conferenceId);
+            var conference = await _conferenceService.GetPersonalConferenceByIdAsync(conferenceId);
             if (conference.user1 != senderId && conference.user2 != senderId)
                 throw new HubException("Sender is not a conference participant");
 
@@ -73,6 +87,9 @@ namespace SyncroBackend.Hubs
             var userId = GetUserIdFromContext();
             var message = await _messageService.GetMessageByIdAsync(messageId);
 
+            if (!message.personalConferenceId.HasValue)
+                throw new HubException("Message is not in a conference");
+
             if (message.accountId != userId)
                 throw new HubException("Only message author can edit it");
 
@@ -93,11 +110,9 @@ namespace SyncroBackend.Hubs
         {
             var userId = GetUserIdFromContext();
             var message = await _messageService.GetMessageByIdAsync(messageId);
-            var conference = await _conferenceService.GetPersonalConferencesByIdAsync(message.personalConferenceId.Value);
-
+            var conference = await _conferenceService.GetPersonalConferenceByIdAsync(message.personalConferenceId.Value);
             if (message.accountId != userId && conference.user1 != userId && conference.user2 != userId)
                 throw new HubException("No permission to delete message");
-
             if (await _messageService.DeleteMessageAsync(messageId))
             {
                 await Clients.Group(GetConferenceGroupName(message.personalConferenceId.Value))
@@ -109,7 +124,7 @@ namespace SyncroBackend.Hubs
         {
             var userId = GetUserIdFromContext();
             var message = await _messageService.GetMessageByIdAsync(messageId);
-            var conference = await _conferenceService.GetPersonalConferencesByIdAsync(message.personalConferenceId.Value);
+            var conference = await _conferenceService.GetPersonalConferenceByIdAsync(message.personalConferenceId.Value);
 
             if (conference.user1 != userId && conference.user2 != userId)
                 throw new HubException("No permission to pin message");

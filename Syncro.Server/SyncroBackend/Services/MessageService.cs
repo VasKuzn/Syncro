@@ -41,9 +41,14 @@ namespace SyncroBackend.Services
             return await _messageRepository.UpdateMessageTextAsync(editedMessage);
 
         }
-        public async Task<MessageModel> MarkMessageAsReadAsync(Guid messageId, bool isRead)
+        public async Task<MessageModel> MarkMessageAsReadAsync(Guid messageId, Guid readerId, bool isRead)
         {
-            return await _messageRepository.UpdateMessageAdditionalChangeAsync(messageId, toggleRead: isRead);
+            var message = await _messageRepository.GetMessageByIdAsync(messageId);
+            if (message.accountId != readerId)
+            {
+                return await _messageRepository.UpdateMessageAdditionalChangeAsync(messageId, toggleRead: isRead);
+            }
+            return message;
         }
 
         public async Task<MessageModel> SetMessageReferenceAsync(Guid messageId, Guid referencedMessageId)
