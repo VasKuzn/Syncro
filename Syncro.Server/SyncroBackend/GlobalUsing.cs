@@ -13,3 +13,7 @@ global using SyncroBackend.Data.DataBaseContext;
 global using SyncroBackend.Interfaces;
 global using SyncroBackend.Repositories;
 global using SyncroBackend.Services;
+global using SyncroBackend.StorageOperations;
+global using Microsoft.AspNetCore.SignalR;
+global using SyncroBackend.Hubs;
+global using System.Collections.Concurrent;
