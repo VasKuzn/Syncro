@@ -27,8 +27,8 @@ builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IMessageRepository, MessageRepository>();
 builder.Services.AddScoped<IMessageService, MessageService>();
-builder.Services.AddScoped<IPersonalConferenceRepository, PersonalConferenceRepository>();
-builder.Services.AddScoped<IPersonalConferenceService, PersonalConferenceService>();
+builder.Services.AddScoped<IConferenceRepository<PersonalConferenceModel>, PersonalConferenceRepository>();
+builder.Services.AddScoped<IConferenceService<PersonalConferenceModel>, PersonalConferenceService>();
 
 var app = builder.Build();
 
