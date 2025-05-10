@@ -2,11 +2,11 @@ namespace SyncroBackend.Hubs
 {
     public class ChatHub : Hub
     {
-        private readonly IPersonalConferenceService _conferenceService;
+        private readonly IConferenceService<PersonalConferenceModel> _conferenceService;
         private readonly IMessageService _messageService;
         private readonly IAccountService _accountService;
         private static readonly ConcurrentDictionary<Guid, string> _activeConnections = new();
-        public ChatHub(IPersonalConferenceService conferenceService, IAccountService accountService, IMessageService messageService)
+        public ChatHub(IConferenceService<PersonalConferenceModel> conferenceService, IAccountService accountService, IMessageService messageService)
         {
             _conferenceService = conferenceService;
             _accountService = accountService;
@@ -14,7 +14,7 @@ namespace SyncroBackend.Hubs
         }
         public async Task JoinPersonalConference(Guid conferenceId, Guid userId)
         {
-            var personalConference = await _conferenceService.GetPersonalConferenceByIdAsync(conferenceId);
+            var personalConference = await _conferenceService.GetConferenceByIdAsync(conferenceId);
             if (personalConference.user1 != userId && personalConference.user2 != userId)
             {
                 throw new HubException($"{userId} Access denied to this personal conference");
@@ -51,7 +51,7 @@ namespace SyncroBackend.Hubs
             if (string.IsNullOrWhiteSpace(content))
                 throw new ArgumentException("Message content cannot be empty");
 
-            var conference = await _conferenceService.GetPersonalConferenceByIdAsync(conferenceId);
+            var conference = await _conferenceService.GetConferenceByIdAsync(conferenceId);
             if (conference.user1 != senderId && conference.user2 != senderId)
                 throw new HubException("Sender is not a conference participant");
 
@@ -110,7 +110,7 @@ namespace SyncroBackend.Hubs
         {
             var userId = GetUserIdFromContext();
             var message = await _messageService.GetMessageByIdAsync(messageId);
-            var conference = await _conferenceService.GetPersonalConferenceByIdAsync(message.personalConferenceId.Value);
+            var conference = await _conferenceService.GetConferenceByIdAsync(message.personalConferenceId.Value);
             if (message.accountId != userId && conference.user1 != userId && conference.user2 != userId)
                 throw new HubException("No permission to delete message");
             if (await _messageService.DeleteMessageAsync(messageId))
@@ -124,7 +124,7 @@ namespace SyncroBackend.Hubs
         {
             var userId = GetUserIdFromContext();
             var message = await _messageService.GetMessageByIdAsync(messageId);
-            var conference = await _conferenceService.GetPersonalConferenceByIdAsync(message.personalConferenceId.Value);
+            var conference = await _conferenceService.GetConferenceByIdAsync(message.personalConferenceId.Value);
 
             if (conference.user1 != userId && conference.user2 != userId)
                 throw new HubException("No permission to pin message");

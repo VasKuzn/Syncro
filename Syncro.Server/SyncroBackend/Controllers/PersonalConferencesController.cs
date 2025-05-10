@@ -6,9 +6,9 @@ namespace SyncroBackend.Controllers
     [Route("api/personalconference")]
     public class PersonalConferencesController : ControllerBase
     {
-        private readonly IPersonalConferenceService _personalConferenceService;
+        private readonly IConferenceService<PersonalConferenceModel> _personalConferenceService;
 
-        public PersonalConferencesController(IPersonalConferenceService personalConference)
+        public PersonalConferencesController(IConferenceService<PersonalConferenceModel> personalConference)
         {
             _personalConferenceService = personalConference;
         }
@@ -18,7 +18,7 @@ namespace SyncroBackend.Controllers
         {
             try
             {
-                var personalConferences = await _personalConferenceService.GetAllPersonalConferencesAsync();
+                var personalConferences = await _personalConferenceService.GetAllConferencesAsync();
                 return Ok(personalConferences);
             }
             catch (Exception ex)
@@ -32,7 +32,7 @@ namespace SyncroBackend.Controllers
         {
             try
             {
-                var personalConference = await _personalConferenceService.GetPersonalConferenceByIdAsync(id);
+                var personalConference = await _personalConferenceService.GetConferenceByIdAsync(id);
                 return Ok(personalConference);
             }
             catch (ArgumentException ex)
@@ -51,7 +51,7 @@ namespace SyncroBackend.Controllers
         {
             try
             {
-                var result = await _personalConferenceService.CreatePersonalConferenceAsync(conference);
+                var result = await _personalConferenceService.CreateConferenceAsync(conference);
                 return CreatedAtAction(nameof(GetPersonalConferenceById), new { id = result.Id }, result);
             }
             catch (ArgumentException ex)
@@ -69,7 +69,7 @@ namespace SyncroBackend.Controllers
         {
             try
             {
-                var result = await _personalConferenceService.DeletePersonalConferenceAsync(id);
+                var result = await _personalConferenceService.DeleteConferenceAsync(id);
                 if (!result)
                 {
                     return NotFound($"Personal conference with id {id} not found");

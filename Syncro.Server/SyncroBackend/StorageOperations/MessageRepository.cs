@@ -2,31 +2,31 @@ namespace SyncroBackend.StorageOperations
 {
     public class MessageRepository : IMessageRepository
     {
-        private readonly DataBaseContext context;
+        private readonly DataBaseContext _context;
 
         public MessageRepository(DataBaseContext dbcontext)
         {
-            this.context = dbcontext;
+            this._context = dbcontext;
         }
         public Task<List<MessageModel>> GetAllMessagesAsync()
         {
-            return context.messages.ToListAsync();
+            return _context.messages.ToListAsync();
         }
         public async Task<MessageModel> GetMessageByIdAsync(Guid messageId)
         {
-            return await context.messages.FirstOrDefaultAsync(m => m.Id == messageId)
+            return await _context.messages.FirstOrDefaultAsync(m => m.Id == messageId)
             ?? throw new ArgumentException("Message not found");
         }
         public async Task<MessageModel> AddMessageAsync(MessageModel message)
         {
-            await context.messages.AddAsync(message);
-            await context.SaveChangesAsync();
+            await _context.messages.AddAsync(message);
+            await _context.SaveChangesAsync();
 
             return message;
         }
         public async Task<bool> DeleteMessageAsync(Guid messageId)
         {
-            var deleted = await context.messages
+            var deleted = await _context.messages
             .Where(m => m.Id == messageId)
             .ExecuteDeleteAsync();
 
@@ -35,8 +35,8 @@ namespace SyncroBackend.StorageOperations
         public async Task<MessageModel> UpdateMessageTextAsync(MessageModel message)
         {
 
-            context.messages.Update(message);
-            await context.SaveChangesAsync();
+            _context.messages.Update(message);
+            await _context.SaveChangesAsync();
 
             return message;
         }
@@ -65,7 +65,7 @@ namespace SyncroBackend.StorageOperations
                 message.referenceMessageId = setReferenceMessageId.Value;
             }
 
-            await context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
             return message;
         }
     }

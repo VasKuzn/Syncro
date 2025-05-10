@@ -5,24 +5,24 @@ using System.Threading.Tasks;
 
 namespace SyncroBackend.Services
 {
-    public class PersonalConferenceService : IPersonalConferenceService
+    public class PersonalConferenceService : IConferenceService<PersonalConferenceModel>
     {
-        private readonly IPersonalConferenceRepository _personalConferenceRepository;
+        private readonly IConferenceRepository<PersonalConferenceModel> _personalConferenceRepository;
 
-        public PersonalConferenceService(IPersonalConferenceRepository personalConferenceRepository)
+        public PersonalConferenceService(IConferenceRepository<PersonalConferenceModel> personalConferenceRepository)
         {
             _personalConferenceRepository = personalConferenceRepository;
         }
-        public async Task<List<PersonalConferenceModel>> GetAllPersonalConferencesAsync()
+        public async Task<List<PersonalConferenceModel>> GetAllConferencesAsync()
         {
-            return await _personalConferenceRepository.GetAllPersonalConferencesAsync();
+            return await _personalConferenceRepository.GetAllConferencesAsync();
         }
 
-        public async Task<PersonalConferenceModel> GetPersonalConferenceByIdAsync(Guid personalConferenceId)
+        public async Task<PersonalConferenceModel> GetConferenceByIdAsync(Guid personalConferenceId)
         {
-            return await _personalConferenceRepository.GetPersonalConferenceByIdAsync(personalConferenceId);
+            return await _personalConferenceRepository.GetConferenceByIdAsync(personalConferenceId);
         }
-        public async Task<PersonalConferenceModel> CreatePersonalConferenceAsync(PersonalConferenceModel personalConference)
+        public async Task<PersonalConferenceModel> CreateConferenceAsync(PersonalConferenceModel personalConference)
         {
             if (personalConference.user1 == personalConference.user2)
                 throw new ArgumentException("Cannot create personal conference with yourself.");
@@ -34,12 +34,12 @@ namespace SyncroBackend.Services
                 throw new ArgumentException("Personal conference between these users already exists.");
 
 
-            return await _personalConferenceRepository.AddPersonalConferenceAsync(personalConference);
+            return await _personalConferenceRepository.AddConferenceAsync(personalConference);
         }
 
-        public async Task<bool> DeletePersonalConferenceAsync(Guid personalConferenceId)
+        public async Task<bool> DeleteConferenceAsync(Guid personalConferenceId)
         {
-            return await _personalConferenceRepository.DeletePersonalConferenceAsync(personalConferenceId);
+            return await _personalConferenceRepository.DeleteConferenceAsync(personalConferenceId);
         }
     }
 }
