@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import './Register.css';
 import RegisterComponent from './Components/RegisterPage/RegisterComponents';
 
 
-const App = () => {
+const Register = () => {
     const [firstname, setFirstname] = useState('');
     const [lastname, setLastname] = useState('');
     const [nickname, setNickname] = useState('');
@@ -140,4 +141,4 @@ const App = () => {
     );
 }
 
-export default App;
+export default Register;

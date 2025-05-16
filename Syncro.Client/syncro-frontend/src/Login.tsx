@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import './Login.css'
 import UserCredentials from './Types/MainStructures';
 import LoginComponent from './Components/LoginPage/LoginComponents';
 import FooterComponent from './Components/LoginPage/FooterComponent';
@@ -15,7 +16,7 @@ const secretTuple: UserCredentials = {
     password: 'nichegoneproizoshlo',
 };
 
-const App = () => {
+const Login = () => {
     const [emailOrPhone, setEmailOrPhone] = useState('');
     const [password, setPassword] = useState('');
     const [passwordVisible, setPasswordVisible] = useState(false);
@@ -131,4 +132,4 @@ const App = () => {
     );
 }
 
-export default App;
+export default Login;

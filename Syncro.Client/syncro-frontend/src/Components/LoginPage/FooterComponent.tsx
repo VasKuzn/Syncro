@@ -1,4 +1,5 @@
 import React from 'react'
+import {Link} from 'react-router-dom'
 
 const FooterComponent = () => {
     return (
@@ -6,9 +7,9 @@ const FooterComponent = () => {
             <footer>
                 <div>
                     <p>
-                        Want to synchronize?
-                        <a href="register.html" id="join-element">Sign up!</a>
-                    </p>
+                        Want to synchronize?                        
+                        <Link to="/register" >Sign up!</Link>
+                    </p>                 
                     <ul>
                         <li><a href="#">Privacy policy</a></li>
                         <li><a href="#">Community Guidelines</a></li>

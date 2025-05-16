@@ -1,6 +1,6 @@
 import { createRoot } from 'react-dom/client'
-import './Login.css'
-import App from './Login.tsx'
+import App from './App.tsx'
+import { BrowserRouter } from 'react-router-dom'
 
 createRoot(document.getElementById('root')!).render(
   <App />
