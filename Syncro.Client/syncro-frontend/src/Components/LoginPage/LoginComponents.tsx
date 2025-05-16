@@ -12,7 +12,6 @@ interface LoginComponentProps {
     onPasswordChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onKeepSignedInChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onTogglePasswordVisibility: () => void;
-    onAppleButtonClick: () => void;
     onSubmit: (e: React.FormEvent) => void;
 }
 
@@ -27,7 +26,6 @@ const LoginComponent: React.FC<LoginComponentProps> = ({
     onPasswordChange,
     onKeepSignedInChange,
     onTogglePasswordVisibility,
-    onAppleButtonClick,
     onSubmit,
 }) => {
     return (

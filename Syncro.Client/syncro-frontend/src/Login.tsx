@@ -32,7 +32,7 @@ const App = () => {
         if (SavedEmailOrPhone) {
             setEmailOrPhone(SavedEmailOrPhone);
         }
-        if (SavedEmailOrPhone) {
+        if (SavedPassword) {
             setPassword(SavedPassword || '');
         }
     }, []);
@@ -61,22 +61,6 @@ const App = () => {
     const handleKeepSignedInChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setKeepSignedIn(e.target.checked);
     };
-
-    const handleAppleButton = () => {
-
-        setIsLoading(true);
-        setTimeout(() => {
-            SavedEmailOrPhone = localStorage.getItem('emailOrPhone');
-            SavedPassword = localStorage.getItem('password');
-
-            if (SavedEmailOrPhone) {
-                setEmailOrPhone(SavedEmailOrPhone);
-            }
-            if (SavedEmailOrPhone) {
-                setPassword(SavedPassword || '');
-            }
-        }, 1000);
-    }
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -140,7 +124,6 @@ const App = () => {
                 onPasswordChange={handlePasswordChange}
                 onKeepSignedInChange={handleKeepSignedInChange}
                 onTogglePasswordVisibility={togglePasswordVisibility}
-                onAppleButtonClick={handleAppleButton}
                 onSubmit={handleSubmit}
             />
             <FooterComponent />
