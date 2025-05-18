@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authorization;
+
 namespace SyncroBackend.Controllers
 {
     [ApiController]
@@ -12,6 +14,7 @@ namespace SyncroBackend.Controllers
         }
 
         // GET: api/accounts
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<AccountModel>>> GetAllAccounts()
         {
@@ -114,5 +117,32 @@ namespace SyncroBackend.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        // POST: api/accounts/login
+        [HttpPost("login")]
+        public async Task<ActionResult<string>> Login([FromBody] LoginRequest request)
+        {
+            HttpContext context = HttpContext;
+            try
+            {
+                if (string.IsNullOrEmpty(request.Email))
+                {
+                    return BadRequest("Email  must be provided");
+                }
+
+                var token = await _accountService.Login(request.Email, request.Password);
+                context.Response.Cookies.Append("tasty-cookies", token);
+                return Ok(new { Token = token });
+            }
+            catch (Exception ex)
+            {
+                return Unauthorized(ex.Message);
+            }
+        }
+    }
+
+    public class LoginRequest
+    {
+        public string? Email { get; set; }
+        public required string Password { get; set; }
     }
 }
