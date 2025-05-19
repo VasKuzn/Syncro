@@ -23,7 +23,7 @@ namespace SyncroBackend.Services
         {
             if (message.messageContent == null)
             {
-                throw new ArgumentException("message content if empty");
+                throw new ArgumentException("message content is empty");
             }
             return await _messageRepository.AddMessageAsync(message);
         }
