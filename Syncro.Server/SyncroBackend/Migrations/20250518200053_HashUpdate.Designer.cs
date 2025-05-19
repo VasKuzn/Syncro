@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SyncroBackend.Data.DataBaseContext;
@@ -11,9 +12,11 @@ using SyncroBackend.Data.DataBaseContext;
 namespace SyncroBackend.Migrations
 {
     [DbContext(typeof(DataBaseContext))]
-    partial class DataBaseContextModelSnapshot : ModelSnapshot
+    [Migration("20250518200053_HashUpdate")]
+    partial class HashUpdate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -59,26 +62,6 @@ namespace SyncroBackend.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Accounts", (string)null);
-                });
-
-            modelBuilder.Entity("SyncroBackend.Models.ConferenceRolesModel", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.Property<Guid>("conferenceId")
-                        .HasColumnType("uuid");
-
-                    b.Property<long>("rolePermissions")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("conferenceId");
-
-                    b.ToTable("ConferenceRoles", (string)null);
                 });
 
             modelBuilder.Entity("SyncroBackend.Models.FriendsModel", b =>
@@ -135,16 +118,11 @@ namespace SyncroBackend.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.Property<Guid>("roleId")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
 
                     b.HasIndex("accountId");
 
                     b.HasIndex("groupConferenceId");
-
-                    b.HasIndex("roleId");
 
                     b.ToTable("GroupConferenceMembers", (string)null);
                 });
@@ -508,15 +486,6 @@ namespace SyncroBackend.Migrations
                     b.ToTable("Servers", (string)null);
                 });
 
-            modelBuilder.Entity("SyncroBackend.Models.ConferenceRolesModel", b =>
-                {
-                    b.HasOne("SyncroBackend.Models.GroupConferenceModel", null)
-                        .WithMany()
-                        .HasForeignKey("conferenceId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("SyncroBackend.Models.FriendsModel", b =>
                 {
                     b.HasOne("SyncroBackend.Models.AccountModel", null)
@@ -543,12 +512,6 @@ namespace SyncroBackend.Migrations
                     b.HasOne("SyncroBackend.Models.GroupConferenceModel", null)
                         .WithMany()
                         .HasForeignKey("groupConferenceId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SyncroBackend.Models.ConferenceRolesModel", null)
-                        .WithMany()
-                        .HasForeignKey("roleId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

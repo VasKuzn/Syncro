@@ -17,6 +17,7 @@ namespace SyncroBackend.Data.DataBaseContext
         public DbSet<ServerModel> servers { get; set; }
         public DbSet<ServerMemberRoles> serverMemberRoles { get; set; }
         public DbSet<ServerMemberModel> serverMembers { get; set; }
+        public DbSet<ConferenceRolesModel> conferenceRoles { get; set; }
 
         public DataBaseContext(DbContextOptions options) : base(options)
         {

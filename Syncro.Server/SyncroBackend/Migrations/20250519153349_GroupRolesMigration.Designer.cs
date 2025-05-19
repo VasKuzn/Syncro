@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SyncroBackend.Data.DataBaseContext;
@@ -11,9 +12,11 @@ using SyncroBackend.Data.DataBaseContext;
 namespace SyncroBackend.Migrations
 {
     [DbContext(typeof(DataBaseContext))]
-    partial class DataBaseContextModelSnapshot : ModelSnapshot
+    [Migration("20250519153349_GroupRolesMigration")]
+    partial class GroupRolesMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -135,16 +138,11 @@ namespace SyncroBackend.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.Property<Guid>("roleId")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
 
                     b.HasIndex("accountId");
 
                     b.HasIndex("groupConferenceId");
-
-                    b.HasIndex("roleId");
 
                     b.ToTable("GroupConferenceMembers", (string)null);
                 });
@@ -543,12 +541,6 @@ namespace SyncroBackend.Migrations
                     b.HasOne("SyncroBackend.Models.GroupConferenceModel", null)
                         .WithMany()
                         .HasForeignKey("groupConferenceId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SyncroBackend.Models.ConferenceRolesModel", null)
-                        .WithMany()
-                        .HasForeignKey("roleId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
