@@ -22,7 +22,6 @@ namespace SyncroBackend.Hubs
 
         public async Task JoinGroupConference(Guid conferenceId, Guid userId)
         {
-            // Проверяем, что пользователь является участником группы
             var members = await _memberService.GetAllMembersByConferenceAsync(conferenceId);
             if (!members.Any(m => m.accountId == userId))
                 throw new HubException($"User {userId} is not a member of conference {conferenceId}");

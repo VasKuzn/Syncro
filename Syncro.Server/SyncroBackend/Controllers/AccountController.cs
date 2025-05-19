@@ -14,7 +14,7 @@ namespace SyncroBackend.Controllers
         }
 
         // GET: api/accounts
-        [Authorize]
+        //[Authorize]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<AccountModel>>> GetAllAccounts()
         {

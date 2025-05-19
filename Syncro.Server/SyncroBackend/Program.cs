@@ -32,6 +32,10 @@ builder.Services.AddScoped<IMessageRepository, MessageRepository>();
 builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddScoped<IConferenceRepository<PersonalConferenceModel>, PersonalConferenceRepository>();
 builder.Services.AddScoped<IConferenceService<PersonalConferenceModel>, PersonalConferenceService>();
+builder.Services.AddScoped<IGroupConferenceRepository<GroupConferenceModel>, GroupConferenceRepository>();
+builder.Services.AddScoped<IGroupConferenceService<GroupConferenceModel>, GroupConferenceService>();
+builder.Services.AddScoped<IGroupRolesRepository, GroupRolesRepository>();
+builder.Services.AddScoped<IGroupRoleService, GroupRolesService>();
 
 var app = builder.Build();
 

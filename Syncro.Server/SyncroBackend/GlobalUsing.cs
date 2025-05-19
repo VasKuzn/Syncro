@@ -25,3 +25,6 @@ global using Microsoft.IdentityModel.Tokens;
 global using SyncroBackend.Services.AdditionalFunctions;
 global using Microsoft.AspNetCore.CookiePolicy;
 global using SyncroBackend.Extensions;
+global using Microsoft.OpenApi.Any;
+global using Microsoft.OpenApi.Models;
+global using Swashbuckle.AspNetCore.SwaggerGen;
