@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import './Register.css';
-import RegisterComponent from './Components/RegisterPage/RegisterComponents';
+import '../Styles/Register.css';
+import RegisterComponent from '../Components/RegisterPage/RegisterComponents';
 
 
 const Register = () => {

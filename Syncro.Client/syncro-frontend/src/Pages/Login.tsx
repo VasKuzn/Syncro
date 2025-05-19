@@ -1,20 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import './Login.css'
-import UserCredentials from './Types/MainStructures';
-import LoginComponent from './Components/LoginPage/LoginComponents';
-import FooterComponent from './Components/LoginPage/FooterComponent';
-
-const correctTuple: UserCredentials = {
-    phone: '+12345678901',
-    email: 'Semyon@Volkov.com',
-    password: '123456',
-};
-
-const secretTuple: UserCredentials = {
-    phone: '+12345678902',
-    email: 'Secret@redir.haha',
-    password: 'nichegoneproizoshlo',
-};
+import '../Styles/Login.css'
+import LoginComponent from '../Components/LoginPage/LoginComponents';
+import FooterComponent from '../Components/LoginPage/FooterComponent';
 
 const Login = () => {
     const [emailOrPhone, setEmailOrPhone] = useState('');
@@ -81,33 +68,6 @@ const Login = () => {
             alert('Введите пароль.');
         } else if (password.length < 6) {
             alert('Пароль должен содержать минимум 6 символов.');
-        }
-
-        if (
-            (emailOrPhone === correctTuple.email ||
-                emailOrPhone === correctTuple.phone) &&
-            password === correctTuple.password
-        ) {
-            alert('Введено правильно');
-            if (keepSignedIn) {
-                localStorage.setItem('emailOrPhone', emailOrPhone);
-                localStorage.setItem('password', password);
-            }
-        } else if (
-            (emailOrPhone === secretTuple.email ||
-                emailOrPhone === secretTuple.phone) &&
-            password === secretTuple.password
-        ) {
-            alert('Секретные данные, перенаправляем...');
-            if (keepSignedIn) {
-                localStorage.setItem('emailOrPhone', emailOrPhone);
-                localStorage.setItem('password', password);
-            }
-            setTimeout(() => {
-                window.location.href = 'https://www.youtube.com/watch?v=d5PvwXOq6JQ';
-            }, 500);
-        } else {
-            alert('Введено неправильно');
         }
     }
 
