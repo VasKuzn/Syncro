@@ -24,6 +24,10 @@ namespace SyncroBackend.Data.Configurations
                 .HasForeignKey(x => x.groupConferenceId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            builder.HasOne<ConferenceRolesModel>()
+                .WithMany()
+                .HasForeignKey(x => x.roleId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
