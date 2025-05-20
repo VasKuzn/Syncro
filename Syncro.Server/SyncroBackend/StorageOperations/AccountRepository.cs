@@ -51,5 +51,11 @@ namespace SyncroBackend.Repositories
         {
             return await _context.accounts.AnyAsync(a => a.email == email);
         }
+
+        public async Task<AccountModel> GetAccountByEmailAsync(string email)
+        {
+            var user = await _context.accounts.FirstOrDefaultAsync(a => a.email == email) ?? throw new ArgumentException("Account is not found");
+            return user;
+        }
     }
 }

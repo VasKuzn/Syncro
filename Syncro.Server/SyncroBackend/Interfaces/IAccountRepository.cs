@@ -9,5 +9,6 @@ namespace SyncroBackend.Interfaces
         public Task<AccountModel> UpdateAccountAsync(AccountModel account);
         public Task<bool> AccountExistsByNicknameAsync(string nickname);
         public Task<bool> AccountExistsByEmailAsync(string email);
+        public Task<AccountModel> GetAccountByEmailAsync(string email);
     }
 }

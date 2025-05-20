@@ -529,6 +529,14 @@ FodyWeavers.xsd
 bin/
 obj/
 
+# Исключить локальные БД
+*.db
+*.mdf
+*.ldf
+
+# Но включить миграции
+!Migrations/
+
 # Common node modules locations
 /node_modules
 /wwwroot/node_modules
