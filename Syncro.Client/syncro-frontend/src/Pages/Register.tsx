@@ -1,38 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import '../Styles/Register.css';
 import RegisterComponent from '../Components/RegisterPage/RegisterComponents';
+import FooterComponent from '../Components/RegisterPage/FooterComponent';
 
 
 const Register = () => {
-    const [firstname, setFirstname] = useState('');
-    const [lastname, setLastname] = useState('');
     const [nickname, setNickname] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    let SavedFirstname;
-    let SavedLastname;
     let SavedNickname;
     let SavedEmail;
     let SavedPhone;
     let SavedPassword;
 
     useEffect(() => {
-        SavedFirstname = localStorage.getItem('firstname');
-        SavedLastname = localStorage.getItem('lastname');
         SavedNickname = localStorage.getItem('nickname');
         SavedEmail = localStorage.getItem('email');
         SavedPhone = localStorage.getItem('phone');
         SavedPassword = localStorage.getItem('password');
         
-        if(SavedFirstname){
-            setFirstname(SavedFirstname)
-        }
-        if(SavedLastname){
-            setLastname(SavedLastname)
-        }
         if(SavedNickname){
             setNickname(SavedNickname)
         }
@@ -46,14 +35,6 @@ const Register = () => {
             setPassword(SavedPassword || '');
         }
     }, []);
-
-    const handleFirstnameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFirstname(e.target.value);
-    }
-
-    const handleLastnameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setLastname(e.target.value);
-    }
 
     const handleNicknameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setNickname(e.target.value);
@@ -79,15 +60,7 @@ const Register = () => {
         e.preventDefault();
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const phoneRegex = /^\+\d{11}$/;
-
-        if (!firstname) {
-            alert('Пожалуйста, введите имя.');
-        }
-
-        if (!lastname) {
-            alert('Пожалуйста, введите фамилию.');
-        }        
+        const phoneRegex = /^\+\d{11}$/;    
 
         if (!nickname) {
             alert('Пожалуйста, введите отображаемое имя.');
@@ -120,16 +93,12 @@ const Register = () => {
     return (
         <div className="centered-container">
             <RegisterComponent
-                firstname={firstname}
-                lastname={lastname}
                 nickname={nickname}
                 email={email}
                 phone={phone}
                 password={password}
                 passwordVisible={passwordVisible}
                 isLoading={isLoading}
-                onFirstnameChange={handleFirstnameChange}
-                onLastnameChange={handleLastnameChange}
                 onNicknameChange={handleNicknameChange}
                 onEmailChange={handleEmailChange}
                 onPhoneChange={handlePhoneChange}
@@ -137,6 +106,7 @@ const Register = () => {
                 onTogglePasswordVisibility={togglePasswordVisibility}
                 onSubmit={handleSubmit}
             />
+            <FooterComponent/>
         </div>
     );
 }
