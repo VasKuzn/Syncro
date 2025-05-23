@@ -14,6 +14,7 @@ interface RegisterComponentProps {
     onPasswordChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onTogglePasswordVisibility: () => void;
     onSubmit: (e: React.FormEvent) => void;
+    onInput: (e: React.FormEvent<HTMLInputElement>) => void;
 }
 
 const RegisterComponent: React.FC<RegisterComponentProps> = ({
@@ -29,6 +30,7 @@ const RegisterComponent: React.FC<RegisterComponentProps> = ({
     onPasswordChange,
     onTogglePasswordVisibility,
     onSubmit,
+    onInput,
 }) => {
     return (
         <div className="main-container">
@@ -45,6 +47,7 @@ const RegisterComponent: React.FC<RegisterComponentProps> = ({
                         required
                         value={email}
                         onChange={onEmailChange}
+                        onInput={onInput}
                         maxLength={100}
                     />
 
@@ -57,6 +60,7 @@ const RegisterComponent: React.FC<RegisterComponentProps> = ({
                         required
                         value={nickname}
                         onChange={onNicknameChange}
+                        onInput={onInput}
                         maxLength={100}
                     />
 
@@ -69,6 +73,7 @@ const RegisterComponent: React.FC<RegisterComponentProps> = ({
                         required
                         value={phone}
                         onChange={onPhoneChange}
+                        onInput={onInput}
                         maxLength={12}
                     />
 
@@ -82,6 +87,7 @@ const RegisterComponent: React.FC<RegisterComponentProps> = ({
                             required
                             value={password}
                             onChange={onPasswordChange}
+                            onInput={onInput}
                         />
                         <button
                             type="button"
