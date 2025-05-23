@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, FormEvent } from 'react';
 import '../Styles/Login.css'
 import LoginComponent from '../Components/LoginPage/LoginComponents';
 import FooterComponent from '../Components/LoginPage/FooterComponent';
@@ -10,6 +10,8 @@ const Login = () => {
     const [keepSignedIn, setKeepSignedIn] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [maxLength, setMaxLength] = useState(100);
+    const emailField = (document.getElementById("email") as HTMLInputElement);
+    const passwordField = (document.getElementById("password") as HTMLInputElement);
     let SavedEmailOrPhone;
     let SavedPassword;
 
@@ -52,25 +54,31 @@ const Login = () => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-
+        
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         const phoneRegex = /^\+\d{11}$/;
 
         if (!emailOrPhone) {
-            alert('Пожалуйста, введите email или номер телефона.');
+            emailField.setCustomValidity('Пожалуйста, введите email.');
         } else if (
             !(emailRegex.test(emailOrPhone) || phoneRegex.test(emailOrPhone))
         ) {
-            alert('Введите корректный email или номер телефона.');
+            emailField.setCustomValidity('Введите корректный email.');
         }
 
         if (!password) {
-            alert('Введите пароль.');
+            passwordField.setCustomValidity('Введите пароль.');
         } else if (password.length < 6) {
-            alert('Пароль должен содержать минимум 6 символов.');
+            passwordField.setCustomValidity('Пароль должен содержать минимум 6 символов.');
         }
     }
 
+    const clearValidity = (e: FormEvent) => {
+        e.preventDefault();
+        
+        emailField.setCustomValidity("");
+        passwordField.setCustomValidity("");
+    }
 
     return (
         <div className="centered-container">
@@ -86,6 +94,7 @@ const Login = () => {
                 onKeepSignedInChange={handleKeepSignedInChange}
                 onTogglePasswordVisibility={togglePasswordVisibility}
                 onSubmit={handleSubmit}
+                onInput={clearValidity}
             />
             <FooterComponent />
         </div>

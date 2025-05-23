@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, FormEvent } from 'react';
 import '../Styles/Register.css';
 import RegisterComponent from '../Components/RegisterPage/RegisterComponents';
 import FooterComponent from '../Components/RegisterPage/FooterComponent';
@@ -11,6 +11,10 @@ const Register = () => {
     const [password, setPassword] = useState('');
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const emailField = (document.getElementById("email") as HTMLInputElement);
+    const nicknameField = (document.getElementById("nickname") as HTMLInputElement);
+    const phoneField = (document.getElementById("phone") as HTMLInputElement);
+    const passwordField = (document.getElementById("password") as HTMLInputElement);
     let SavedNickname;
     let SavedEmail;
     let SavedPhone;
@@ -60,33 +64,43 @@ const Register = () => {
         e.preventDefault();
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const phoneRegex = /^\+\d{11}$/;    
-
-        if (!nickname) {
-            alert('Пожалуйста, введите отображаемое имя.');
-        }
+        const phoneRegex = /^\+\d{11}$/; 
 
         if (!email) {
-            alert('Пожалуйста, введите email.');
+            emailField.setCustomValidity('Пожалуйста, введите email.');
+
         } else if (
             !(emailRegex.test(email))
         ) {
-            alert('Введите корректный email или номер телефона.');
+            emailField.setCustomValidity('Введите корректный email.');
         }
-        
+
+        if (!nickname) {
+            nicknameField.setCustomValidity('Пожалуйста, введите отображаемое имя.');
+        }
+
         if (!phone) {
-            alert('Пожалуйста, введите номер телефона.');
+            phoneField.setCustomValidity('Пожалуйста, введите номер телефона.')
         } else if (
             !(phoneRegex.test(phone))
         ) {
-            alert('Введите корректный номер телефона.');
+            phoneField.setCustomValidity('Введите корректный номер телефона.');
         }
 
         if (!password) {
-            alert('Введите пароль.');
+            passwordField.setCustomValidity('Введите пароль.');
         } else if (password.length < 6) {
-            alert('Пароль должен содержать минимум 6 символов.');
+            passwordField.setCustomValidity('Пароль должен содержать минимум 6 символов.');
         }
+    }
+
+    const clearValidity = (e: FormEvent) => {
+        e.preventDefault();
+        
+        emailField.setCustomValidity("");
+        nicknameField.setCustomValidity("");
+        phoneField.setCustomValidity("");
+        passwordField.setCustomValidity("");
     }
 
 
@@ -105,6 +119,7 @@ const Register = () => {
                 onPasswordChange={handlePasswordChange}
                 onTogglePasswordVisibility={togglePasswordVisibility}
                 onSubmit={handleSubmit}
+                onInput={clearValidity}
             />
             <FooterComponent/>
         </div>
