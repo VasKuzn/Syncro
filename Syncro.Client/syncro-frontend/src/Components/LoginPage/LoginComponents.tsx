@@ -33,12 +33,12 @@ const LoginComponent: React.FC<LoginComponentProps> = ({
             <HeaderComponent />
             <form id="login-form" onSubmit={onSubmit}>
                 <div className="input-container">
-                    <label htmlFor="email">Email or Phone</label>
+                    <label htmlFor="email">Email</label>
                     <input
                         className="log-element"
                         type="text"
                         id="email"
-                        placeholder="Email or Phone"
+                        placeholder="Email"
                         required
                         value={emailOrPhone}
                         onChange={onEmailOrPhoneChange}
