@@ -8,7 +8,7 @@ const FooterComponent = () => {
                 <div>
                     <p>
                         Want to synchronize?                        
-                        <Link to="/register" >Sign up!</Link>
+                        <Link to="/register" > Sign up!</Link>
                     </p>                 
                     <ul>
                         <li><a href="#">Privacy policy</a></li>
