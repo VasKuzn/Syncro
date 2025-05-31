@@ -1,10 +1,6 @@
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
-// Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSignalR();
@@ -24,7 +20,7 @@ builder.Services.AddCors(options =>
               .AllowCredentials();
     });
 });
-//
+
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IJwtProvider, JWTProvider>();
 builder.Services.AddScoped<IAccountService, AccountService>();
@@ -44,10 +40,11 @@ builder.Services.AddScoped<IRolesRepository, ServerRolesRepository>();
 builder.Services.AddScoped<IRolesService, ServerRolesService>();
 builder.Services.AddScoped<IServerMemberRepository, ServerMemberRepository>();
 builder.Services.AddScoped<IServerMemberService, ServerMemberService>();
+builder.Services.AddScoped<IServerMemberRolesRepository, ServerMemberRolesRepository>();
+builder.Services.AddScoped<IServerMemberRolesService, ServerMemberRolesService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

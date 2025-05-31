@@ -10,5 +10,7 @@ namespace SyncroBackend.Interfaces
         Task<RolesModel> UpdateRoleAsync(RolesModel role);
         Task<bool> RoleNameExistsInServerAsync(Guid serverId, string roleName);
         Task<bool> ServerExistsAsync(Guid serverId);
+
+        Task<bool> RoleExistsInServerAsync(Guid serverId, Guid roleId);
     }
 }

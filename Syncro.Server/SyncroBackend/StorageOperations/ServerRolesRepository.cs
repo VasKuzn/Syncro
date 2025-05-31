@@ -69,5 +69,10 @@ namespace SyncroBackend.StorageOperations
         {
             return await _context.servers.AnyAsync(s => s.Id == serverId);
         }
+        public async Task<bool> RoleExistsInServerAsync(Guid serverId, Guid roleId)
+        {
+            return await _context.roles
+                .AnyAsync(r => r.Id == roleId && r.serverId == serverId);
+        }
     }
 }
