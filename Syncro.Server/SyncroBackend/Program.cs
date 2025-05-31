@@ -36,6 +36,8 @@ builder.Services.AddScoped<IGroupConferenceRepository<GroupConferenceModel>, Gro
 builder.Services.AddScoped<IGroupConferenceService<GroupConferenceModel>, GroupConferenceService>();
 builder.Services.AddScoped<IGroupRolesRepository, GroupRolesRepository>();
 builder.Services.AddScoped<IGroupRoleService, GroupRolesService>();
+builder.Services.AddScoped<IFriendsRepository, FriendsRepository>();
+builder.Services.AddScoped<IFriendsService, FriendsService>();
 
 var app = builder.Build();
 

@@ -3,29 +3,49 @@ namespace SyncroBackend.StorageOperations
 {
     public class FriendsRepository : IFriendsRepository
     {
-        public Task<FriendsModel> CreateFriendsAsync(FriendsModel friends)
+        private readonly DataBaseContext _context;
+
+        public FriendsRepository(DataBaseContext context)
         {
-            throw new NotImplementedException();
+            _context = context;
+        }
+        public async Task<List<FriendsModel>> GetAllFriendsAsync()
+        {
+            return await _context.friends.ToListAsync();
         }
 
-        public Task<bool> DeleteFriendsAsync(Guid friendsId)
+        public async Task<FriendsModel> GetFriendsByIdAsync(Guid friendsId)
         {
-            throw new NotImplementedException();
+            return await _context.friends.FirstOrDefaultAsync(f => f.Id == friendsId)
+                   ?? throw new ArgumentException("Friends are not found");
+        }
+        public async Task<FriendsModel> CreateFriendsAsync(FriendsModel friends)
+        {
+            await _context.friends.AddAsync(friends);
+            await _context.SaveChangesAsync();
+            return friends;
         }
 
-        public Task<List<FriendsModel>> GetAllFriendsAsync()
+        public async Task<FriendsModel> UpdateFriendsAsync(FriendsModel friends)
         {
-            throw new NotImplementedException();
+            _context.friends.Update(friends);
+            await _context.SaveChangesAsync();
+            return friends;
         }
 
-        public Task<FriendsModel> GetFriendsByIdAsync(Guid friendsId)
+        public async Task<bool> DeleteFriendsAsync(Guid friendsId)
         {
-            throw new NotImplementedException();
+            var deleted = await _context.friends
+                .Where(a => a.Id == friendsId)
+                .ExecuteDeleteAsync();
+            return deleted > 0;
         }
-
-        public Task<FriendsModel> UpdateFriendsAsync(FriendsModel friends)
+        public async Task<FriendsModel?> CheckFriendshipExistsAsync(Guid user1, Guid user2)
         {
-            throw new NotImplementedException();
+            return await _context.friends
+                .FirstOrDefaultAsync(f =>
+                    (f.userWhoSent == user1 && f.userWhoRecieved == user2) ||
+                    (f.userWhoSent == user2 && f.userWhoRecieved == user1));
         }
     }
 }
