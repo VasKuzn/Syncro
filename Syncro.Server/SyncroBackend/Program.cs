@@ -38,6 +38,10 @@ builder.Services.AddScoped<IGroupRolesRepository, GroupRolesRepository>();
 builder.Services.AddScoped<IGroupRoleService, GroupRolesService>();
 builder.Services.AddScoped<IFriendsRepository, FriendsRepository>();
 builder.Services.AddScoped<IFriendsService, FriendsService>();
+builder.Services.AddScoped<IServerRepository, ServerRepository>();
+builder.Services.AddScoped<IServerService, ServerService>();
+builder.Services.AddScoped<IRolesRepository, ServerRolesRepository>();
+builder.Services.AddScoped<IRolesService, ServerRolesService>();
 
 var app = builder.Build();
 
