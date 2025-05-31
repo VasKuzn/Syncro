@@ -44,6 +44,8 @@ builder.Services.AddScoped<IServerMemberRolesRepository, ServerMemberRolesReposi
 builder.Services.AddScoped<IServerMemberRolesService, ServerMemberRolesService>();
 builder.Services.AddScoped<ISectorRepository, SectorRepository>();
 builder.Services.AddScoped<ISectorService, SectorService>();
+builder.Services.AddScoped<ISectorPermissionsRepository, SectorPermissionsRepository>();
+builder.Services.AddScoped<ISectorPermissionsService, SectorPermissionsService>();
 
 var app = builder.Build();
 
