@@ -42,6 +42,8 @@ builder.Services.AddScoped<IServerMemberRepository, ServerMemberRepository>();
 builder.Services.AddScoped<IServerMemberService, ServerMemberService>();
 builder.Services.AddScoped<IServerMemberRolesRepository, ServerMemberRolesRepository>();
 builder.Services.AddScoped<IServerMemberRolesService, ServerMemberRolesService>();
+builder.Services.AddScoped<ISectorRepository, SectorRepository>();
+builder.Services.AddScoped<ISectorService, SectorService>();
 
 var app = builder.Build();
 
