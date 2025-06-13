@@ -8,6 +8,8 @@ interface LoginComponentProps {
     keepSignedIn: boolean;
     isLoading: boolean;
     maxLength: number;
+    emailRef: React.RefObject<HTMLInputElement>;
+    passwordRef: React.RefObject<HTMLInputElement>;
     onEmailOrPhoneChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onPasswordChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onKeepSignedInChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -22,6 +24,8 @@ const LoginComponent: React.FC<LoginComponentProps> = ({
     keepSignedIn,
     isLoading,
     maxLength,
+    emailRef,
+    passwordRef,
     onEmailOrPhoneChange,
     onPasswordChange,
     onKeepSignedInChange,
@@ -31,18 +35,19 @@ const LoginComponent: React.FC<LoginComponentProps> = ({
     return (
         <div className="main-container">
             <HeaderComponent />
-            <form id="login-form" onSubmit={onSubmit}>
+            <form id="login-form" onSubmit={onSubmit} noValidate>
                 <div className="input-container">
-                    <label htmlFor="email">Email or Phone</label>
+                    <label htmlFor="email">Email</label>
                     <input
                         className="log-element"
                         type="text"
                         id="email"
-                        placeholder="Email or Phone"
+                        placeholder="Email"
                         required
                         value={emailOrPhone}
                         onChange={onEmailOrPhoneChange}
                         maxLength={maxLength}
+                        ref={emailRef}
                     />
 
                     <label htmlFor="password">Password</label>
@@ -55,6 +60,7 @@ const LoginComponent: React.FC<LoginComponentProps> = ({
                             required
                             value={password}
                             onChange={onPasswordChange}
+                            ref={passwordRef}
                         />
                         <button
                             type="button"
@@ -83,14 +89,14 @@ const LoginComponent: React.FC<LoginComponentProps> = ({
                             data-tg-on="Yes"
                             htmlFor="keep-signed-in"
                         ></label>
-                    </div>
+                    </div>  
                     <label htmlFor="keep-signed-in">Keep me signed in</label>
                 </div>
 
                 <a href="forgot-password" className="forgot-element">Forgot password?</a>
 
                 <div className="buttons">
-                    <button type="submit" className="primary-button">Sign in</button>
+                    <button type="submit" className="primary-button">Sign in {isLoading && <div className="spinner" aria-hidden="true"></div>} </button>
                 </div>
             </form>
         </div>

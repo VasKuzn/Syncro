@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, FormEvent, useRef } from 'react';
+import bcrypt from 'bcryptjs';
 import '../Styles/Login.css'
 import LoginComponent from '../Components/LoginPage/LoginComponents';
 import FooterComponent from '../Components/LoginPage/FooterComponent';
@@ -10,6 +11,10 @@ const Login = () => {
     const [keepSignedIn, setKeepSignedIn] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [maxLength, setMaxLength] = useState(100);
+
+    const emailField = useRef<HTMLInputElement>(null);
+    const passwordField = useRef<HTMLInputElement>(null);
+
     let SavedEmailOrPhone;
     let SavedPassword;
 
@@ -25,11 +30,43 @@ const Login = () => {
         }
     }, []);
 
+    const loginUser = async (email: string, password: string) => {
+        let credentials = {email, password}
+        try {
+            const response = await fetch('http://localhost:5232/api/accounts/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(credentials),
+            });
+            console.log(credentials);
+            console.log(response);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Ошибка аутентификации');
+            }
+
+            return await response.json();
+        } catch (error) {
+            throw new Error(error.message || 'Ошибка сети');
+        }
+    };
+
+    const hashPassword = (password: string): string => {
+        const salt = bcrypt.genSaltSync(10);
+        return bcrypt.hashSync(password, salt);
+    };
+
     const handleEmailOrPhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 
         const value = e.target.value;
 
         setEmailOrPhone(value);
+
+        if (emailField.current) {
+            emailField.current.setCustomValidity('');
+        }
 
         if (value.startsWith('+')) {
             setMaxLength(12);
@@ -44,33 +81,61 @@ const Login = () => {
 
     const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setPassword(e.target.value);
+        
+        if (passwordField.current) {
+            passwordField.current.setCustomValidity('');
+        }
     };
 
     const handleKeepSignedInChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setKeepSignedIn(e.target.checked);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
+        
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const phoneRegex = /^\+\d{11}$/;
+        //const phoneRegex = /^\+\d{11}$/;
 
         if (!emailOrPhone) {
-            alert('Пожалуйста, введите email или номер телефона.');
-        } else if (
-            !(emailRegex.test(emailOrPhone) || phoneRegex.test(emailOrPhone))
-        ) {
-            alert('Введите корректный email или номер телефона.');
+            emailField.current?.setCustomValidity('Пожалуйста, введите email.');
+            emailField.current?.reportValidity();
+            return;
+        } else if (!(emailRegex.test(emailOrPhone))) {
+            emailField.current?.setCustomValidity('Введите корректный email.');
+            emailField.current?.reportValidity();
+            return;
         }
 
         if (!password) {
-            alert('Введите пароль.');
+            passwordField.current?.setCustomValidity('Введите пароль.');
+            passwordField.current?.reportValidity();
+            return;
         } else if (password.length < 6) {
-            alert('Пароль должен содержать минимум 6 символов.');
+            passwordField.current?.setCustomValidity('Пароль должен содержать минимум 6 символов.');
+            passwordField.current?.reportValidity();
+            return;
+        }
+
+        setIsLoading(true)
+        let hashedPass = hashPassword(password);
+    
+        try {
+            const response = await loginUser(
+                emailOrPhone,
+                password
+            );          
+        } catch (error) {
+            console.error('Ошибка авторизации:', error);
+            
+            if (emailField.current) {
+                emailField.current.setCustomValidity('Неверные учетные данные');
+                emailField.current.reportValidity();
+            }
+        } finally {
+            setIsLoading(false);
         }
     }
-
 
     return (
         <div className="centered-container">
@@ -86,6 +151,8 @@ const Login = () => {
                 onKeepSignedInChange={handleKeepSignedInChange}
                 onTogglePasswordVisibility={togglePasswordVisibility}
                 onSubmit={handleSubmit}
+                emailRef={emailField}
+                passwordRef={passwordField}
             />
             <FooterComponent />
         </div>
