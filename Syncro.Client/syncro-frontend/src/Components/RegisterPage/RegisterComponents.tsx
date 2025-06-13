@@ -109,7 +109,7 @@ const RegisterComponent: React.FC<RegisterComponentProps> = ({
                 </div>
 
                 <div className="buttons">
-                    <button type="submit" className="primary-button">Sign up</button>
+                    <button type="submit" className="primary-button">Sign up {isLoading && <div className="spinner" aria-hidden="true"></div>} </button>
                 </div>
             </form>
         </div>

@@ -42,6 +42,29 @@ const Register = () => {
         }
     }, []);
 
+    const registerUser = async (email: string, password: string, nickname: string, phonenumber, isOnline: boolean) => {
+        let credentials = {email, password, nickname, phonenumber, isOnline}
+        try {
+            const response = await fetch('http://localhost:5232/api/accounts/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(credentials),
+            });
+            console.log(credentials);
+            console.log(response);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Ошибка регистрации');
+            }
+
+            return await response.json();
+        } catch (error) {
+            throw new Error(error.message || 'Ошибка сети');
+        }
+    };
+
     const handleNicknameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setNickname(e.target.value);
 
@@ -78,7 +101,7 @@ const Register = () => {
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -115,6 +138,22 @@ const Register = () => {
         } else if (password.length < 6) {
             passwordField.current?.setCustomValidity('Пароль должен содержать минимум 6 символов.');
             passwordField.current?.reportValidity();
+        }
+
+        setIsLoading(true)
+    
+        try {
+            const response = await registerUser(
+                email,
+                password,
+                nickname,
+                phone,
+                false
+            );          
+        } catch (error) {
+            console.error('Ошибка регистрации:', error);
+        } finally {
+            setIsLoading(false);
         }
     }
 
