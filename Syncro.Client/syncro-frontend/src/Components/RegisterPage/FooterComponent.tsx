@@ -6,7 +6,7 @@ const FooterComponent = () => {
         <div>
             <footer>
                 <p>
-                    Already have an account?                        
+                    Already have an account?&nbsp;                        
                     <Link to="/" > Sign in!</Link>
                 </p>
             </footer>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, FormEvent } from 'react';
+import React, { useState, useEffect, FormEvent, useRef } from 'react';
 import '../Styles/Login.css'
 import LoginComponent from '../Components/LoginPage/LoginComponents';
 import FooterComponent from '../Components/LoginPage/FooterComponent';
@@ -10,8 +10,10 @@ const Login = () => {
     const [keepSignedIn, setKeepSignedIn] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [maxLength, setMaxLength] = useState(100);
-    const emailField = (document.getElementById("email") as HTMLInputElement);
-    const passwordField = (document.getElementById("password") as HTMLInputElement);
+
+    const emailField = useRef<HTMLInputElement>(null);
+    const passwordField = useRef<HTMLInputElement>(null);
+
     let SavedEmailOrPhone;
     let SavedPassword;
 
@@ -33,6 +35,10 @@ const Login = () => {
 
         setEmailOrPhone(value);
 
+        if (emailField.current) {
+            emailField.current.setCustomValidity('');
+        }
+
         if (value.startsWith('+')) {
             setMaxLength(12);
         }
@@ -46,6 +52,10 @@ const Login = () => {
 
     const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setPassword(e.target.value);
+        
+        if (passwordField.current) {
+            passwordField.current.setCustomValidity('');
+        }
     };
 
     const handleKeepSignedInChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,28 +66,26 @@ const Login = () => {
         e.preventDefault();
         
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const phoneRegex = /^\+\d{11}$/;
+        //const phoneRegex = /^\+\d{11}$/;
 
         if (!emailOrPhone) {
-            emailField.setCustomValidity('Пожалуйста, введите email.');
-        } else if (
-            !(emailRegex.test(emailOrPhone) || phoneRegex.test(emailOrPhone))
-        ) {
-            emailField.setCustomValidity('Введите корректный email.');
+            emailField.current?.setCustomValidity('Пожалуйста, введите email.');
+            emailField.current?.reportValidity();
+        } else if (!(emailRegex.test(emailOrPhone))) {
+            emailField.current?.setCustomValidity('Введите корректный email.');
+            emailField.current?.reportValidity();
         }
 
         if (!password) {
-            passwordField.setCustomValidity('Введите пароль.');
+            passwordField.current?.setCustomValidity('Введите пароль.');
+            passwordField.current?.reportValidity();
         } else if (password.length < 6) {
-            passwordField.setCustomValidity('Пароль должен содержать минимум 6 символов.');
+            passwordField.current?.setCustomValidity('Пароль должен содержать минимум 6 символов.');
+            passwordField.current?.reportValidity();
+        } else {
+            passwordField.current?.setCustomValidity('');
+            passwordField.current?.reportValidity();
         }
-    }
-
-    const clearValidity = (e: FormEvent) => {
-        e.preventDefault();
-        
-        emailField.setCustomValidity("");
-        passwordField.setCustomValidity("");
     }
 
     return (
@@ -94,7 +102,8 @@ const Login = () => {
                 onKeepSignedInChange={handleKeepSignedInChange}
                 onTogglePasswordVisibility={togglePasswordVisibility}
                 onSubmit={handleSubmit}
-                onInput={clearValidity}
+                emailRef={emailField}
+                passwordRef={passwordField}
             />
             <FooterComponent />
         </div>

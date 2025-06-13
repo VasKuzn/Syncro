@@ -7,8 +7,8 @@ const FooterComponent = () => {
             <footer>
                 <div>
                     <p>
-                        Want to synchronize?                        
-                        <Link to="/register" > Sign up!</Link>
+                        Want to synchronize?&nbsp;                         
+                        <Link to="/register" >Sign up!</Link>
                     </p>                 
                     <ul>
                         <li><a href="#">Privacy policy</a></li>
