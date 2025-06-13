@@ -1,4 +1,4 @@
-import React, { useState, useEffect, FormEvent } from 'react';
+import React, { useState, useEffect, FormEvent, useRef } from 'react';
 import '../Styles/Register.css';
 import RegisterComponent from '../Components/RegisterPage/RegisterComponents';
 import FooterComponent from '../Components/RegisterPage/FooterComponent';
@@ -11,10 +11,12 @@ const Register = () => {
     const [password, setPassword] = useState('');
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const emailField = (document.getElementById("email") as HTMLInputElement);
-    const nicknameField = (document.getElementById("nickname") as HTMLInputElement);
-    const phoneField = (document.getElementById("phone") as HTMLInputElement);
-    const passwordField = (document.getElementById("password") as HTMLInputElement);
+
+    const emailField = useRef<HTMLInputElement>(null);
+    const nicknameField = useRef<HTMLInputElement>(null);
+    const phoneField = useRef<HTMLInputElement>(null);
+    const passwordField = useRef<HTMLInputElement>(null);
+
     let SavedNickname;
     let SavedEmail;
     let SavedPhone;
@@ -42,14 +44,26 @@ const Register = () => {
 
     const handleNicknameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setNickname(e.target.value);
+
+        if (nicknameField.current) {
+            nicknameField.current.setCustomValidity('');
+        }
     }
 
     const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setEmail(e.target.value);
+
+        if (emailField.current) {
+            emailField.current.setCustomValidity('');
+        }
     }
 
     const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setPhone(e.target.value);
+
+        if (phoneField.current) {
+            phoneField.current.setCustomValidity('');
+        }
     }
 
     const togglePasswordVisibility = () => {
@@ -58,6 +72,10 @@ const Register = () => {
 
     const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setPassword(e.target.value);
+
+        if (passwordField.current) {
+            passwordField.current.setCustomValidity('');
+        }
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -67,42 +85,38 @@ const Register = () => {
         const phoneRegex = /^\+\d{11}$/; 
 
         if (!email) {
-            emailField.setCustomValidity('Пожалуйста, введите email.');
-
+            emailField.current?.setCustomValidity('Пожалуйста, введите email.');
+            emailField.current?.reportValidity();
         } else if (
             !(emailRegex.test(email))
         ) {
-            emailField.setCustomValidity('Введите корректный email.');
+            emailField.current?.setCustomValidity('Введите корректный email.');
+            emailField.current?.reportValidity();
         }
 
         if (!nickname) {
-            nicknameField.setCustomValidity('Пожалуйста, введите отображаемое имя.');
+            nicknameField.current?.setCustomValidity('Пожалуйста, введите отображаемое имя.');
+            nicknameField.current?.reportValidity();
         }
 
         if (!phone) {
-            phoneField.setCustomValidity('Пожалуйста, введите номер телефона.')
+            phoneField.current?.setCustomValidity('Пожалуйста, введите номер телефона.')
+            phoneField.current?.reportValidity();
         } else if (
             !(phoneRegex.test(phone))
         ) {
-            phoneField.setCustomValidity('Введите корректный номер телефона.');
+            phoneField.current?.setCustomValidity('Введите корректный номер телефона.');
+            phoneField.current?.reportValidity();
         }
 
         if (!password) {
-            passwordField.setCustomValidity('Введите пароль.');
+            passwordField.current?.setCustomValidity('Введите пароль.');
+            passwordField.current?.reportValidity();
         } else if (password.length < 6) {
-            passwordField.setCustomValidity('Пароль должен содержать минимум 6 символов.');
+            passwordField.current?.setCustomValidity('Пароль должен содержать минимум 6 символов.');
+            passwordField.current?.reportValidity();
         }
     }
-
-    const clearValidity = (e: FormEvent) => {
-        e.preventDefault();
-        
-        emailField.setCustomValidity("");
-        nicknameField.setCustomValidity("");
-        phoneField.setCustomValidity("");
-        passwordField.setCustomValidity("");
-    }
-
 
     return (
         <div className="centered-container">
@@ -119,7 +133,10 @@ const Register = () => {
                 onPasswordChange={handlePasswordChange}
                 onTogglePasswordVisibility={togglePasswordVisibility}
                 onSubmit={handleSubmit}
-                onInput={clearValidity}
+                emailRef={emailField}
+                nicknameRef={nicknameField}
+                phoneRef={phoneField}
+                passwordRef={passwordField}
             />
             <FooterComponent/>
         </div>
