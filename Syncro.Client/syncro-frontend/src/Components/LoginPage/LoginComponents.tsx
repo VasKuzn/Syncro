@@ -89,14 +89,14 @@ const LoginComponent: React.FC<LoginComponentProps> = ({
                             data-tg-on="Yes"
                             htmlFor="keep-signed-in"
                         ></label>
-                    </div>
+                    </div>  
                     <label htmlFor="keep-signed-in">Keep me signed in</label>
                 </div>
 
                 <a href="forgot-password" className="forgot-element">Forgot password?</a>
 
                 <div className="buttons">
-                    <button type="submit" className="primary-button">Sign in</button>
+                    <button type="submit" className="primary-button">Sign in {isLoading && <div className="spinner" aria-hidden="true"></div>} </button>
                 </div>
             </form>
         </div>
