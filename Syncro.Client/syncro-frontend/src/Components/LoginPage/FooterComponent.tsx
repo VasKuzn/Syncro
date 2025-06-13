@@ -7,7 +7,7 @@ const FooterComponent = () => {
             <footer>
                 <div>
                     <p>
-                        Want to synchronize?                        
+                        Want to synchronize?&nbsp;                         
                         <Link to="/register" >Sign up!</Link>
                     </p>                 
                     <ul>

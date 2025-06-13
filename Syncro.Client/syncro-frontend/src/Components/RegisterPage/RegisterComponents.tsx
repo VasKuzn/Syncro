@@ -3,16 +3,16 @@ import HeaderComponent from './HeaderComponent';
 
 interface RegisterComponentProps {
     nickname: string;
-    firstname: string;
-    lastname: string;
     email: string;
     phone: string;
     password: string;
     passwordVisible: boolean;
     isLoading: boolean;
+    emailRef: React.RefObject<HTMLInputElement>;
+    passwordRef: React.RefObject<HTMLInputElement>;
+    phoneRef: React.RefObject<HTMLInputElement>;
+    nicknameRef: React.RefObject<HTMLInputElement>;
     onNicknameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    onFirstnameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    onLastnameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onEmailChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onPhoneChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onPasswordChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -22,16 +22,16 @@ interface RegisterComponentProps {
 
 const RegisterComponent: React.FC<RegisterComponentProps> = ({
     nickname,
-    firstname,
-    lastname,
     email,
     phone,
     password,
     passwordVisible,
     isLoading,
+    emailRef,
+    passwordRef,
+    phoneRef,
+    nicknameRef,
     onNicknameChange,
-    onFirstnameChange,
-    onLastnameChange,
     onEmailChange,
     onPhoneChange,
     onPasswordChange,
@@ -41,30 +41,20 @@ const RegisterComponent: React.FC<RegisterComponentProps> = ({
     return (
         <div className="main-container">
             <HeaderComponent />
-            <form id="login-form" onSubmit={onSubmit}>
+            <form id="login-form" onSubmit={onSubmit} noValidate>
                 <div className="input-container">
-                    <label htmlFor="firstname">First name</label>
-                    <input
-                        className="log-element"
-                        type="text"
-                        id="firstname"
-                        placeholder="First name"
-                        required
-                        value={firstname}
-                        onChange={onFirstnameChange}
-                        maxLength={100}
-                    />
 
-                    <label htmlFor="lastname">Last name</label>
+                    <label htmlFor="email">Email</label>
                     <input
                         className="log-element"
                         type="text"
-                        id="lastname"
-                        placeholder="Last name"
+                        id="email"
+                        placeholder="Email"
                         required
-                        value={lastname}
-                        onChange={onLastnameChange}
+                        value={email}
+                        onChange={onEmailChange}
                         maxLength={100}
+                        ref={emailRef}
                     />
 
                     <label htmlFor="nickname">Nickname</label>
@@ -77,18 +67,7 @@ const RegisterComponent: React.FC<RegisterComponentProps> = ({
                         value={nickname}
                         onChange={onNicknameChange}
                         maxLength={100}
-                    />
-
-                    <label htmlFor="email">Email</label>
-                    <input
-                        className="log-element"
-                        type="text"
-                        id="email"
-                        placeholder="Email"
-                        required
-                        value={email}
-                        onChange={onEmailChange}
-                        maxLength={100}
+                        ref={nicknameRef}
                     />
 
                     <label htmlFor="phone">Phone</label>
@@ -101,6 +80,7 @@ const RegisterComponent: React.FC<RegisterComponentProps> = ({
                         value={phone}
                         onChange={onPhoneChange}
                         maxLength={12}
+                        ref={phoneRef}
                     />
 
                     <label htmlFor="password">Password</label>
@@ -113,6 +93,7 @@ const RegisterComponent: React.FC<RegisterComponentProps> = ({
                             required
                             value={password}
                             onChange={onPasswordChange}
+                            ref={passwordRef}
                         />
                         <button
                             type="button"
@@ -124,10 +105,11 @@ const RegisterComponent: React.FC<RegisterComponentProps> = ({
                             {passwordVisible ? "Hide" : "Show"}
                         </button>
                     </div>
+                    
                 </div>
 
                 <div className="buttons">
-                    <button type="submit" className="primary-button">Sign in</button>
+                    <button type="submit" className="primary-button">Sign up {isLoading && <div className="spinner" aria-hidden="true"></div>} </button>
                 </div>
             </form>
         </div>

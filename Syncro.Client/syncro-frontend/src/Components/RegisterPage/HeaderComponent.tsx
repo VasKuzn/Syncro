@@ -6,7 +6,7 @@ const HeaderComponent = () => {
             <div className="logo-container">
                 <img src="./logo black.jpeg" alt="Syncro logo" width="150" height="150" />
             </div>
-            <p>Stay synchronized with your buddies</p>
+            <p>Stay synchronized with your buddies!</p>
         </header>
     )
 }

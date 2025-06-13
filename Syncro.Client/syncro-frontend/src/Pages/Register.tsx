@@ -1,38 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, FormEvent, useRef } from 'react';
 import '../Styles/Register.css';
 import RegisterComponent from '../Components/RegisterPage/RegisterComponents';
+import FooterComponent from '../Components/RegisterPage/FooterComponent';
 
 
 const Register = () => {
-    const [firstname, setFirstname] = useState('');
-    const [lastname, setLastname] = useState('');
     const [nickname, setNickname] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    let SavedFirstname;
-    let SavedLastname;
+
+    const emailField = useRef<HTMLInputElement>(null);
+    const nicknameField = useRef<HTMLInputElement>(null);
+    const phoneField = useRef<HTMLInputElement>(null);
+    const passwordField = useRef<HTMLInputElement>(null);
+
     let SavedNickname;
     let SavedEmail;
     let SavedPhone;
     let SavedPassword;
 
     useEffect(() => {
-        SavedFirstname = localStorage.getItem('firstname');
-        SavedLastname = localStorage.getItem('lastname');
         SavedNickname = localStorage.getItem('nickname');
         SavedEmail = localStorage.getItem('email');
         SavedPhone = localStorage.getItem('phone');
         SavedPassword = localStorage.getItem('password');
         
-        if(SavedFirstname){
-            setFirstname(SavedFirstname)
-        }
-        if(SavedLastname){
-            setLastname(SavedLastname)
-        }
         if(SavedNickname){
             setNickname(SavedNickname)
         }
@@ -47,24 +42,51 @@ const Register = () => {
         }
     }, []);
 
-    const handleFirstnameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFirstname(e.target.value);
-    }
+    const registerUser = async (email: string, password: string, nickname: string, phonenumber, isOnline: boolean) => {
+        let credentials = {email, password, nickname, phonenumber, isOnline}
+        try {
+            const response = await fetch('http://localhost:5232/api/accounts/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(credentials),
+            });
+            console.log(credentials);
+            console.log(response);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Ошибка регистрации');
+            }
 
-    const handleLastnameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setLastname(e.target.value);
-    }
+            return await response.json();
+        } catch (error) {
+            throw new Error(error.message || 'Ошибка сети');
+        }
+    };
 
     const handleNicknameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setNickname(e.target.value);
+
+        if (nicknameField.current) {
+            nicknameField.current.setCustomValidity('');
+        }
     }
 
     const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setEmail(e.target.value);
+
+        if (emailField.current) {
+            emailField.current.setCustomValidity('');
+        }
     }
 
     const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setPhone(e.target.value);
+
+        if (phoneField.current) {
+            phoneField.current.setCustomValidity('');
+        }
     }
 
     const togglePasswordVisibility = () => {
@@ -73,70 +95,89 @@ const Register = () => {
 
     const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setPassword(e.target.value);
+
+        if (passwordField.current) {
+            passwordField.current.setCustomValidity('');
+        }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const phoneRegex = /^\+\d{11}$/;
-
-        if (!firstname) {
-            alert('Пожалуйста, введите имя.');
-        }
-
-        if (!lastname) {
-            alert('Пожалуйста, введите фамилию.');
-        }        
-
-        if (!nickname) {
-            alert('Пожалуйста, введите отображаемое имя.');
-        }
+        const phoneRegex = /^\+\d{11}$/; 
 
         if (!email) {
-            alert('Пожалуйста, введите email.');
+            emailField.current?.setCustomValidity('Пожалуйста, введите email.');
+            emailField.current?.reportValidity();
         } else if (
             !(emailRegex.test(email))
         ) {
-            alert('Введите корректный email или номер телефона.');
+            emailField.current?.setCustomValidity('Введите корректный email.');
+            emailField.current?.reportValidity();
         }
-        
+
+        if (!nickname) {
+            nicknameField.current?.setCustomValidity('Пожалуйста, введите отображаемое имя.');
+            nicknameField.current?.reportValidity();
+        }
+
         if (!phone) {
-            alert('Пожалуйста, введите номер телефона.');
+            phoneField.current?.setCustomValidity('Пожалуйста, введите номер телефона.')
+            phoneField.current?.reportValidity();
         } else if (
             !(phoneRegex.test(phone))
         ) {
-            alert('Введите корректный номер телефона.');
+            phoneField.current?.setCustomValidity('Введите корректный номер телефона.');
+            phoneField.current?.reportValidity();
         }
 
         if (!password) {
-            alert('Введите пароль.');
+            passwordField.current?.setCustomValidity('Введите пароль.');
+            passwordField.current?.reportValidity();
         } else if (password.length < 6) {
-            alert('Пароль должен содержать минимум 6 символов.');
+            passwordField.current?.setCustomValidity('Пароль должен содержать минимум 6 символов.');
+            passwordField.current?.reportValidity();
+        }
+
+        setIsLoading(true)
+    
+        try {
+            const response = await registerUser(
+                email,
+                password,
+                nickname,
+                phone,
+                false
+            );          
+        } catch (error) {
+            console.error('Ошибка регистрации:', error);
+        } finally {
+            setIsLoading(false);
         }
     }
-
 
     return (
         <div className="centered-container">
             <RegisterComponent
-                firstname={firstname}
-                lastname={lastname}
                 nickname={nickname}
                 email={email}
                 phone={phone}
                 password={password}
                 passwordVisible={passwordVisible}
                 isLoading={isLoading}
-                onFirstnameChange={handleFirstnameChange}
-                onLastnameChange={handleLastnameChange}
                 onNicknameChange={handleNicknameChange}
                 onEmailChange={handleEmailChange}
                 onPhoneChange={handlePhoneChange}
                 onPasswordChange={handlePasswordChange}
                 onTogglePasswordVisibility={togglePasswordVisibility}
                 onSubmit={handleSubmit}
+                emailRef={emailField}
+                nicknameRef={nicknameField}
+                phoneRef={phoneField}
+                passwordRef={passwordField}
             />
+            <FooterComponent/>
         </div>
     );
 }
