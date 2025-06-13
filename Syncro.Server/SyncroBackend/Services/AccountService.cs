@@ -4,6 +4,7 @@ namespace SyncroBackend.Services
     {
         private readonly IAccountRepository _accountRepository;
         private readonly IJwtProvider _jwtProvider;
+        private readonly ILogger _logger;
 
         public AccountService(IAccountRepository accountRepository, IJwtProvider jwtProvider)
         {
@@ -70,6 +71,7 @@ namespace SyncroBackend.Services
             }
             var token = _jwtProvider.GenerateToken(user);
             return token;
+
         }
     }
 }
