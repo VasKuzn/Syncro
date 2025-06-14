@@ -3,10 +3,13 @@ namespace SyncroBackend.Services
     public class AccountService : IAccountService
     {
         private readonly IAccountRepository _accountRepository;
+        private readonly IJwtProvider _jwtProvider;
+        private readonly ILogger _logger;
 
-        public AccountService(IAccountRepository accountRepository)
+        public AccountService(IAccountRepository accountRepository, IJwtProvider jwtProvider)
         {
             _accountRepository = accountRepository;
+            _jwtProvider = jwtProvider;
         }
         public async Task<List<AccountModel>> GetAllAccountsAsync()
         {
@@ -38,7 +41,7 @@ namespace SyncroBackend.Services
             var existingAccount = await _accountRepository.GetAccountByIdAsync(accountId);
 
             existingAccount.nickname = accountDto.nickname;
-            existingAccount.password = BCrypt.Net.BCrypt.HashPassword(accountDto.password);
+            existingAccount.password = accountDto.password;
             existingAccount.email = accountDto.email;
             existingAccount.phonenumber = accountDto.phonenumber;
             existingAccount.firstname = accountDto.firstname;
@@ -46,6 +49,29 @@ namespace SyncroBackend.Services
 
             return await _accountRepository.UpdateAccountAsync(existingAccount);
         }
+        public async Task<AccountModel> UpdateOnlineAccountAsync(Guid accountId)
+        {
+            var existingAccount = await _accountRepository.GetAccountByIdAsync(accountId);
+            existingAccount.isOnline = !existingAccount.isOnline;
+            return await _accountRepository.UpdateAccountAsync(existingAccount);
+        }
 
+        public bool VerifyPassword(string password, string hashedPassword)
+        {
+            return BCrypt.Net.BCrypt.EnhancedVerify(password, hashedPassword);
+        }
+
+        public async Task<string> Login(string email, string password)
+        {
+            var user = await _accountRepository.GetAccountByEmailAsync(email);
+            var result = VerifyPassword(password, user.password);
+            if (!result)
+            {
+                throw new Exception("Failed to login");
+            }
+            var token = _jwtProvider.GenerateToken(user);
+            return token;
+
+        }
     }
 }
