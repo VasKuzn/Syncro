@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatHub Tester</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-header {
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 15px;
+        }
+
+        .chat-messages {
+            height: 500px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+        }
+
+        .message {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            background-color: #f0f0f0;
+        }
+
+        .message.sent {
+            background-color: #e3f2fd;
+            margin-left: 20%;
+        }
+
+        .message.received {
+            background-color: #f5f5f5;
+            margin-right: 20%;
+        }
+
+        .message-info {
+            font-size: 0.8em;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .message-content {
+            word-wrap: break-word;
+        }
+
+        .message-actions {
+            font-size: 0.7em;
+            margin-top: 4px;
+        }
+
+        .message-actions a {
+            color: #2196F3;
+            margin-right: 8px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .message-actions a:hover {
+            text-decoration: underline;
+        }
+
+        .message-input {
+            display: flex;
+            gap: 10px;
+        }
+
+        .message-input textarea {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: none;
+            height: 60px;
+        }
+
+        .message-input button {
+            padding: 10px 20px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .message-input button:hover {
+            background-color: #0d8bf2;
+        }
+
+        .status {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .edit-form {
+            display: none;
+            margin-top: 5px;
+        }
+
+        .edit-form textarea {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 5px;
+        }
+
+        .edit-form button {
+            padding: 5px 10px;
+            margin-right: 5px;
+        }
+
+        .connection-status {
+            margin-top: 10px;
+            padding: 5px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .connected {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .disconnected {
+            background-color: #F44336;
+            color: white;
+        }
+
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+
+        .load-more {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .load-more button {
+            padding: 5px 15px;
+            background-color: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="chat-header">
+            <h2>Chat</h2>
+            <div class="status">
+                User: <strong id="currentUser">Not selected</strong> |
+                Status: <span id="connectionStatus" class="disconnected">Disconnected</span>
+            </div>
+        </div>
+
+        <div class="load-more">
+            <button id="loadMoreBtn" disabled>Load more messages</button>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="loading">Connecting to chat...</div>
+        </div>
+
+        <div class="message-input">
+            <textarea id="messageInput" placeholder="Type your message here..." disabled></textarea>
+            <button id="sendButton" disabled>Send</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
+    <script>
+        // Configuration
+        const hubUrl = 'http://localhost:5000/chathub';
+        const apiBaseUrl = 'http://localhost:5000/api';
+        const currentUserId = '330f8dfa-57cc-459e-b469-bb0572ce71fb';
+        const currentConferenceId = '3fa85f64-5717-4562-b3fc-2c963f66afb8';
+
+        // DOM elements
+        const currentUserSpan = document.getElementById('currentUser');
+        const connectionStatusSpan = document.getElementById('connectionStatus');
+        const chatMessagesDiv = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const loadMoreBtn = document.getElementById('loadMoreBtn');
+
+        // State
+        let connection = null;
+        let loadedMessagesCount = 0;
+        let nicknamesCache = { [currentUserId]: currentUserSpan.textContent };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeConnection();
+        });
+
+        // Event listeners
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', e => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        loadMoreBtn.addEventListener('click', loadMoreMessages);
+
+        // Connection management
+        async function initializeConnection() {
+            connection = new signalR.HubConnectionBuilder()
+                .withUrl(`${hubUrl}?userId=${currentUserId}`)
+                .withAutomaticReconnect()
+                .configureLogging(signalR.LogLevel.Warning)
+                .build();
+
+            setupConnectionHandlers();
+
+            try {
+                await connection.start();
+                console.log('Connected to SignalR hub');
+                connectionStatusSpan.textContent = 'Connected';
+                connectionStatusSpan.className = 'connected';
+
+                await connection.invoke('JoinPersonalConference', currentConferenceId, currentUserId);
+                console.log('Joined personal conference');
+
+                enableUI();
+            } catch (error) {
+                console.error('Connection failed:', error);
+                handleConnectionError(error);
+            }
+        }
+
+        function setupConnectionHandlers() {
+            // Connection state
+            connection.onreconnecting(() => {
+                connectionStatusSpan.textContent = 'Reconnecting...';
+                connectionStatusSpan.className = 'disconnected';
+                disableUI();
+            });
+
+            connection.onreconnected(() => {
+                connectionStatusSpan.textContent = 'Connected';
+                connectionStatusSpan.className = 'connected';
+                enableUI();
+                connection.invoke('JoinPersonalConference', currentConferenceId, currentUserId)
+                    .catch(err => console.error('Rejoin failed:', err));
+            });
+
+            connection.onclose(() => {
+                connectionStatusSpan.textContent = 'Disconnected';
+                connectionStatusSpan.className = 'disconnected';
+                disableUI();
+            });
+
+            // Message handlers
+            connection.on('ReceiveInitialData', handleInitialData);
+            connection.on('ReceiveMessage', handleNewMessage);
+            connection.on('MessageEdited', handleMessageEdited);
+            connection.on('MessageDeleted', handleMessageDeleted);
+            connection.on('ReceiveMoreMessages', handleMoreMessages);
+            connection.on('MessagePinToggled', handlePinToggled);
+        }
+
+        // Message handling
+        async function handleInitialData(data) {
+            console.log('Initial data received:', data);
+            chatMessagesDiv.innerHTML = '';
+
+            if (data.Messages?.length) {
+                loadedMessagesCount = data.Messages.length;
+                displayMessages(data.Messages.reverse());
+            }
+        }
+
+        function handleNewMessage(message) {
+            console.log('New message received:', message);
+            addMessageToChat({
+                Id: message.messageId,
+                messageContent: message.content,
+                messageDateSent: new Date(message.timestamp),
+                accountId: message.senderId,
+                personalConferenceId: currentConferenceId,
+                nickname: message.senderName,
+                isEdited: false,
+                isPinned: false
+            });
+        }
+
+        function handleMessageEdited(data) {
+            updateMessageInChat(data.messageId, {
+                messageContent: data.newContent,
+                isEdited: true,
+                editTimestamp: data.editTimestamp
+            });
+        }
+
+        function handleMessageDeleted(messageId) {
+            removeMessageFromChat(messageId);
+        }
+
+        function handleMoreMessages(messages) {
+            console.log('More messages received:', messages);
+            if (messages.length > 0) {
+                loadedMessagesCount += messages.length;
+                prependMessagesToChat(messages.reverse());
+            } else {
+                loadMoreBtn.disabled = true;
+            }
+        }
+
+        function handlePinToggled(data) {
+            updateMessageInChat(data.messageId, {
+                isPinned: data.isPinned
+            });
+        }
+
+        // UI functions
+        function displayMessages(messages) {
+            messages.forEach(message => addMessageToChat(message));
+        }
+
+        function prependMessagesToChat(messages) {
+            const fragment = document.createDocumentFragment();
+            messages.forEach(message => fragment.appendChild(createMessageElement(message)));
+            chatMessagesDiv.insertBefore(fragment, chatMessagesDiv.firstChild);
+        }
+
+        function addMessageToChat(message) {
+            chatMessagesDiv.appendChild(createMessageElement(message));
+            chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+        }
+
+        function createMessageElement(message) {
+            const isCurrentUser = message.accountId === currentUserId;
+            const messageDate = new Date(message.messageDateSent);
+            const formattedTime = messageDate.toLocaleTimeString();
+
+            const messageElement = document.createElement('div');
+            messageElement.className = `message ${isCurrentUser ? 'sent' : 'received'}`;
+            messageElement.dataset.messageId = message.Id;
+
+            const infoElement = document.createElement('div');
+            infoElement.className = 'message-info';
+            infoElement.innerHTML = `
+                <strong>${message.nickname || 'Unknown'}</strong>
+                at ${formattedTime}
+                ${message.isEdited ? '(edited)' : ''}
+                ${message.isPinned ? '📌' : ''}
+            `;
+
+            const contentElement = document.createElement('div');
+            contentElement.className = 'message-content';
+            contentElement.textContent = message.messageContent;
+
+            const actionsElement = document.createElement('div');
+            actionsElement.className = 'message-actions';
+
+            if (isCurrentUser) {
+                actionsElement.innerHTML = `
+                    <a class="edit-message">Edit</a>
+                    <a class="delete-message">Delete</a>
+                    <a class="pin-message">${message.isPinned ? 'Unpin' : 'Pin'}</a>
+                `;
+            }
+
+            const editForm = document.createElement('div');
+            editForm.className = 'edit-form';
+            editForm.innerHTML = `
+                <textarea>${message.messageContent}</textarea>
+                <button class="save-edit">Save</button>
+                <button class="cancel-edit">Cancel</button>
+            `;
+
+            messageElement.append(infoElement, contentElement, actionsElement, editForm);
+            setupMessageActions(messageElement, message);
+
+            return messageElement;
+        }
+
+        function setupMessageActions(messageElement, message) {
+            if (message.accountId !== currentUserId) return;
+
+            const editLink = messageElement.querySelector('.edit-message');
+            const deleteLink = messageElement.querySelector('.delete-message');
+            const pinLink = messageElement.querySelector('.pin-message');
+            const saveButton = messageElement.querySelector('.save-edit');
+            const cancelButton = messageElement.querySelector('.cancel-edit');
+            const editForm = messageElement.querySelector('.edit-form');
+            const contentElement = messageElement.querySelector('.message-content');
+
+            editLink.addEventListener('click', () => {
+                editForm.style.display = 'block';
+                contentElement.style.display = 'none';
+            });
+
+            saveButton.addEventListener('click', async () => {
+                const newContent = editForm.querySelector('textarea').value.trim();
+                if (!newContent || newContent === message.messageContent) {
+                    editForm.style.display = 'none';
+                    contentElement.style.display = 'block';
+                    return;
+                }
+
+                try {
+                    await connection.invoke('EditMessage', message.Id, newContent);
+                    editForm.style.display = 'none';
+                    contentElement.style.display = 'block';
+                } catch (error) {
+                    console.error('Edit failed:', error);
+                    alert('Failed to edit message');
+                }
+            });
+
+            deleteLink.addEventListener('click', async () => {
+                if (!confirm('Delete this message?')) return;
+                try {
+                    await connection.invoke('DeleteMessage', message.Id);
+                } catch (error) {
+                    console.error('Delete failed:', error);
+                    alert('Failed to delete message');
+                }
+            });
+
+            pinLink.addEventListener('click', async () => {
+                try {
+                    await connection.invoke('TogglePinMessage', message.Id);
+                } catch (error) {
+                    console.error('Pin failed:', error);
+                    alert('Failed to toggle pin');
+                }
+            });
+
+            cancelButton.addEventListener('click', () => {
+                editForm.style.display = 'none';
+                contentElement.style.display = 'block';
+            });
+        }
+
+        function updateMessageInChat(messageId, updates) {
+            const messageElement = chatMessagesDiv.querySelector(`[data-message-id="${messageId}"]`);
+            if (!messageElement) return;
+
+            if (updates.messageContent) {
+                messageElement.querySelector('.message-content').textContent = updates.messageContent;
+            }
+
+            const infoElement = messageElement.querySelector('.message-info');
+            if (updates.isEdited) {
+                infoElement.innerHTML = infoElement.innerHTML.replace('(edited)', '') + ' (edited)';
+            }
+
+            if (updates.isPinned !== undefined) {
+                const pinLink = messageElement.querySelector('.pin-message');
+                if (pinLink) {
+                    pinLink.textContent = updates.isPinned ? 'Unpin' : 'Pin';
+                }
+                if (updates.isPinned) {
+                    infoElement.innerHTML = infoElement.innerHTML.replace('📌', '') + '📌';
+                } else {
+                    infoElement.innerHTML = infoElement.innerHTML.replace('📌', '');
+                }
+            }
+        }
+
+        function removeMessageFromChat(messageId) {
+            const messageElement = chatMessagesDiv.querySelector(`[data-message-id="${messageId}"]`);
+            if (messageElement) messageElement.remove();
+        }
+
+        // Utility functions
+        function enableUI() {
+            messageInput.disabled = false;
+            sendButton.disabled = false;
+            loadMoreBtn.disabled = false;
+        }
+
+        function disableUI() {
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+            loadMoreBtn.disabled = true;
+        }
+
+        function handleConnectionError(error) {
+            console.error('Connection error:', error);
+            connectionStatusSpan.textContent = 'Connection failed';
+            connectionStatusSpan.className = 'disconnected';
+            disableUI();
+        }
+
+        function sendMessage() {
+            const content = messageInput.value.trim();
+            if (!content) return;
+
+            connection.invoke('SendPersonalMessageAsync', currentConferenceId, currentUserId, content)
+                .then(() => messageInput.value = '')
+                .catch(error => console.error('Send failed:', error));
+        }
+
+        function loadMoreMessages() {
+            connection.invoke('LoadMoreMessages', currentConferenceId, loadedMessagesCount)
+                .catch(error => console.error('Load more failed:', error));
+        }
+    </script>
+</body>
+
+</html>

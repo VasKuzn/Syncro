@@ -2,10 +2,10 @@ namespace SyncroBackend.Models.Enums
 {
     public enum CallTypesEnum
     {
-        text,    // only text
-        voice,   // +voice  .. etc
-        video,
-        screen,
+        text,    //0 only text
+        voice,   //1 +voice  .. etc
+        video,   //2
+        screen,  //3
         announcement    // for news channels
     }
 }

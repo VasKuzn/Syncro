@@ -36,6 +36,9 @@ namespace SyncroBackend.Migrations
                     b.Property<string>("firstname")
                         .HasColumnType("text");
 
+                    b.Property<bool>("isOnline")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("lastname")
                         .HasColumnType("text");
 
@@ -56,6 +59,26 @@ namespace SyncroBackend.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Accounts", (string)null);
+                });
+
+            modelBuilder.Entity("SyncroBackend.Models.ConferenceRolesModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("conferenceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("rolePermissions")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("conferenceId");
+
+                    b.ToTable("ConferenceRoles", (string)null);
                 });
 
             modelBuilder.Entity("SyncroBackend.Models.FriendsModel", b =>
@@ -112,11 +135,16 @@ namespace SyncroBackend.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
+                    b.Property<Guid>("roleId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("accountId");
 
                     b.HasIndex("groupConferenceId");
+
+                    b.HasIndex("roleId");
 
                     b.ToTable("GroupConferenceMembers", (string)null);
                 });
@@ -364,6 +392,12 @@ namespace SyncroBackend.Migrations
                         .HasColumnType("uuid")
                         .HasDefaultValueSql("gen_random_uuid()");
 
+                    b.Property<Guid>("accountId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("assignedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<Guid>("roleId")
                         .HasColumnType("uuid");
 
@@ -373,11 +407,18 @@ namespace SyncroBackend.Migrations
                     b.Property<long>("sectorPermissions")
                         .HasColumnType("bigint");
 
+                    b.Property<Guid>("serverId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("accountId");
 
                     b.HasIndex("roleId");
 
                     b.HasIndex("sectorId");
+
+                    b.HasIndex("serverId");
 
                     b.ToTable("SectorPermissions", (string)null);
                 });
@@ -480,6 +521,15 @@ namespace SyncroBackend.Migrations
                     b.ToTable("Servers", (string)null);
                 });
 
+            modelBuilder.Entity("SyncroBackend.Models.ConferenceRolesModel", b =>
+                {
+                    b.HasOne("SyncroBackend.Models.GroupConferenceModel", null)
+                        .WithMany()
+                        .HasForeignKey("conferenceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("SyncroBackend.Models.FriendsModel", b =>
                 {
                     b.HasOne("SyncroBackend.Models.AccountModel", null)
@@ -506,6 +556,12 @@ namespace SyncroBackend.Migrations
                     b.HasOne("SyncroBackend.Models.GroupConferenceModel", null)
                         .WithMany()
                         .HasForeignKey("groupConferenceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SyncroBackend.Models.ConferenceRolesModel", null)
+                        .WithMany()
+                        .HasForeignKey("roleId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
@@ -578,6 +634,12 @@ namespace SyncroBackend.Migrations
 
             modelBuilder.Entity("SyncroBackend.Models.SectorPermissionsModel", b =>
                 {
+                    b.HasOne("SyncroBackend.Models.AccountModel", null)
+                        .WithMany()
+                        .HasForeignKey("accountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("SyncroBackend.Models.RolesModel", null)
                         .WithMany()
                         .HasForeignKey("roleId")
@@ -587,6 +649,12 @@ namespace SyncroBackend.Migrations
                     b.HasOne("SyncroBackend.Models.SectorModel", null)
                         .WithMany()
                         .HasForeignKey("sectorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SyncroBackend.Models.ServerModel", null)
+                        .WithMany()
+                        .HasForeignKey("serverId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
