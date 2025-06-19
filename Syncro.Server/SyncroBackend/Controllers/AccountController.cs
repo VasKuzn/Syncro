@@ -14,7 +14,6 @@ namespace SyncroBackend.Controllers
         }
 
         // GET: api/accounts
-        //[Authorize]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<AccountModel>>> GetAllAccounts()
         {
@@ -36,6 +35,24 @@ namespace SyncroBackend.Controllers
             try
             {
                 var account = await _accountService.GetAccountByIdAsync(id);
+                return Ok(account);
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+        // GET: api/accounts/{email}
+        [HttpGet("{email}/get")]
+        public async Task<ActionResult<AccountModel>> GetAccountByEmail(string email)
+        {
+            try
+            {
+                var account = await _accountService.GetAccountByEmailAsync(email);
                 return Ok(account);
             }
             catch (ArgumentException ex)

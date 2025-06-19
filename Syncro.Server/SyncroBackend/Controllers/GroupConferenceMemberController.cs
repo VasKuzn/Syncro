@@ -26,6 +26,7 @@ namespace SyncroBackend.Controllers
         }
         // GET /api/groupconferencemember{id}
         [HttpGet("{id}")]
+        //[Authorize]
         public async Task<ActionResult<GroupConferenceMemberModel>> GetGroupConferenceMemberById(Guid id)
         {
             try
@@ -44,6 +45,7 @@ namespace SyncroBackend.Controllers
         }
         // GET /api/groupconferencemembers{confereiceId}
         [HttpGet("{conferenceId}/groupConference")]
+        //[Authorize]
         public async Task<ActionResult<GroupConferenceMemberModel>> GetGroupConferenceMembersByConference(Guid conferenceId)
         {
             try
@@ -62,6 +64,7 @@ namespace SyncroBackend.Controllers
         }
         // GET /api/groupconferencemember{id}/{confereiceId}
         [HttpGet("{id}/{conferenceId}")]
+        //[Authorize]
         public async Task<ActionResult<GroupConferenceMemberModel>> GetGroupConferenceMembersByIdByConference(Guid id, Guid conferenceId)
         {
             try
@@ -79,6 +82,7 @@ namespace SyncroBackend.Controllers
             }
         }
         [HttpPost]
+        //[Authorize]
         public async Task<ActionResult<GroupConferenceMemberModel>> CreateGroupConferenceMember([FromBody] GroupConferenceMemberModel groupConferenceMember)
         {
             try
@@ -96,6 +100,7 @@ namespace SyncroBackend.Controllers
             }
         }
         [HttpPut]
+        //[Authorize]
         public async Task<IActionResult> UpdateGroupConferenceMember(Guid id, [FromBody] ConferenceMemberModelDto conferenceMemberDto)
         {
             try
@@ -117,6 +122,7 @@ namespace SyncroBackend.Controllers
             }
         }
         [HttpDelete]
+        //[Authorize]
         public async Task<IActionResult> DeleteGroupConferenceMember(Guid id)
         {
             try
