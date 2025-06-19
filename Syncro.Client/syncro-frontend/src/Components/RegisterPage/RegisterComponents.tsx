@@ -1,24 +1,7 @@
 import React from 'react';
 import HeaderComponent from './HeaderComponent';
+import { RegisterComponentProps } from '../../Types/LoginTypes';
 
-interface RegisterComponentProps {
-    nickname: string;
-    email: string;
-    phone: string;
-    password: string;
-    passwordVisible: boolean;
-    isLoading: boolean;
-    emailRef: React.RefObject<HTMLInputElement>;
-    passwordRef: React.RefObject<HTMLInputElement>;
-    phoneRef: React.RefObject<HTMLInputElement>;
-    nicknameRef: React.RefObject<HTMLInputElement>;
-    onNicknameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    onEmailChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    onPhoneChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    onPasswordChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    onTogglePasswordVisibility: () => void;
-    onSubmit: (e: React.FormEvent) => void;
-}
 
 const RegisterComponent: React.FC<RegisterComponentProps> = ({
     nickname,
@@ -105,11 +88,14 @@ const RegisterComponent: React.FC<RegisterComponentProps> = ({
                             {passwordVisible ? "Hide" : "Show"}
                         </button>
                     </div>
-                    
-                </div>
 
+                </div>
                 <div className="buttons">
-                    <button type="submit" className="primary-button">Sign up {isLoading && <div className="spinner" aria-hidden="true"></div>} </button>
+                    <button
+                        type="submit"
+                        className="primary-button">
+                        Sign up {isLoading && <div className="spinner" aria-hidden="true"></div>}
+                    </button>
                 </div>
             </form>
         </div>
