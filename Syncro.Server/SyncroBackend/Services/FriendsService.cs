@@ -17,6 +17,10 @@ namespace SyncroBackend.Services
         {
             return await _friendsRepository.GetFriendsByIdAsync(friendsId);
         }
+        public async Task<List<FriendsModel>> GetFriendsByAccountAsync(Guid Id)
+        {
+            return await _friendsRepository.GetFriendsByAccountAsync(Id);
+        }
 
         public async Task<FriendsModel> CreateFriendsAsync(FriendsModel friends)
         {

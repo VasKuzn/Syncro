@@ -8,5 +8,6 @@ namespace SyncroBackend.Interfaces
         public Task<FriendsModel> UpdateFriendsAsync(FriendsModel friends);
         public Task<bool> DeleteFriendsAsync(Guid friendsId);
         public Task<FriendsModel?> CheckFriendshipExistsAsync(Guid user1, Guid user2);
+        public Task<List<FriendsModel>> GetFriendsByAccountAsync(Guid Id);
     }
 }
