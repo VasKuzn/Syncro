@@ -1,21 +1,6 @@
 import React from 'react';
 import HeaderComponent from './HeaderComponent';
-
-interface LoginComponentProps {
-    emailOrPhone: string;
-    password: string;
-    passwordVisible: boolean;
-    keepSignedIn: boolean;
-    isLoading: boolean;
-    maxLength: number;
-    emailRef: React.RefObject<HTMLInputElement>;
-    passwordRef: React.RefObject<HTMLInputElement>;
-    onEmailOrPhoneChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    onPasswordChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    onKeepSignedInChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    onTogglePasswordVisibility: () => void;
-    onSubmit: (e: React.FormEvent) => void;
-}
+import { LoginComponentProps } from '../../Types/LoginTypes';
 
 const LoginComponent: React.FC<LoginComponentProps> = ({
     emailOrPhone,
@@ -89,7 +74,7 @@ const LoginComponent: React.FC<LoginComponentProps> = ({
                             data-tg-on="Yes"
                             htmlFor="keep-signed-in"
                         ></label>
-                    </div>  
+                    </div>
                     <label htmlFor="keep-signed-in">Keep me signed in</label>
                 </div>
 
