@@ -579,3 +579,43 @@ input::placeholder {
   color: #d5d6da;
   cursor: pointer;
 }
+
+footer a {
+  position: relative;
+  color: #007acc;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+footer a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 0;
+  height: 2px;
+  background-color: #007acc;
+  transition: width 0.3s ease;
+}
+
+footer a:hover,
+footer a:focus {
+  color: #005f99;
+}
+
+footer a:hover::after,
+footer a:focus::after {
+  width: 100%;
+}
+
+.success-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #4caf50;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
