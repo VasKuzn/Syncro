@@ -12,4 +12,3 @@ const HeaderComponent = () => {
 }
 
 export default HeaderComponent;
-// #07081c

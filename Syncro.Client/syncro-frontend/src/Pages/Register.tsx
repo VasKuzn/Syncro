@@ -158,7 +158,7 @@ const Register = () => {
     }
 
     return (
-        <div className="centered-container">
+        <div className="main-body centered-container">
             <RegisterComponent
                 nickname={nickname}
                 email={email}

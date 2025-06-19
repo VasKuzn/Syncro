@@ -40,8 +40,7 @@ const Login = () => {
                 },
                 body: JSON.stringify(credentials),
             });
-            console.log(credentials);
-            console.log(response);
+
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.message || 'Ошибка аутентификации');
@@ -51,11 +50,6 @@ const Login = () => {
         } catch (error) {
             throw new Error(error.message || 'Ошибка сети');
         }
-    };
-
-    const hashPassword = (password: string): string => {
-        const salt = bcrypt.genSaltSync(10);
-        return bcrypt.hashSync(password, salt);
     };
 
     const handleEmailOrPhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,13 +112,21 @@ const Login = () => {
         }
 
         setIsLoading(true)
-        let hashedPass = hashPassword(password);
     
         try {
             const response = await loginUser(
                 emailOrPhone,
                 password
-            );          
+            );
+            
+            if (keepSignedIn) {
+                localStorage.setItem('authToken', response.token);
+            } else {
+                sessionStorage.setItem('authToken', response.token);
+            }
+
+            window.location.href = '/app/main';
+
         } catch (error) {
             console.error('Ошибка авторизации:', error);
             
@@ -138,7 +140,7 @@ const Login = () => {
     }
 
     return (
-        <div className="centered-container">
+        <div className="main-body centered-container">
             <LoginComponent
                 emailOrPhone={emailOrPhone}
                 password={password}
