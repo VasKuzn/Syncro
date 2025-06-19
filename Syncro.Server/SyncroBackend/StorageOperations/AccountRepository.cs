@@ -57,5 +57,10 @@ namespace SyncroBackend.Repositories
             var user = await _context.accounts.FirstOrDefaultAsync(a => a.email == email) ?? throw new ArgumentException("Account is not found");
             return user;
         }
+        public async Task<AccountModel> GetAccountByNicknameAsync(string nickname)
+        {
+            var user = await _context.accounts.FirstOrDefaultAsync(a => a.nickname == nickname) ?? throw new ArgumentException("Account is not found");
+            return user;
+        }
     }
 }
