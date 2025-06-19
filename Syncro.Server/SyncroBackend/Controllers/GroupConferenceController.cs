@@ -13,6 +13,7 @@ namespace SyncroBackend.Controllers
 
         // GET /api/groupconference
         [HttpGet]
+        //[Authorize]
         public async Task<ActionResult<IEnumerable<GroupConferenceModel>>> GetAllGroupConferences()
         {
             try
@@ -47,6 +48,7 @@ namespace SyncroBackend.Controllers
 
         // POST: api/groupconference
         [HttpPost]
+        //[Authorize]
         public async Task<ActionResult<GroupConferenceModel>> CreateGroupConference(
             [FromBody] GroupConferenceModel conference)
         {
@@ -67,6 +69,7 @@ namespace SyncroBackend.Controllers
 
         // PUT: api/groupconference/{id}
         [HttpPut("{id}")]
+        //[Authorize]
         public async Task<ActionResult<GroupConferenceModel>> UpdateGroupConference(
             Guid id, [FromBody] string conferenceNickname)
         {
@@ -87,6 +90,7 @@ namespace SyncroBackend.Controllers
 
         // DELETE: api/groupconference/{id}
         [HttpDelete("{id}")]
+        //[Authorize]
         public async Task<IActionResult> DeleteGroupConference(Guid id)
         {
             try
