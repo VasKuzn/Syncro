@@ -26,6 +26,7 @@ namespace SyncroBackend.Controllers
         }
         // GET /api/personalconference/{id}
         [HttpGet("{id}")]
+        //[Authorize]
         public async Task<ActionResult<PersonalConferenceModel>> GetPersonalConferenceById(Guid id)
         {
             try
@@ -44,6 +45,7 @@ namespace SyncroBackend.Controllers
         }
         // POST: api/personalconference
         [HttpPost]
+        //[Authorize]
         public async Task<ActionResult<PersonalConferenceModel>> CreatePersonalConference(
         [FromBody] PersonalConferenceModel conference)
         {
@@ -63,6 +65,7 @@ namespace SyncroBackend.Controllers
         }
         // DELETE: api/personalconferences/{id}
         [HttpDelete("{id}")]
+        //[Authorize]
         public async Task<IActionResult> DeletePersonalConference(Guid id)
         {
             try

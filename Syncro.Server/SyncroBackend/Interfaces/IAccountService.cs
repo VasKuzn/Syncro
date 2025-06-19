@@ -10,5 +10,6 @@ namespace SyncroBackend.Interfaces
         public Task<AccountModel> UpdateOnlineAccountAsync(Guid accountId);
         public bool VerifyPassword(string password, string hashedPassword);
         public Task<string> Login(string email, string password);
+        public Task<AccountModel> GetAccountByEmailAsync(string email);
     }
 }
