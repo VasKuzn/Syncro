@@ -27,6 +27,7 @@ namespace SyncroBackend.Controllers
         }
         // GET: api/messages/{id}
         [HttpGet("{id}")]
+        //[Authorize]
         public async Task<ActionResult<MessageModel>> GetMessageById(Guid id)
         {
             try
@@ -45,6 +46,7 @@ namespace SyncroBackend.Controllers
         }
         // POST: api/messages
         [HttpPost]
+        //[Authorize]
         public async Task<ActionResult<AccountModel>> CreateMessage([FromBody] MessageModel account)
         {
             try
@@ -63,6 +65,7 @@ namespace SyncroBackend.Controllers
         }
         // PUT api/messages/{id}
         [HttpPut("text/{id}")]
+        //[Authorize]
         public async Task<ActionResult<MessageModel>> UpdateMessageText(Guid id, [FromBody] MessageDTO messageDto)
         {
             try
@@ -87,6 +90,7 @@ namespace SyncroBackend.Controllers
         [HttpPut("{id}/read")]
         [ProducesResponseType(typeof(MessageModel), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        //[Authorize]
         public async Task<ActionResult<MessageModel>> MarkAsRead(Guid id, Guid reader, [FromQuery] bool isRead)
         {
             try
@@ -108,6 +112,7 @@ namespace SyncroBackend.Controllers
         [HttpPut("{id}/pin")]
         [ProducesResponseType(typeof(MessageModel), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        //[Authorize]
         public async Task<ActionResult<MessageModel>> TogglePin(Guid id)
         {
             try
@@ -130,6 +135,7 @@ namespace SyncroBackend.Controllers
         [ProducesResponseType(typeof(MessageModel), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        //[Authorize]
         public async Task<ActionResult<MessageModel>> SetReference(Guid id, [FromQuery] Guid referenceMessageId)
         {
             try
@@ -154,6 +160,7 @@ namespace SyncroBackend.Controllers
 
         // DELETE: api/messages/{id}
         [HttpDelete("{id}")]
+        //[Authorize]
         public async Task<IActionResult> DeleteMessage(Guid id)
         {
             try

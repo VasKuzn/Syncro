@@ -28,6 +28,7 @@ namespace SyncroBackend.Controllers
 
         // GET: api/friends/{id}
         [HttpGet("{id}")]
+        //[Authorize]
         public async Task<ActionResult<FriendsModel>> GetFriendsById(Guid id)
         {
             try
@@ -49,6 +50,7 @@ namespace SyncroBackend.Controllers
 
         // POST: api/friends
         [HttpPost]
+        //[Authorize]
         public async Task<ActionResult<FriendsModel>> CreateFriends([FromBody] FriendsModel friends)
         {
             try
@@ -82,6 +84,7 @@ namespace SyncroBackend.Controllers
 
         // DELETE: api/friends/{id}
         [HttpDelete("{id}")]
+        //[Authorize]
         public async Task<IActionResult> DeleteFriends(Guid id)
         {
             try
@@ -103,6 +106,7 @@ namespace SyncroBackend.Controllers
 
         // PATCH: api/friends/{id}/status
         [HttpPatch("{id}/status")]
+        //[Authorize]
         public async Task<ActionResult<FriendsModel>> UpdateFriendsStatus(Guid id, [FromBody] FriendsStatusUpdateRequest statusUpdate)
         {
             try
