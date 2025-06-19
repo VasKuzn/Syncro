@@ -64,6 +64,24 @@ namespace SyncroBackend.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        // GET: api/accounts/{email}
+        [HttpGet("{nickname}/getnick")]
+        public async Task<ActionResult<AccountModel>> GetAccountByNickname(string nickname)
+        {
+            try
+            {
+                var account = await _accountService.GetAccountByNicknameAsync(nickname);
+                return Ok(account);
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
         // Мб потом убрать
         // GET: api/accounts/{id}/nickname
         [HttpGet("{userId}/nickname")]
