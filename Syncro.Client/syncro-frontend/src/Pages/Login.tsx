@@ -1,6 +1,6 @@
-import React, { useState, useEffect, FormEvent, useRef } from 'react';
-import bcrypt from 'bcryptjs';
+import React, { useState, useEffect, useRef } from 'react';
 import '../Styles/Login.css'
+import { NetworkError } from '../Types/LoginTypes';
 import LoginComponent from '../Components/LoginPage/LoginComponents';
 import FooterComponent from '../Components/LoginPage/FooterComponent';
 
@@ -31,7 +31,7 @@ const Login = () => {
     }, []);
 
     const loginUser = async (email: string, password: string) => {
-        let credentials = {email, password}
+        let credentials = { email, password }
         try {
             const response = await fetch('http://localhost:5232/api/accounts/login', {
                 method: 'POST',
@@ -39,6 +39,7 @@ const Login = () => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(credentials),
+                credentials: 'include',
             });
 
             if (!response.ok) {
@@ -48,7 +49,7 @@ const Login = () => {
 
             return await response.json();
         } catch (error) {
-            throw new Error(error.message || 'Ошибка сети');
+            throw new Error((error as NetworkError).message || 'Ошибка сети');
         }
     };
 
@@ -75,7 +76,7 @@ const Login = () => {
 
     const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setPassword(e.target.value);
-        
+
         if (passwordField.current) {
             passwordField.current.setCustomValidity('');
         }
@@ -87,9 +88,8 @@ const Login = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        //const phoneRegex = /^\+\d{11}$/;
 
         if (!emailOrPhone) {
             emailField.current?.setCustomValidity('Пожалуйста, введите email.');
@@ -112,9 +112,8 @@ const Login = () => {
         }
 
         setIsLoading(true)
-    
         try {
-            const response = await loginUser(
+            await loginUser(
                 emailOrPhone,
                 password
             );
@@ -129,7 +128,7 @@ const Login = () => {
 
         } catch (error) {
             console.error('Ошибка авторизации:', error);
-            
+
             if (emailField.current) {
                 emailField.current.setCustomValidity('Неверные учетные данные');
                 emailField.current.reportValidity();

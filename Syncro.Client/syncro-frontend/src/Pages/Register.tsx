@@ -1,16 +1,21 @@
-import React, { useState, useEffect, FormEvent, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import '../Styles/Register.css';
+import { NetworkError } from '../Types/LoginTypes';
 import RegisterComponent from '../Components/RegisterPage/RegisterComponents';
 import FooterComponent from '../Components/RegisterPage/FooterComponent';
+import { useNavigate } from 'react-router-dom';
+import SuccessNotification from '../Components/RegisterPage/SuccessNotificationComponent';
 
 
 const Register = () => {
+    const navigate = useNavigate();
     const [nickname, setNickname] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
 
     const emailField = useRef<HTMLInputElement>(null);
     const nicknameField = useRef<HTMLInputElement>(null);
@@ -27,8 +32,8 @@ const Register = () => {
         SavedEmail = localStorage.getItem('email');
         SavedPhone = localStorage.getItem('phone');
         SavedPassword = localStorage.getItem('password');
-        
-        if(SavedNickname){
+
+        if (SavedNickname) {
             setNickname(SavedNickname)
         }
         if (SavedEmail) {
@@ -42,8 +47,8 @@ const Register = () => {
         }
     }, []);
 
-    const registerUser = async (email: string, password: string, nickname: string, phonenumber, isOnline: boolean) => {
-        let credentials = {email, password, nickname, phonenumber, isOnline}
+    const registerUser = async (email: string, password: string, nickname: string, phonenumber: string, isOnline: boolean) => {
+        let credentials = { email, password, nickname, phonenumber, isOnline }
         try {
             const response = await fetch('http://localhost:5232/api/accounts/', {
                 method: 'POST',
@@ -51,6 +56,7 @@ const Register = () => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(credentials),
+                credentials: 'include',
             });
             console.log(credentials);
             console.log(response);
@@ -61,7 +67,7 @@ const Register = () => {
 
             return await response.json();
         } catch (error) {
-            throw new Error(error.message || 'Ошибка сети');
+            throw new Error((error as NetworkError).message || 'Ошибка сети');
         }
     };
 
@@ -101,64 +107,60 @@ const Register = () => {
         }
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
+        const form = e.currentTarget;
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const phoneRegex = /^\+\d{11}$/; 
+        const phoneRegex = /^\+\d{11}$/;
+
+        [emailField, nicknameField, phoneField, passwordField].forEach(ref => {
+            ref.current?.setCustomValidity('');
+        });
 
         if (!email) {
             emailField.current?.setCustomValidity('Пожалуйста, введите email.');
-            emailField.current?.reportValidity();
-        } else if (
-            !(emailRegex.test(email))
-        ) {
+        } else if (!emailRegex.test(email)) {
             emailField.current?.setCustomValidity('Введите корректный email.');
-            emailField.current?.reportValidity();
         }
-
         if (!nickname) {
             nicknameField.current?.setCustomValidity('Пожалуйста, введите отображаемое имя.');
-            nicknameField.current?.reportValidity();
         }
-
         if (!phone) {
-            phoneField.current?.setCustomValidity('Пожалуйста, введите номер телефона.')
-            phoneField.current?.reportValidity();
-        } else if (
-            !(phoneRegex.test(phone))
-        ) {
+            phoneField.current?.setCustomValidity('Пожалуйста, введите номер телефона.');
+        } else if (!phoneRegex.test(phone)) {
             phoneField.current?.setCustomValidity('Введите корректный номер телефона.');
-            phoneField.current?.reportValidity();
         }
-
         if (!password) {
             passwordField.current?.setCustomValidity('Введите пароль.');
-            passwordField.current?.reportValidity();
         } else if (password.length < 6) {
             passwordField.current?.setCustomValidity('Пароль должен содержать минимум 6 символов.');
-            passwordField.current?.reportValidity();
         }
 
-        setIsLoading(true)
-    
+        if (!form.reportValidity()) {
+            return;
+        }
+
+        setIsLoading(true);
+
         try {
-            const response = await registerUser(
-                email,
-                password,
-                nickname,
-                phone,
-                false
-            );          
-        } catch (error) {
-            console.error('Ошибка регистрации:', error);
+            await registerUser(email, password, nickname, phone, false);
+            setShowSuccess(true);
+        } catch (err) {
+            console.error(err);
         } finally {
             setIsLoading(false);
         }
-    }
+
+    };
+    const handleCloseNotification = () => {
+        setShowSuccess(false);
+        navigate('/');
+    };
 
     return (
         <div className="main-body centered-container">
+            {showSuccess && <SuccessNotification onClose={handleCloseNotification} />}
             <RegisterComponent
                 nickname={nickname}
                 email={email}
@@ -177,7 +179,7 @@ const Register = () => {
                 phoneRef={phoneField}
                 passwordRef={passwordField}
             />
-            <FooterComponent/>
+            <FooterComponent />
         </div>
     );
 }
