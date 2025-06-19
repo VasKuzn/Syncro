@@ -1,0 +1,59 @@
+name: Deploy
+
+on:
+  workflow_dispatch
+
+env:
+  SERVER_HOST: 213.189.201.21
+  SERVER_USER: root
+  SERVER_PATH: /root/github-test
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # Установка SSH-ключа
+      - name: Install SSH Key
+        uses: shimataro/ssh-key-action@v2.3.1
+        with:
+          key: "${{ secrets.MY_KEY }}"
+          known_hosts: "just-a-placeholder-so-we-dont-get-errors"
+      - name: Add server to known_hosts
+        run: ssh-keyscan -H ${{ env.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+      # Установка .NET 9 SDK
+      - name: Setup .NET 9 SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.202'
+
+      # Установка Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '23.8.0'
+
+      # Сборка backend
+      - name: Publish .NET Backend
+        working-directory: Syncro.Server/SyncroBackend
+        run: dotnet publish SyncroBackend.csproj -C Release -o publish
+
+      # Сборка frontend
+      - name: Build Frontend
+        working-directory: Syncro.Client/syncro-frontend
+        run: |
+          npm ci
+          npm run build
+
+      # Деплой на сервер
+      - name: Deploy to Server
+        run: |
+          rsync -avz \
+            --delete \
+            --exclude='.git*' \
+            Syncro.Server/SyncroBackend/dist/ \
+            Syncro.Client/syncro-frontend/build/ \
+            ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }}:${{ env.SERVER_PATH }}
