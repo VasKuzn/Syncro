@@ -47,6 +47,26 @@ namespace SyncroBackend.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        [HttpGet("{id}/getfriends")]
+        //[Authorize]
+        public async Task<ActionResult<IEnumerable<FriendsModel>>> GetFriendsAccountId(Guid id)
+        {
+            try
+            {
+                var friend = await _friendsService.GetFriendsByAccountAsync(id);
+
+                if (friend == null)
+                {
+                    return NotFound($"Friend with id {id} not found");
+                }
+
+                return Ok(friend);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
 
         // POST: api/friends
         [HttpPost]
