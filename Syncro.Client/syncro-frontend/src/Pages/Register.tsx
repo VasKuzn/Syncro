@@ -159,7 +159,7 @@ const Register = () => {
     };
 
     return (
-        <div className="main-body centered-container">
+        <div className="centered-container">
             {showSuccess && <SuccessNotification onClose={handleCloseNotification} />}
             <RegisterComponent
                 nickname={nickname}

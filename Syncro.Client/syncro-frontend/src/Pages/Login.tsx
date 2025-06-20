@@ -47,7 +47,12 @@ const Login = () => {
                 throw new Error(errorData.message || 'Ошибка аутентификации');
             }
 
-            return await response.json();
+        const data = await response.json();
+        const token = data.token;
+
+        localStorage.setItem('jwt', token);
+
+        return data;
         } catch (error) {
             throw new Error((error as NetworkError).message || 'Ошибка сети');
         }
@@ -113,7 +118,7 @@ const Login = () => {
 
         setIsLoading(true)
         try {
-            await loginUser(
+            const response = await loginUser(
                 emailOrPhone,
                 password
             );
@@ -139,7 +144,7 @@ const Login = () => {
     }
 
     return (
-        <div className="main-body centered-container">
+        <div className="centered-container">
             <LoginComponent
                 emailOrPhone={emailOrPhone}
                 password={password}

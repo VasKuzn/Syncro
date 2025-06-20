@@ -160,8 +160,92 @@ body {
     padding-left: 23px;
 }
 
-#root {
+.input-container {
     display: flex;
+    flex-grow: 1 1 auto;
+    padding: 10px 30px;
+}
+
+.input-box{
+    display: flex;
+    padding: 10px 10px;
+    background-color: #07081C;
+    border-radius: 10px;
+    color: #ffffff;
+}
+
+.friends-search {
+    font-size: large;
+    display: flex;
+    flex: 1;
+    border: none;
+    background-color: transparent;
+}
+
+.search-icon {
+    align-content: center;
+    height: 25px;
+    width: 25px;
+}
+
+.friend-item {
+    display: flex;
+    flex-direction: row;
+    height: 60px;
+    padding: 5px 30px;
+    border-top: 1px solid #d5d6da0e;
+    border-bottom: 1px solid #d5d6da0e;
+    justify-content: space-between;
+}
+
+.friend-avatar-container {
+    align-content: center;
+    height: 50px;
+    width: 50px;    
+    margin-right: 10px;
+}
+
+.friend-avatar {
+    align-content: center;
+}
+
+.friend-info-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.friend-text-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.friend-actions {
+    align-self: flex-end;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.message-icon {
+    align-content: center;
+    height: 25px;
+    width: 25px;
+}
+
+.actions-icon {
+    align-content: center;
+    height: 25px;
+    width: 25px;
+}
+
+.pc-list {
+    display: flex;
+    flex-direction: column;
     width: 100%;
-    height: 100%;
+    padding: 10px;
+}
+
+.pc-item {
+    margin: 5px 0;
 }
