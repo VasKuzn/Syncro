@@ -71,7 +71,7 @@ const FriendsComponent: React.FC<FriendsComponentProps> = ({friends}) => {
                 </button>
                 <div className="input-container">
                     <div className="input-box">
-                        <input id="add-friend" className="friends-search" placeholder="Введите почту друга"></input>
+                        <input id="add-friend" className="friends-search" placeholder="Введите ник друга"></input>
                     </div>
                 </div>                
                 <button className="button-friends-status add"

@@ -171,7 +171,6 @@ body {
     padding: 10px 10px;
     background-color: #07081C;
     border-radius: 10px;
-    color: #ffffff;
 }
 
 .friends-search {
@@ -179,7 +178,8 @@ body {
     display: flex;
     flex: 1;
     border: none;
-    background-color: transparent;
+    background-color: transparent;    
+    color: #ffffff;
 }
 
 .search-icon {
