@@ -24,6 +24,10 @@ namespace SyncroBackend.Services
         {
             return await _accountRepository.GetAccountByEmailAsync(email);
         }
+        public async Task<AccountModel> GetAccountByNicknameAsync(string nickname)
+        {
+            return await _accountRepository.GetAccountByNicknameAsync(nickname);
+        }
         public async Task<AccountModel> CreateAccountAsync(AccountModel account)
         {
             if (await _accountRepository.AccountExistsByNicknameAsync(account.nickname))

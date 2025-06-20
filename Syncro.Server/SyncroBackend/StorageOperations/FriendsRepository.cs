@@ -19,6 +19,19 @@ namespace SyncroBackend.StorageOperations
             return await _context.friends.FirstOrDefaultAsync(f => f.Id == friendsId)
                    ?? throw new ArgumentException("Friends are not found");
         }
+        public async Task<List<FriendsModel>> GetFriendsByAccountAsync(Guid Id)
+        {
+            var friends = await _context.friends
+                .Where(f => f.userWhoSent == Id)
+                .ToListAsync();
+
+            if (friends == null || !friends.Any())
+            {
+                throw new ArgumentException("Friends are not found");
+            }
+
+            return friends;
+        }
         public async Task<FriendsModel> CreateFriendsAsync(FriendsModel friends)
         {
             await _context.friends.AddAsync(friends);
