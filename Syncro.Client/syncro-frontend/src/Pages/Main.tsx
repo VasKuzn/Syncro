@@ -50,7 +50,7 @@ const Main = () => {
             
             const data: FriendList[] =  await response.json();
             loadFriendInfo(data);
-
+            await new Promise(resolve => setTimeout(resolve, 10000))
             return data;
         } catch (error) {
             throw new Error((error as NetworkError).message || 'Ошибка сети');
@@ -95,7 +95,7 @@ const Main = () => {
 
     let token = localStorage.getItem("authToken");
     const payload = parseJwt(token);
-    localStorage.setItem("id", payload["AccountId"]);
+    localStorage.setItem("id", payload["AccountId"])
     getFriends(payload["AccountId"]);
 
     return (
