@@ -8,5 +8,6 @@ namespace SyncroBackend.Interfaces
         public Task<bool> DeleteConferenceAsync(Guid conferenceId);
         public Task<bool> UsersExistAsync(Guid user1Id, Guid user2Id);
         public Task<bool> ConferenceExistsAsync(Guid user1Id, Guid user2Id);
+        public Task<List<T>> GetAllConferencesByAccountAsync(Guid id);
     }
 }

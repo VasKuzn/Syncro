@@ -12,6 +12,14 @@ namespace SyncroBackend.StorageOperations
         {
             return await _context.personalConferences.ToListAsync();
         }
+        public async Task<List<PersonalConferenceModel>> GetAllConferencesByAccountAsync(Guid id)
+        {
+            var perConf = await _context.personalConferences
+                .Where(p => p.user1 == id || p.user2 == id)
+                .ToListAsync();
+
+            return perConf;
+        }
 
         public async Task<PersonalConferenceModel> GetConferenceByIdAsync(Guid personalConferenceId)
         {
