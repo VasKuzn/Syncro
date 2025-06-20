@@ -30,6 +30,8 @@ builder.Services.AddScoped<IConferenceRepository<PersonalConferenceModel>, Perso
 builder.Services.AddScoped<IConferenceService<PersonalConferenceModel>, PersonalConferenceService>();
 builder.Services.AddScoped<IGroupConferenceRepository<GroupConferenceModel>, GroupConferenceRepository>();
 builder.Services.AddScoped<IGroupConferenceService<GroupConferenceModel>, GroupConferenceService>();
+builder.Services.AddScoped<IGroupConferenceMemberRepository, GroupConferenceMemberRepository>();
+builder.Services.AddScoped<IGroupConferenceMemberService, GroupConferenceMemberService>();
 builder.Services.AddScoped<IGroupRolesRepository, GroupRolesRepository>();
 builder.Services.AddScoped<IGroupRoleService, GroupRolesService>();
 builder.Services.AddScoped<IFriendsRepository, FriendsRepository>();
