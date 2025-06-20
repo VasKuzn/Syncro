@@ -13,6 +13,20 @@ namespace SyncroBackend.StorageOperations
         {
             return await _context.groupConferences.ToListAsync();
         }
+        public async Task<List<GroupConferenceModel>> GetAllConferencesByAccountAsync(Guid accountId)
+        {
+            var conferences = await _context.groupConferenceMembers
+                .Where(m => m.accountId == accountId)
+                .Join(
+                    _context.groupConferences,
+                    member => member.groupConferenceId,
+                    conference => conference.Id,
+                    (member, conference) => conference
+                )
+                .ToListAsync();
+
+            return conferences;
+        }
 
         public async Task<GroupConferenceModel> GetConferenceByIdAsync(Guid groupConferenceId)
         {
