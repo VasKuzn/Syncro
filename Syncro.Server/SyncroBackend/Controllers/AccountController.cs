@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
 namespace SyncroBackend.Controllers
 {
@@ -166,6 +167,7 @@ namespace SyncroBackend.Controllers
 
                 var token = await _accountService.Login(request.Email, request.Password);
                 context.Response.Cookies.Append("tasty-cookies", token);
+
                 return Ok(new { Token = token });
             }
             catch (Exception ex)
