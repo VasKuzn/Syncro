@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
 namespace SyncroBackend.Controllers
 {
@@ -53,6 +54,24 @@ namespace SyncroBackend.Controllers
             try
             {
                 var account = await _accountService.GetAccountByEmailAsync(email);
+                return Ok(account);
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+        // GET: api/accounts/{email}
+        [HttpGet("{nickname}/getnick")]
+        public async Task<ActionResult<AccountModel>> GetAccountByNickname(string nickname)
+        {
+            try
+            {
+                var account = await _accountService.GetAccountByNicknameAsync(nickname);
                 return Ok(account);
             }
             catch (ArgumentException ex)
@@ -148,6 +167,7 @@ namespace SyncroBackend.Controllers
 
                 var token = await _accountService.Login(request.Email, request.Password);
                 context.Response.Cookies.Append("tasty-cookies", token);
+
                 return Ok(new { Token = token });
             }
             catch (Exception ex)

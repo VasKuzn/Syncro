@@ -41,14 +41,18 @@ const Login = () => {
                 body: JSON.stringify(credentials),
                 credentials: 'include',
             });
-            console.log(credentials);
-            console.log(response);
+
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.message || 'Ошибка аутентификации');
             }
 
-            return await response.json();
+        const data = await response.json();
+        const token = data.token;
+
+        localStorage.setItem('jwt', token);
+
+        return data;
         } catch (error) {
             throw new Error((error as NetworkError).message || 'Ошибка сети');
         }
@@ -114,10 +118,19 @@ const Login = () => {
 
         setIsLoading(true)
         try {
-            await loginUser(
+            const response = await loginUser(
                 emailOrPhone,
                 password
             );
+            
+            if (keepSignedIn) {
+                localStorage.setItem('authToken', response.token);
+            } else {
+                sessionStorage.setItem('authToken', response.token);
+            }
+
+            window.location.href = '/app/main';
+
         } catch (error) {
             console.error('Ошибка авторизации:', error);
 

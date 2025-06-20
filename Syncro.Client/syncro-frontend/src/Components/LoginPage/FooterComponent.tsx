@@ -1,5 +1,4 @@
-import React from 'react'
-import {Link} from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 const FooterComponent = () => {
     return (
@@ -7,9 +6,9 @@ const FooterComponent = () => {
             <footer>
                 <div>
                     <p>
-                        Want to synchronize?&nbsp;                         
+                        Want to synchronize?&nbsp;
                         <Link to="/register" >Sign up!</Link>
-                    </p>                 
+                    </p>
                     <ul>
                         <li><a href="#">Privacy policy</a></li>
                         <li><a href="#">Community Guidelines</a></li>

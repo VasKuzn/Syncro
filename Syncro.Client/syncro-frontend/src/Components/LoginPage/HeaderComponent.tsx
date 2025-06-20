@@ -1,5 +1,3 @@
-import React from 'react'
-
 const HeaderComponent = () => {
     return (
         <header className="header-container">
@@ -12,4 +10,3 @@ const HeaderComponent = () => {
 }
 
 export default HeaderComponent;
-// #07081c
