@@ -1,12 +1,19 @@
 import React from "react";
 import GroupChatsComponent from "./GroupChatsComponent";
 import PersonalChatsComponent from "./PersonalChatsComponent";
+import { Friend } from "../../Types/FriendType";
 
-const SidebarComponent = () => {
+interface SidebarComponentProps{
+    friends: Friend[]
+}
+
+const SidebarComponent: React.FC<SidebarComponentProps> = ({friends}) => {
     return (
         <div className="sidebar-container">
             <GroupChatsComponent></GroupChatsComponent>
-            <PersonalChatsComponent></PersonalChatsComponent>
+            <PersonalChatsComponent
+                friends={friends}> 
+            </PersonalChatsComponent>
         </div>
     );
 }

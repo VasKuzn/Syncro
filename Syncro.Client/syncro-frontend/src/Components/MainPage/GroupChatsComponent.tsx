@@ -4,6 +4,7 @@ const GroupChatsComponent = () => {
         <div className="group-chats">
             <div className="main-logo">
                 <img src="/logo.png" alt="Syncro logo" width="50" height="50" />
+                <a href="/app/main"></a>
             </div>
             <div className="chat-separator"></div>
             <div className="group-chat-list">
