@@ -11,14 +11,15 @@ type PropsType = {
 const Message: React.FC<PropsType> = (props) => {
     return (
         <div onClick={() => alert(props.id)} className="messageItem">
-            <div className="photo">
-            </div>
+            <div className="photo" />
             <div className="content">
-                <span className="name">{props.name}</span>
+            <div className="header">
+            <span className="name">{props.name}</span>
                 <time className="time">{props.time}</time>
-                <p className="message">{props.message}</p>
             </div>
-        </div>
+            <p className="message">{props.message}</p>
+      </div>
+    </div>
     )
 }
 
