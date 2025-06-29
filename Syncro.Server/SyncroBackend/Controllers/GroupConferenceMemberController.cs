@@ -101,7 +101,7 @@ namespace SyncroBackend.Controllers
         }
         [HttpPut]
         //[Authorize]
-        public async Task<IActionResult> UpdateGroupConferenceMember(Guid id, [FromBody] ConferenceMemberModelDto conferenceMemberDto)
+        public async Task<IActionResult> UpdateGroupConferenceMember(Guid id, [FromBody] ConferenceMemberModelDTO conferenceMemberDto)
         {
             try
             {

@@ -9,6 +9,6 @@ namespace SyncroBackend.Interfaces
         public Task<GroupConferenceMemberModel> GetMemberByIdByConferenceAsync(Guid conferenceMemberId, Guid conferenceId);
         public Task<GroupConferenceMemberModel> CreateConferenceMemberAsync(GroupConferenceMemberModel groupConferenceMember);
         public Task<bool> DeleteGroupMemberAsync(Guid conferenceMemberId);
-        public Task<GroupConferenceMemberModel> UpdateConferenceMemberAsync(Guid conferenceMemberId, ConferenceMemberModelDto conferenceMemberModelDto);
+        public Task<GroupConferenceMemberModel> UpdateConferenceMemberAsync(Guid conferenceMemberId, ConferenceMemberModelDTO conferenceMemberModelDto);
     }
 }

@@ -114,7 +114,7 @@ namespace SyncroBackend.Controllers
 
         // PUT: api/accounts/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateAccount(Guid id, [FromBody] AccountModelDto accountDto)
+        public async Task<IActionResult> UpdateAccount(Guid id, [FromBody] AccountModelDTO accountDto)
         {
             try
             {

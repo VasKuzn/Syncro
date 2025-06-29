@@ -89,7 +89,7 @@ namespace SyncroBackend.Controllers
         public async Task<ActionResult<ServerMemberModel>> UpdateMember(
             Guid serverId,
             Guid memberId,
-            [FromBody] ServerMemberDto memberDto)
+            [FromBody] ServerMemberDTO memberDto)
         {
             try
             {
@@ -114,7 +114,7 @@ namespace SyncroBackend.Controllers
         public async Task<ActionResult<ServerMemberModel>> BanMember(
             Guid serverId,
             Guid memberId,
-            [FromBody] BanMemberDto banDto)
+            [FromBody] BanMemberDTO banDto)
         {
             try
             {
