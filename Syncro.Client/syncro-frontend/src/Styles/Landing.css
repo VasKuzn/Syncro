@@ -1,52 +1,51 @@
-.main-body {
+.landing-page {
+  height: 100%;
+  width: 100%;
   background: #151838;
   background-size: cover;
   background-position: center;
-  background-image: url("/background.png")
-}
-
-.landing-page {
-  height: 80vh;
-  width: 100%;
-  background-size: cover;
+  background-image: url("/background.png");
   display: flex;
   flex-direction: column;
   color: white;
 }
 
-.header {
+.landing-header {
   display: flex;
   align-items: center;
   width: 100%;
 }
 
-.main {
+.landing-main {
   text-align: center;
   margin: auto;
   max-width: 1000px;
   padding: 2rem;
   color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
-.main h1 {
+.landing-main h1 {
   font-size: 60px;
   font-weight: bold;
   margin-bottom: 2rem;
 }
 
-.main p {
+.landing-main p {
   font-size: 20px;
   margin-bottom: 2rem;
   max-width: 600px;
 }
 
-button {
-  background-color: #3B82F6;
-  border: none;
-  padding: 0.8rem 1.6rem;
-  border-radius: 12px;
-  font-size: 20px;
+.landing-main .primary-button {
+  width: 375px;
+  height: 50px;
+  border-radius: 25px;
+  font-size: 18px;
   font-weight: bold;
-  color: white;
-  cursor: pointer;
+  margin: 20px auto 0;
+  padding: 0 30px;
 }

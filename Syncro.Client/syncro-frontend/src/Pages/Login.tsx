@@ -47,12 +47,12 @@ const Login = () => {
                 throw new Error(errorData.message || 'Ошибка аутентификации');
             }
 
-        const data = await response.json();
-        const token = data.token;
+            const data = await response.json();
+            const token = data.token;
 
-        localStorage.setItem('jwt', token);
+            localStorage.setItem('jwt', token);
 
-        return data;
+            return data;
         } catch (error) {
             throw new Error((error as NetworkError).message || 'Ошибка сети');
         }
@@ -122,7 +122,7 @@ const Login = () => {
                 emailOrPhone,
                 password
             );
-            
+
             if (keepSignedIn) {
                 localStorage.setItem('authToken', response.token);
             } else {

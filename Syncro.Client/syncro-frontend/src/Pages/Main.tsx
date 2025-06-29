@@ -6,28 +6,28 @@ import { FriendList } from "../Types/FriendListType";
 import { NetworkError } from "../Types/LoginTypes";
 
 function parseJwt(token: string) {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map(function(c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        })
-        .join('')
-    );
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(
+            atob(base64)
+                .split('')
+                .map(function (c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                })
+                .join('')
+        );
 
-    return JSON.parse(jsonPayload);
-  } catch (e) {
-    console.error('Invalid JWT token', e);
-    return null;
-  }
+        return JSON.parse(jsonPayload);
+    } catch (e) {
+        console.error('Invalid JWT token', e);
+        return null;
+    }
 }
 
-function getCookie(name:string) {
-  let cookie = document.cookie.split('; ').find(row => row.startsWith(name + '='));
-  return cookie ? cookie.split('=')[1] : null;
+function getCookie(name: string) {
+    let cookie = document.cookie.split('; ').find(row => row.startsWith(name + '='));
+    return cookie ? cookie.split('=')[1] : null;
 }
 
 const Main = () => {
@@ -47,8 +47,8 @@ const Main = () => {
                 const errorData = await response.json();
                 throw new Error(errorData.message || 'Ошибка аутентификации');
             }
-            
-            const data: FriendList[] =  await response.json();
+
+            const data: FriendList[] = await response.json();
             loadFriendInfo(data);
             await new Promise(resolve => setTimeout(resolve, 10000))
             return data;
@@ -83,7 +83,7 @@ const Main = () => {
                     const errorData = await response.json();
                     throw new Error(errorData.message || 'Ошибка аутентификации');
                 }
-                
+
                 loadedFriends.push(f_toadd);
             }
             setFriends(loadedFriends);
