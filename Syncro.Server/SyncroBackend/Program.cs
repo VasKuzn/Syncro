@@ -74,7 +74,4 @@ app.MapControllers();
 
 app.MapHub<ChatHub>("/chatHub");
 
-app.UseDefaultFiles();
-app.UseStaticFiles();
-
 app.Run();
