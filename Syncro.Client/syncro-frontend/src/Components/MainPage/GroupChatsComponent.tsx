@@ -1,36 +1,69 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { GroupConf } from "../../Types/GroupConf";
 import { NetworkError } from "../../Types/LoginTypes";
 
 const GroupChatsComponent = () => {
-
     const [groups, setGroups] = useState<GroupConf[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-    const getGroupConf = async () => {
-        try {                                    
-            await new Promise(resolve => setTimeout(resolve, 1000))
-            const response = await fetch(`http://localhost:5232/api/groupconference`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Ошибка аутентификации');
+    useEffect(() => {
+        const fetchCurrentUser = async () => {
+            try {
+                const response = await fetch("http://localhost:5232/api/accounts/current", {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                setCurrentUserId(data.userId);
+                return data.userId;
+            } catch (error) {
+                setError("Failed to fetch user data");
+                console.error("Fetch user error:", error);
+                return null;
             }
+        };
 
-            let gcs = await response.json();
-            console.log(gcs);
-            setGroups(gcs);
-        } catch (error) {
-            throw new Error((error as NetworkError).message || 'Ошибка сети');
-        }
-    }
+        fetchCurrentUser();
+    }, []);
 
-    getGroupConf();
+    useEffect(() => {
+        if (!currentUserId) return;
+
+        const getGroupConf = async () => {
+            setLoading(true);
+            try {
+                const response = await fetch(
+                    `http://localhost:5232/api/groupconference/${currentUserId}/getbyaccount`,
+                    {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'include',
+                    }
+                );
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to fetch groups');
+                }
+
+                const gcs = await response.json();
+                setGroups(gcs);
+            } catch (error) {
+                setError((error as NetworkError).message || 'Network error');
+                console.error("Fetch groups error:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        getGroupConf();
+    }, [currentUserId]);
+
+    if (loading) return <div>Loading groups...</div>;
+    if (error) return <div>Error: {error}</div>;
 
     return (
         <div className="group-chats">
@@ -51,4 +84,4 @@ const GroupChatsComponent = () => {
     );
 }
 
-export default GroupChatsComponent
+export default GroupChatsComponent;
