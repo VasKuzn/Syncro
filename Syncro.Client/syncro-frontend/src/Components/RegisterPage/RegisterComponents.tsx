@@ -93,8 +93,16 @@ const RegisterComponent: React.FC<RegisterComponentProps> = ({
                 <div className="buttons">
                     <button
                         type="submit"
-                        className="primary-button">
-                        Sign up {isLoading && <div className="spinner" aria-hidden="true"></div>}
+                        className="primary-button"
+                        disabled={isLoading}
+                    >
+                        {isLoading ? (
+                            <div className="spinner-container">
+                                <div className="spinner" aria-hidden="true"></div>
+                            </div>
+                        ) : (
+                            "Sign up"
+                        )}
                     </button>
                 </div>
             </form>

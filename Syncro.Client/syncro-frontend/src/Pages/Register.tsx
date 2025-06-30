@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import '../Styles/Register.css';
+import '../Styles/Login.css';
 import { NetworkError } from '../Types/LoginTypes';
 import RegisterComponent from '../Components/RegisterPage/RegisterComponents';
 import FooterComponent from '../Components/RegisterPage/FooterComponent';
@@ -155,7 +155,7 @@ const Register = () => {
     };
     const handleCloseNotification = () => {
         setShowSuccess(false);
-        navigate('/');
+        navigate('/login');
     };
 
     return (

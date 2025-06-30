@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
 namespace SyncroBackend.Controllers
 {
@@ -166,16 +165,30 @@ namespace SyncroBackend.Controllers
                 }
 
                 var token = await _accountService.Login(request.Email, request.Password);
-                context.Response.Cookies.Append("tasty-cookies", token);
+                context.Response.Cookies.Append("access-token", token, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Strict
+                });
 
-                return Ok(new { Token = token });
+                return Ok(new { Message = "Logged in successfully" });
             }
             catch (Exception ex)
             {
                 return Unauthorized(ex.Message);
             }
         }
+        // POST: api/accounts/current - получение accountid из jwt выданного
+        [HttpGet("current")]
+        [Authorize]
+        public IActionResult GetCurrentUserId()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return Ok(new { UserId = userId });
+        }
     }
+
 
     public class LoginRequest
     {
