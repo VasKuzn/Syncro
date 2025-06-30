@@ -3,8 +3,10 @@ import '../Styles/Login.css'
 import { NetworkError } from '../Types/LoginTypes';
 import LoginComponent from '../Components/LoginPage/LoginComponents';
 import FooterComponent from '../Components/LoginPage/FooterComponent';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
+    const navigate = useNavigate();
     const [emailOrPhone, setEmailOrPhone] = useState('');
     const [password, setPassword] = useState('');
     const [passwordVisible, setPasswordVisible] = useState(false);
@@ -47,12 +49,12 @@ const Login = () => {
                 throw new Error(errorData.message || 'Ошибка аутентификации');
             }
 
-        const data = await response.json();
-        const token = data.token;
+            const data = await response.json();
+            const token = data.token;
 
-        localStorage.setItem('jwt', token);
+            localStorage.setItem('jwt', token);
 
-        return data;
+            return data;
         } catch (error) {
             throw new Error((error as NetworkError).message || 'Ошибка сети');
         }
@@ -122,14 +124,14 @@ const Login = () => {
                 emailOrPhone,
                 password
             );
-            
+
             if (keepSignedIn) {
                 localStorage.setItem('authToken', response.token);
             } else {
                 sessionStorage.setItem('authToken', response.token);
             }
 
-            window.location.href = '/app/main';
+            navigate("/main");
 
         } catch (error) {
             console.error('Ошибка авторизации:', error);
