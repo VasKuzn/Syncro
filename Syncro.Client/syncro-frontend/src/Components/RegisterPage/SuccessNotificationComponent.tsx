@@ -29,7 +29,7 @@ const SuccessNotification: React.FC<SuccessNotificationProps> = ({ onClose }) =>
                 zIndex: 1000,
             }}
         >
-            Регистрация прошла успешно!
+            Регистрация прошла успешно! Перенаправляем на логин..
         </div>
     );
 };

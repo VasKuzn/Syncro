@@ -3,8 +3,10 @@ import '../Styles/Login.css'
 import { NetworkError } from '../Types/LoginTypes';
 import LoginComponent from '../Components/LoginPage/LoginComponents';
 import FooterComponent from '../Components/LoginPage/FooterComponent';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
+    const navigate = useNavigate();
     const [emailOrPhone, setEmailOrPhone] = useState('');
     const [password, setPassword] = useState('');
     const [passwordVisible, setPasswordVisible] = useState(false);
@@ -129,7 +131,7 @@ const Login = () => {
                 sessionStorage.setItem('authToken', response.token);
             }
 
-            window.location.href = '/app/main';
+            navigate("/main");
 
         } catch (error) {
             console.error('Ошибка авторизации:', error);

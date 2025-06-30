@@ -38,7 +38,7 @@ header p,
   animation: fadeInUp 0.5s ease-out forwards;
 }
 
-li a {
+li .underline-element {
   text-decoration: none;
   color: grey;
 }
@@ -142,14 +142,7 @@ input::placeholder {
   margin-top: 10px;
 }
 
-.checkbox-container {
-  display: flex;
-  flex-direction: row;
-  margin: 0 0 10px 0;
-  padding: 0;
-  gap: 5px;
-  align-items: center;
-}
+
 
 .checkbox-element {
   padding: 0;
@@ -372,14 +365,14 @@ input::placeholder {
   cursor: pointer;
 }
 
-footer a {
+.underline-element {
   position: relative;
   color: #007acc;
   text-decoration: none;
   transition: color 0.3s ease;
 }
 
-footer a::after {
+.underline-element::after {
   content: "";
   position: absolute;
   left: 0;
@@ -390,13 +383,13 @@ footer a::after {
   transition: width 0.3s ease;
 }
 
-footer a:hover,
-footer a:focus {
+.underline-element:hover,
+.underline-element:focus {
   color: #005f99;
 }
 
-footer a:hover::after,
-footer a:focus::after {
+.underline-element:hover::after,
+.underline-element:focus::after {
   width: 100%;
 }
 
@@ -410,4 +403,54 @@ footer a:focus::after {
   border-radius: 5px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   z-index: 1000;
+}
+
+.celebration {
+  animation:
+    rainbow 3s linear infinite,
+    shake 0.5s ease infinite;
+}
+
+@keyframes rainbow {
+  100% {
+    filter: hue-rotate(360deg);
+  }
+}
+
+@keyframes shake {
+
+  0%,
+  100% {
+    transform: rotate(-2deg);
+  }
+
+  50% {
+    transform: rotate(2deg);
+  }
+}
+
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.downside-elements {
+  padding: 0 0 0 31px;
 }

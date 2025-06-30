@@ -2,12 +2,41 @@
   height: 100%;
   width: 100%;
   background: #151838;
+  background-image: url("/background3.png");
   background-size: cover;
-  background-position: center;
-  background-image: url("/background.png");
+  background-repeat: no-repeat;
   display: flex;
   flex-direction: column;
   color: white;
+  animation: background-move 30s linear infinite;
+}
+
+@keyframes background-move {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes background-move {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .landing-header {
@@ -20,12 +49,9 @@
   text-align: center;
   margin: auto;
   max-width: 1000px;
-  padding: 2rem;
-  color: white;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
 }
 
 .landing-main h1 {
