@@ -9,15 +9,21 @@ namespace SyncroBackend.Infrastructure.Services.AdditionalFunctions
         }
         public string GenerateToken(AccountModel account)
         {
-            Claim[] claims = [new("AccountId", account.Id.ToString())];
+            var claims = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.NameId, account.Id.ToString())
+            };
+
             var signingCredentials = new SigningCredentials(
-                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.secretKey)), SecurityAlgorithms.HmacSha256);
+                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.secretKey)),
+                SecurityAlgorithms.HmacSha256);
+
             var token = new JwtSecurityToken(
                 claims: claims,
                 signingCredentials: signingCredentials,
                 expires: DateTime.UtcNow.AddHours(_options.ExpiresHours));
-            var tokenValue = new JwtSecurityTokenHandler().WriteToken(token);
-            return tokenValue;
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 }

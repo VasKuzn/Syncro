@@ -24,6 +24,7 @@ global using SyncroBackend.Infrastructure.Services;
 global using SyncroBackend.Infrastructure.Hubs;
 global using SyncroBackend.Infrastructure.Services.AdditionalFunctions;
 global using SyncroBackend.Extensions;
+global using Microsoft.AspNetCore.Authentication.JwtBearer;
 global using SyncroBackend.Repositories.Data.Configurations;
 global using Microsoft.OpenApi.Any;
 global using Microsoft.OpenApi.Models;
