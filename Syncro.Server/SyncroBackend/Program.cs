@@ -72,5 +72,6 @@ app.UseCors("AllowAll");
 app.MapControllers();
 
 app.MapHub<FriendsHub>("/friendshub");
+app.MapHub<GroupsHub>("/groupshub");
 
 app.Run();

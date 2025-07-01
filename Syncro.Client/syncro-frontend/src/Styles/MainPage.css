@@ -1,14 +1,14 @@
 body {
     margin: 0;
     padding: 0;
-    align-items: baseline;    
+    align-items: baseline;
     animation: none;
     color: #ffffff;
 }
 
 .main-page {
     display: flex;
-    flex-direction: column;    
+    flex-direction: column;
     width: 100%;
     height: 100%;
     position: relative;
@@ -33,8 +33,8 @@ body {
     display: flex;
     position: relative;
     height: 100%;
-    flex-direction: row;   
-    background-color: #07081C;    
+    flex-direction: row;
+    background-color: #07081C;
     flex-shrink: 0;
     min-width: 372px;
 }
@@ -56,7 +56,7 @@ body {
 
 .personal-chats {
     justify-items: center;
-    width: 300px;    
+    width: 300px;
     outline: 1px solid #D5D6DA;
     border-radius: 10px 0 0 0;
     flex-shrink: 0;
@@ -166,9 +166,9 @@ body {
     padding: 10px 30px;
 }
 
-.input-box{
+.input-box {
     display: flex;
-    padding: 10px 10px;
+    padding: 5px 5px;
     background-color: #07081C;
     border-radius: 10px;
 }
@@ -178,7 +178,7 @@ body {
     display: flex;
     flex: 1;
     border: none;
-    background-color: transparent;    
+    background-color: transparent;
     color: #ffffff;
 }
 
@@ -192,22 +192,23 @@ body {
     display: flex;
     flex-direction: row;
     height: 60px;
-    padding: 5px 30px;
-    border-top: 1px solid #d5d6da0e;
-    border-bottom: 1px solid #d5d6da0e;
-    justify-content: space-between;
+    padding: 0 20px;
+    margin: 8px 0;
+    border-radius: 12px;
+    background-color: #1E293B;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    align-items: center;
+    gap: 12px;
 }
 
 .friend-avatar-container {
-    align-content: center;
-    height: 50px;
-    width: 50px;    
-    margin-right: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
 }
 
-.friend-avatar {
-    align-content: center;
-}
 
 .friend-info-container {
     display: flex;
@@ -218,6 +219,8 @@ body {
 .friend-text-info {
     display: flex;
     flex-direction: column;
+    flex: 1;
+    min-width: 0;
 }
 
 .friend-actions {
@@ -248,4 +251,239 @@ body {
 
 .pc-item {
     margin: 5px 0;
+}
+
+.button-friends-status {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.button-friends-status:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.button-friends-status:active {
+    transform: translateY(0);
+}
+
+.button-friends-status.add {
+    position: relative;
+    overflow: hidden;
+}
+
+.button-friends-status.add::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.button-friends-status.add:hover::after {
+    opacity: 1;
+}
+
+/* Анимация при нажатии */
+@keyframes buttonClick {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(0.95);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.button-friends-status.add:active {
+    animation: buttonClick 0.3s ease;
+}
+
+/* Уведомления */
+.notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #3B82F6;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    animation: slideIn 0.3s ease forwards;
+}
+
+.notification.error {
+    background-color: #EF4444;
+}
+
+.notification-icon {
+    margin-right: 8px;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Улучшаем карточки друзей */
+.friend-item {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.friend-item:hover {
+    background-color: #2E3A4D;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.friend-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    align-content: center;
+    border: 2px solid #3B82F6;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.online-status {
+    font-size: 0.85rem;
+    color: #94A3B8;
+    position: relative;
+    padding-left: 14px;
+}
+
+
+.online-status::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #10B981;
+    transition: all 0.2s ease;
+}
+
+.online-status.offline::before {
+    background-color: #64748B;
+}
+
+
+/* Инпут с анимацией */
+.input-box {
+    border: 1px solid #334155;
+    transition: all 0.25s ease;
+}
+
+.input-box:focus-within {
+    border-color: transparent;
+    outline: 2px solid #3B82F6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+.nickname {
+    font-weight: 500;
+    color: #F8FAFC;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    }
+}
+
+.button-friends-status.add.loading {
+    position: relative;
+}
+
+.button-friends-status.add.loading::after {
+    content: "";
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border-radius: 10px;
+    animation: pulse 1.5s infinite;
+}
+
+.button-loader {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Прогресс-бар уведомления */
+.notification-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.5);
+    animation: progress 3.5s linear forwards;
+}
+
+@keyframes progress {
+    from {
+        width: 100%;
+    }
+
+    to {
+        width: 0%;
+    }
+}
+
+/* Улучшенное уведомление */
+.notification {
+    position: relative;
+    overflow: hidden;
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
 }

@@ -1,6 +1,6 @@
 namespace SyncroBackend.Infrastructure.Hubs
 {
-    public class SectorChatHub
+    public class PersonalConferencesHub : Hub
     {
 
     }
