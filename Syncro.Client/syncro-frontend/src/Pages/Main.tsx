@@ -10,7 +10,6 @@ const Main = () => {
     const [currentUserId, setCurrentUserId] = useState<string>("");
     const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
 
-    // Функции для загрузки данных остаются без изменений
     const fetchCurrentUser = useCallback(async () => {
         const response = await fetch("http://localhost:5232/api/accounts/current", {
             credentials: 'include'

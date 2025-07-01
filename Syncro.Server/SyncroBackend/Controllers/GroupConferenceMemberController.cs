@@ -5,10 +5,14 @@ namespace SyncroBackend.Controllers
     public class GroupConferenceMemberController : ControllerBase
     {
         private readonly IGroupConferenceMemberService _groupConferenceMemberService;
+        private readonly IHubContext<GroupsHub> _hubContext;
+        private readonly ILogger<GroupConferenceMemberController> _logger;
 
-        public GroupConferenceMemberController(IGroupConferenceMemberService groupConferenceMemberService)
+        public GroupConferenceMemberController(IGroupConferenceMemberService groupConferenceMemberService, IHubContext<GroupsHub> hubContext, ILogger<GroupConferenceMemberController> logger)
         {
             _groupConferenceMemberService = groupConferenceMemberService;
+            _hubContext = hubContext;
+            _logger = logger;
         }
         // GET /api/groupconferencemember
         [HttpGet]
@@ -88,6 +92,10 @@ namespace SyncroBackend.Controllers
             try
             {
                 var createdGroupConferenceMember = await _groupConferenceMemberService.CreateConferenceMemberAsync(groupConferenceMember);
+                if (createdGroupConferenceMember != null)
+                {
+                    await NotifyGroupsUpdate(groupConferenceMember.accountId.ToString());
+                }
                 return CreatedAtAction(nameof(GetGroupConferenceMemberById), new { id = createdGroupConferenceMember.Id }, createdGroupConferenceMember);
             }
             catch (ArgumentException ex)
@@ -106,6 +114,10 @@ namespace SyncroBackend.Controllers
             try
             {
                 var updatedGroupConferenceMember = await _groupConferenceMemberService.UpdateConferenceMemberAsync(id, conferenceMemberDto);
+                if (updatedGroupConferenceMember != null)
+                {
+                    await NotifyGroupsUpdate(updatedGroupConferenceMember.accountId.ToString());
+                }
                 return Ok(updatedGroupConferenceMember);
             }
             catch (KeyNotFoundException ex)
@@ -128,10 +140,12 @@ namespace SyncroBackend.Controllers
             try
             {
                 var result = await _groupConferenceMemberService.DeleteGroupMemberAsync(id);
+                var member = await _groupConferenceMemberService.GetMemberByIdAsync(id);
                 if (!result)
                 {
                     return NotFound($"Account with id {id} not found");
                 }
+                await NotifyGroupsUpdate(member.accountId.ToString());
                 return NoContent();
             }
             catch (Exception ex)
@@ -139,5 +153,23 @@ namespace SyncroBackend.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
+        private async Task NotifyGroupsUpdate(string userId)
+        {
+            try
+            {
+                await _hubContext.Clients.Group($"groups-{userId}")
+                    .SendAsync("GroupsUpdated", new
+                    {
+                        Type = "GroupsUpdated",
+                        Timestamp = DateTime.UtcNow
+                    });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send groups update notification to user {UserId}", userId);
+            }
+        }
+
     }
 }
