@@ -1,3 +1,4 @@
+using System.Data.Common;
 using Microsoft.AspNetCore.Authorization;
 
 namespace SyncroBackend.Controllers
@@ -154,30 +155,33 @@ namespace SyncroBackend.Controllers
         }
         // POST: api/accounts/login
         [HttpPost("login")]
-        public async Task<ActionResult<string>> Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            HttpContext context = HttpContext;
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             try
             {
-                if (string.IsNullOrEmpty(request.Email))
+                var result = await _accountService.Login(request.Email, request.Password);
+
+                if (result.IsSuccess)
                 {
-                    return BadRequest("Email  must be provided");
+                    HttpContext.Response.Cookies.Append("access-token", result.Value, new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = true,
+                        SameSite = SameSiteMode.Strict
+                    });
+                    return Ok(new { Message = "Logged in successfully" });
                 }
-
-                var token = await _accountService.Login(request.Email, request.Password);
-                context.Response.Cookies.Append("access-token", token, new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.Strict
-                });
-
-                return Ok(new { Message = "Logged in successfully" });
+                return Unauthorized(new { Error = result.Error });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return Unauthorized(ex.Message);
+                return StatusCode(404, new { Error = "Аккаунт с таким email не найден" });
             }
+
         }
         // POST: api/accounts/current - получение accountid из jwt выданного
         [HttpGet("current")]
@@ -187,12 +191,5 @@ namespace SyncroBackend.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             return Ok(new { UserId = userId });
         }
-    }
-
-
-    public class LoginRequest
-    {
-        public string? Email { get; set; }
-        public required string Password { get; set; }
     }
 }
