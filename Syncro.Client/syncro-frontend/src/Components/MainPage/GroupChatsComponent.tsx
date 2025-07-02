@@ -1,53 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { GroupConf } from "../../Types/GroupConf";
 import { NetworkError } from "../../Types/LoginTypes";
+import { fetchCurrentUser, getGroups } from '../../Services/MainFormService';
 import * as signalR from "@microsoft/signalr";
 
 const GroupChatsComponent = () => {
     const [groups, setGroups] = useState<GroupConf[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
     const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
-
-    const fetchCurrentUser = useCallback(async () => {
-        try {
-            const response = await fetch("http://localhost:5232/api/accounts/current", {
-                credentials: 'include'
-            });
-            const data = await response.json();
-            setCurrentUserId(data.userId);
-            return data.userId;
-        } catch (error) {
-            setError("Failed to fetch user data");
-            console.error("Fetch user error:", error);
-            return null;
-        }
-    }, []);
-
-    const getGroups = useCallback(async (userId: string) => {
-        try {
-            const response = await fetch(
-                `http://localhost:5232/api/groupconference/${userId}/getbyaccount`,
-                {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    credentials: 'include',
-                }
-            );
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to fetch groups');
-            }
-
-            return await response.json();
-        } catch (error) {
-            throw new Error((error as NetworkError).message || 'Network error');
-        }
-    }, []);
 
     const initSignalR = useCallback(async (userId: string) => {
         const newConnection = new signalR.HubConnectionBuilder()
@@ -96,7 +57,7 @@ const GroupChatsComponent = () => {
                 const userId = await fetchCurrentUser();
                 if (isMounted && userId) {
                     await refreshGroupsData(userId);
-                    const conn = await initSignalR(userId);
+                    await initSignalR(userId);
                 }
             } catch (error) {
                 console.error("Ошибка загрузки:", error);
