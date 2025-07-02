@@ -1,13 +1,9 @@
-import React from "react";
 import HeaderComponent from "./HeaderComponent";
 import BodyComponent from "./BodyComponent";
-import { Friend } from "../../Types/FriendType";
+import { FriendProps } from "../../Types/FriendType";
 
-interface MainComponentsProps {
-    friends: Friend[]
-}
 
-const MainComponent: React.FC<MainComponentsProps> = ({friends}) => {
+const MainComponent = ({ friends }: FriendProps) => {
     return (
         <div className="main-page">
             <HeaderComponent></HeaderComponent>

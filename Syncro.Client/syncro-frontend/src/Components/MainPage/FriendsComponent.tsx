@@ -1,79 +1,42 @@
-import { Friend } from "../../Types/FriendType";
-import { NetworkError } from "../../Types/LoginTypes";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { FriendProps } from "../../Types/FriendType";
+import { useState, useRef } from "react";
+import { getUserByNickname, fetchCurrentUser, sendFriendRequest } from "../../Services/MainFormService";
 
-interface FriendsComponentProps {
-    friends: Friend[];
-    onFriendAdded?: () => void;
-}
-
-const FriendsComponent: React.FC<FriendsComponentProps> = ({ friends, onFriendAdded }) => {
-    const [currentUserId, setCurrentUserId] = useState<string>("");
+const FriendsComponent = ({ friends, onFriendAdded }: FriendProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const [notification, setNotification] = useState<{ message: string, isError: boolean } | null>(null);
+
     const addFriendInputRef = useRef<HTMLInputElement>(null);
 
-    const getUserByNickname = async (nickname: string) => {
-        try {
-            const response = await fetch(`http://localhost:5232/api/accounts/${nickname}/getnick`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Ошибка аутентификации');
-            }
-
-            return response.json();
-        } catch (error) {
-            throw new Error((error as NetworkError).message || 'Ошибка сети');
-        }
-    };
-
-    const fetchCurrentUser = useCallback(async () => {
-        const response = await fetch("http://localhost:5232/api/accounts/current", {
-            credentials: 'include'
-        });
-        const data = await response.json();
-        setCurrentUserId(data.userId);
-        return data.userId;
-    }, []);
 
     const addFriend = async () => {
         const nickname = addFriendInputRef.current?.value.trim();
-        if (!nickname) return;
+        if (!nickname) {
+            setNotification({ message: "Введите никнейм", isError: true });
+            return;
+        }
 
         try {
             setIsLoading(true);
             setNotification(null);
+
             const timestamp = new Date(Date.now());
             const user = await getUserByNickname(nickname);
-            const uws = await fetchCurrentUser();
+            if (!user || !user.id) {
+                throw new Error("Пользователь не найден");
+            }
+
+            const currentUserId = await fetchCurrentUser();
+            if (!currentUserId) throw new Error("Не удалось получить ID текущего пользователя");
 
             const request = {
-                userWhoSent: uws,
+                userWhoSent: currentUserId,
                 userWhoRecieved: user.id,
                 status: 0,
                 friendsSince: timestamp.toISOString()
             };
 
-            const response = await fetch(`http://localhost:5232/api/Friends`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(request),
-                credentials: 'include',
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Ошибка при отправке запроса дружбы');
-            }
+            await sendFriendRequest(request);
 
             setNotification({
                 message: `Запрос дружбы для ${nickname} отправлен!`,
@@ -90,15 +53,12 @@ const FriendsComponent: React.FC<FriendsComponentProps> = ({ friends, onFriendAd
         } finally {
             setIsLoading(false);
 
-            // Автоскрытие уведомления
-            const timer = setTimeout(() => setNotification(null), 3500);
-            return () => clearTimeout(timer);
+            setTimeout(() => setNotification(null), 3500);
         }
     };
 
     return (
         <div className="friends">
-            {/* Уведомление */}
             {notification && (
                 <div className={`notification ${notification.isError ? 'error' : ''}`}>
                     <div className="notification-content">
