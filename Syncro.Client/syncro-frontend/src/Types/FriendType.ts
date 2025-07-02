@@ -3,6 +3,7 @@ export interface Friend {
     nickname: string;
     avatar: string;
     isOnline: boolean;
+    status: number;
 }
 
 export interface FriendProps {

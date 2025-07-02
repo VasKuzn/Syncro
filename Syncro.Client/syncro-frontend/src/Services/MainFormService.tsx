@@ -1,7 +1,6 @@
 import { NetworkError } from "../Types/LoginTypes";
 import { FriendRequest, Friend } from "../Types/FriendType";
 import { FriendList } from "../Types/FriendListType";
-import { useCallback } from "react";
 
 //Friend Components Methods
 export const getUserByNickname = async (nickname: string) => {
