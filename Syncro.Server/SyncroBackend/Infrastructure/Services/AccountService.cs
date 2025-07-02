@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Http;
 namespace SyncroBackend.Infrastructure.Services
 {
     public class AccountService : IAccountService
@@ -79,16 +81,19 @@ namespace SyncroBackend.Infrastructure.Services
             return BCrypt.Net.BCrypt.EnhancedVerify(password, hashedPassword);
         }
 
-        public async Task<string> Login(string email, string password)
+        public async Task<Result<string>> Login(string email, string password)
         {
             var user = await _accountRepository.GetAccountByEmailAsync(email);
-            var result = VerifyPassword(password, user.password);
-            if (!result)
+            if (user == null)
             {
-                throw new Exception("Failed to login");
+                return Result<string>.Failure("User not found");
+            }
+            if (!VerifyPassword(password, user.password))
+            {
+                return Result<string>.Failure("Invalid password");
             }
             var token = _jwtProvider.GenerateToken(user);
-            return token;
+            return Result<string>.Success(token);
         }
     }
 }
