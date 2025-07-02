@@ -29,7 +29,7 @@ export const loginUser = async (email: string, password: string) => {
             throw new Error("Аккаунт с email не существует.");
         }
         else {
-            // Серверная ошибка (500, 503 и т.д.)
+            // Серверная ошибка (500ые ребята)
             throw new Error("Ошибка со стороны сервера.");
         }
 
