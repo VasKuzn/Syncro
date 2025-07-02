@@ -193,12 +193,15 @@ body {
     flex-direction: row;
     height: 60px;
     padding: 0 20px;
+    opacity: 0;
     margin: 8px 0;
     border-radius: 12px;
     background-color: #1E293B;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateY(10px);
     align-items: center;
     gap: 12px;
+    animation: appear 0.3s ease forwards;
 }
 
 .friend-avatar-container {
@@ -486,4 +489,113 @@ body {
 .notification-content {
     display: flex;
     align-items: center;
+}
+
+/* Превью найденного пользователя */
+.friend-preview {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    background-color: #1A2438;
+    border-radius: 10px;
+    margin-top: 8px;
+    animation: fadeIn 0.3s ease;
+}
+
+.preview-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #3B82F6;
+}
+
+.preview-nickname {
+    color: #F8FAFC;
+    font-weight: 600;
+}
+
+.preview-status {
+    font-size: 0.85rem;
+    color: #94A3B8;
+    margin-left: auto;
+}
+
+.preview-status.offline {
+    color: #64748B;
+}
+
+/* Анимации */
+
+@keyframes appear {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Кнопки фильтра */
+.button-friends-status.active {
+    background-color: #3B82F6;
+    color: white;
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.5);
+}
+
+/* Пустой список */
+.empty-state {
+    text-align: center;
+    color: #94A3B8;
+    padding: 40px;
+    opacity: 0.8;
+}
+
+.empty-state img {
+    width: 120px;
+    margin-bottom: 16px;
+}
+
+/* Иконка поиска */
+.input-box.with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-box.with-icon input {
+    padding-left: 35px;
+}
+
+.search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+/* Hover эффекты */
+.friend-avatar:hover {
+    transform: scale(1.05);
+    transition: transform 0.2s ease;
+}
+
+.nickname:hover {
+    cursor: pointer;
 }
