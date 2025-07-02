@@ -49,7 +49,14 @@ namespace SyncroBackend.Repositories
 
         public async Task<bool> AccountExistsByEmailAsync(string email)
         {
-            return await _context.accounts.AnyAsync(a => a.email == email);
+            try
+            {
+                return await _context.accounts.AnyAsync(a => a.email == email);
+            }
+            catch
+            {
+                throw new KeyNotFoundException($"Account with email {email} not found");
+            }
         }
         public async Task<bool> AccountExistsByPhoneAsync(string phonenumber)
         {

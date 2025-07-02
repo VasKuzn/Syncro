@@ -1,8 +1,5 @@
 import React, { useEffect } from 'react';
-
-interface SuccessNotificationProps {
-    onClose: () => void;
-}
+import { SuccessNotificationProps } from '../../Types/LoginTypes'
 
 const SuccessNotification: React.FC<SuccessNotificationProps> = ({ onClose }) => {
     useEffect(() => {
