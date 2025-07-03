@@ -1,4 +1,5 @@
 import { Friend } from "../../Types/FriendType";
+import { Link } from 'react-router-dom'
 
 interface PersonalChatsComponentProps {
     friends: Friend[]
@@ -20,10 +21,13 @@ const PersonalChatsComponent: React.FC<PersonalChatsComponentProps> = ({friends}
                             <div className="friend-avatar-container">
                                 <img className="friend-avatar" src={friend.avatar}></img>
                             </div>
-                            <div className="friend-text-info">
-                                <label className="nickname">{friend.nickname}</label>
-                                <label className="online-status">{friend.isOnline ? "В сети" : "Не в сети"}</label>
-                            </div>  
+                            
+                            <Link to="/Chat">
+                                <div className="friend-text-info">
+                                        <label className="nickname">{friend.nickname}</label>
+                                        <label className="online-status">{friend.isOnline ? "В сети" : "Не в сети"}</label>
+                                </div>  
+                            </Link>
                         </div>
                     </div>
                 ))}
