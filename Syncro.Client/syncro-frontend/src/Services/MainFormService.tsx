@@ -39,6 +39,33 @@ export async function sendFriendRequest(request: FriendRequest): Promise<void> {
         throw new Error(errorData.message || "Ошибка при отправке запроса дружбы");
     }
 }
+
+export async function updateFriendStatus(id: string, status: number): Promise<void> {
+    const response = await fetch(`http://localhost:5232/api/Friends/${id}/status`, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status }),
+        credentials: "include",
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Ошибка при обновлении статуса друга");
+    }
+}
+
+export async function deleteFriendship(friendshipId: string): Promise<void> {
+    const response = await fetch(`http://localhost:5232/api/Friends/${friendshipId}`, {
+        method: "DELETE",
+        credentials: "include"
+    });
+
+    if (!response.ok) {
+        throw new Error("Ошибка при удалении заявки");
+    }
+}
 //
 
 // GroupChatsComponent Methods
@@ -66,6 +93,7 @@ export const getGroups = async (userId: string) => {
         throw new Error((error as Error).message || 'Network error');
     }
 };
+
 
 //
 
@@ -117,7 +145,24 @@ export async function loadFriendInfo(
         }
 
         const friendData = await response.json();
-        loadedFriends.push(friendData);
+
+        const cleanedFriend: Friend = {
+            id: friendId,
+            nickname: friendData.nickname,
+            avatar: friendData.avatar ?? '',
+            isOnline: friendData.isOnline,
+            status: friend.status,
+            email: friendData.email,
+            phonenumber: friendData.phonenumber,
+            firstname: friendData.firstname,
+            lastname: friendData.lastname,
+            friendsSince: new Date(friend.friendsSince),
+            userWhoReceived: friend.userWhoRecieved,
+            userWhoSent: friend.userWhoSent,
+            friendShipId: friend.id
+        };
+
+        loadedFriends.push(cleanedFriend);
     }
 
     return loadedFriends;
