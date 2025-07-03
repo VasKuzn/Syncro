@@ -14,7 +14,7 @@ const PersonalChatsComponent = ({ friends }: FriendProps) => {
                     <div key={friend.id} className="pc-item">
                         <div className="friend-info-container">
                             <div className="friend-avatar-container">
-                                <img className="friend-avatar" src={friend.avatar}></img>
+                                <img className="friend-avatar" src={"/logo.png"}></img>
                             </div>
                             <div className="friend-text-info">
                                 <label className="nickname">{friend.nickname}</label>

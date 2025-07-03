@@ -21,7 +21,7 @@ namespace SyncroBackend.Repositories
         public async Task<List<FriendsModel>> GetFriendsByAccountAsync(Guid Id)
         {
             var friends = await _context.friends
-                .Where(f => f.userWhoSent == Id)
+                .Where(f => f.userWhoSent == Id || f.userWhoRecieved == Id)
                 .ToListAsync();
 
             if (friends == null || !friends.Any())
