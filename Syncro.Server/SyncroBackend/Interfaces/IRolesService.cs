@@ -7,7 +7,7 @@ namespace SyncroBackend.Interfaces
         Task<RolesModel> GetRoleByIdAsync(Guid roleId);
         Task<RolesModel> CreateRoleAsync(RolesModel role);
         Task<bool> DeleteRoleAsync(Guid roleId);
-        Task<RolesModel> UpdateRoleAsync(Guid roleId, RolesModelDto roleDto);
+        Task<RolesModel> UpdateRoleAsync(Guid roleId, RolesModelDTO roleDto);
         Task<RolesModel> UpdateRolePositionAsync(Guid roleId, long newPosition);
     }
 }

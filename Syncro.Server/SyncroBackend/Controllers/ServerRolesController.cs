@@ -89,7 +89,7 @@ namespace SyncroBackend.Controllers
         public async Task<ActionResult<RolesModel>> UpdateRole(
             Guid serverId,
             Guid roleId,
-            [FromBody] RolesModelDto roleDto)
+            [FromBody] RolesModelDTO roleDto)
         {
             try
             {
@@ -114,7 +114,7 @@ namespace SyncroBackend.Controllers
         public async Task<ActionResult<RolesModel>> UpdateRolePosition(
             Guid serverId,
             Guid roleId,
-            [FromBody] UpdatePositionDto positionDto)
+            [FromBody] UpdatePositionDTO positionDto)
         {
             try
             {

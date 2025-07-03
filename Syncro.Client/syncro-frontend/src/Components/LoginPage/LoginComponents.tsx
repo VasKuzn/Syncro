@@ -58,28 +58,28 @@ const LoginComponent: React.FC<LoginComponentProps> = ({
                         </button>
                     </div>
                 </div>
-
-                <div className="checkbox-container">
-                    <div className="checkbox-wrapper-10">
-                        <input
-                            className="tgl tgl-flip checkbox-element"
-                            id="keep-signed-in"
-                            type="checkbox"
-                            checked={keepSignedIn}
-                            onChange={onKeepSignedInChange}
-                        />
-                        <label
-                            className="tgl-btn"
-                            data-tg-off="No"
-                            data-tg-on="Yes"
-                            htmlFor="keep-signed-in"
-                        ></label>
+                <div className="downside-elements">
+                    <div className="checkbox-container">
+                        <div className="checkbox-wrapper-10">
+                            <input
+                                className="tgl tgl-flip checkbox-element"
+                                id="keep-signed-in"
+                                type="checkbox"
+                                checked={keepSignedIn}
+                                onChange={onKeepSignedInChange}
+                            />
+                            <label
+                                className="tgl-btn"
+                                data-tg-off="No"
+                                data-tg-on="Yes"
+                                htmlFor="keep-signed-in"
+                            ></label>
+                        </div>
+                        <label htmlFor="keep-signed-in">Keep me signed in &#128526;</label>
                     </div>
-                    <label htmlFor="keep-signed-in">Keep me signed in</label>
+
+                    <a href="forgot-password" className="forgot-element underline-element" >Forgot password? &#129327;</a>
                 </div>
-
-                <a href="forgot-password" className="forgot-element">Forgot password?</a>
-
                 <div className="buttons">
                     <button type="submit" className="primary-button">Sign in {isLoading && <div className="spinner" aria-hidden="true"></div>} </button>
                 </div>

@@ -1,5 +1,5 @@
+using System.Data.Common;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
 namespace SyncroBackend.Controllers
 {
@@ -114,7 +114,7 @@ namespace SyncroBackend.Controllers
 
         // PUT: api/accounts/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateAccount(Guid id, [FromBody] AccountModelDto accountDto)
+        public async Task<IActionResult> UpdateAccount(Guid id, [FromBody] AccountModelDTO accountDto)
         {
             try
             {
@@ -155,31 +155,41 @@ namespace SyncroBackend.Controllers
         }
         // POST: api/accounts/login
         [HttpPost("login")]
-        public async Task<ActionResult<string>> Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            HttpContext context = HttpContext;
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             try
             {
-                if (string.IsNullOrEmpty(request.Email))
+                var result = await _accountService.Login(request.Email, request.Password);
+
+                if (result.IsSuccess)
                 {
-                    return BadRequest("Email  must be provided");
+                    HttpContext.Response.Cookies.Append("access-token", result.Value, new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = true,
+                        SameSite = SameSiteMode.Strict
+                    });
+                    return Ok(new { Message = "Logged in successfully" });
                 }
-
-                var token = await _accountService.Login(request.Email, request.Password);
-                context.Response.Cookies.Append("tasty-cookies", token);
-
-                return Ok(new { Token = token });
+                return Unauthorized(new { Error = result.Error });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return Unauthorized(ex.Message);
+                return StatusCode(404, new { Error = "Аккаунт с таким email не найден" });
             }
-        }
-    }
 
-    public class LoginRequest
-    {
-        public string? Email { get; set; }
-        public required string Password { get; set; }
+        }
+        // POST: api/accounts/current - получение accountid из jwt выданного
+        [HttpGet("current")]
+        [Authorize]
+        public IActionResult GetCurrentUserId()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return Ok(new { UserId = userId });
+        }
     }
 }

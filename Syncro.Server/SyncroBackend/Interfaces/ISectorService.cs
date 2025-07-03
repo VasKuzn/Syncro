@@ -7,6 +7,6 @@ namespace SyncroBackend.Interfaces
         Task<SectorModel> GetSectorByIdAsync(Guid sectorId);
         Task<SectorModel> CreateSectorAsync(SectorModel sector);
         Task<bool> DeleteSectorAsync(Guid sectorId);
-        Task<SectorModel> UpdateSectorAsync(Guid sectorId, SectorModelDto sectorDto);
+        Task<SectorModel> UpdateSectorAsync(Guid sectorId, SectorModelDTO sectorDto);
     }
 }

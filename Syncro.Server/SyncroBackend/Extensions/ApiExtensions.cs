@@ -29,7 +29,7 @@ namespace SyncroBackend.Extensions
                 {
                     OnMessageReceived = context =>
                     {
-                        context.Token = context.Request.Cookies["tasty-cookies"];
+                        context.Token = context.Request.Cookies["access-token"];
                         return Task.CompletedTask;
                     }
                 };

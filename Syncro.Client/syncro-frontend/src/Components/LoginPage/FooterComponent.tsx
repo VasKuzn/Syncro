@@ -7,13 +7,13 @@ const FooterComponent = () => {
                 <div>
                     <p>
                         Want to synchronize?&nbsp;
-                        <Link to="/register" >Sign up!</Link>
+                        <Link to="/register" className='underline-element'>Sign up!</Link>
                     </p>
                     <ul>
-                        <li><a href="#">Privacy policy</a></li>
-                        <li><a href="#">Community Guidelines</a></li>
-                        <li><a href="#">Cookie policy</a></li>
-                        <li><a href="#">Copyright policy</a></li>
+                        <li><a href="#" className='underline-element'>Privacy policy</a></li>
+                        <li><a href="#" className='underline-element'>Community Guidelines</a></li>
+                        <li><a href="#" className='underline-element'>Cookie policy</a></li>
+                        <li><a href="#" className='underline-element'>Copyright policy</a></li>
                     </ul>
                 </div>
             </footer>

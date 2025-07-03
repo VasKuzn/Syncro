@@ -6,7 +6,10 @@ const FooterComponent = () => {
             <footer>
                 <p>
                     Already have an account?&nbsp;
-                    <Link to="/login" > Sign in!</Link>
+                    <Link to="/login" className='underline-element'> Sign in!</Link>
+                </p>
+                <p className="celebration">
+                    &#127881; Thank you for choosing us!&nbsp;&#127881;
                 </p>
             </footer>
         </div>

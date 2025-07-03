@@ -34,3 +34,15 @@ export interface LoginComponentProps {
     onTogglePasswordVisibility: () => void;
     onSubmit: (e: React.FormEvent) => void;
 }
+export type FormState = {
+    emailOrPhone: string;
+    password: string;
+    passwordVisible: boolean;
+    keepSignedIn: boolean;
+    isLoading: boolean;
+    maxLength: number;
+    isEmail: boolean;
+};
+export interface SuccessNotificationProps {
+    onClose: () => void;
+}

@@ -5,10 +5,17 @@ namespace SyncroBackend.Controllers
     public class FriendsController : ControllerBase
     {
         private readonly IFriendsService _friendsService;
+        private readonly IHubContext<FriendsHub> _hubContext;
+        private readonly ILogger<FriendsController> _logger;
 
-        public FriendsController(IFriendsService friendsService)
+        public FriendsController(
+            IFriendsService friendsService,
+            IHubContext<FriendsHub> hubContext,
+            ILogger<FriendsController> logger)
         {
             _friendsService = friendsService;
+            _hubContext = hubContext;
+            _logger = logger;
         }
 
         // GET: api/friends
@@ -86,6 +93,8 @@ namespace SyncroBackend.Controllers
                 {
                     return Ok(createdFriend);
                 }
+                await NotifyFriendsUpdate(friends.userWhoSent.ToString());
+                await NotifyFriendsUpdate(friends.userWhoRecieved.ToString());
 
                 return CreatedAtAction(
                     nameof(GetFriendsById),
@@ -109,13 +118,19 @@ namespace SyncroBackend.Controllers
         {
             try
             {
+                var friends = await _friendsService.GetFriendsByIdAsync(id);
+                if (friends == null)
+                {
+                    return NotFound();
+                }
                 var result = await _friendsService.DeleteFriendsAsync(id);
 
                 if (!result)
                 {
                     return NotFound($"Friend with id {id} not found");
                 }
-
+                await NotifyFriendsUpdate(friends.userWhoSent.ToString());
+                await NotifyFriendsUpdate(friends.userWhoRecieved.ToString());
                 return NoContent();
             }
             catch (Exception ex)
@@ -140,12 +155,29 @@ namespace SyncroBackend.Controllers
                 {
                     return NotFound($"Friend with id {id} not found");
                 }
-
+                await NotifyFriendsUpdate(updatedFriend.userWhoSent.ToString());
+                await NotifyFriendsUpdate(updatedFriend.userWhoRecieved.ToString());
                 return Ok(updatedFriend);
             }
             catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+        private async Task NotifyFriendsUpdate(string userId)
+        {
+            try
+            {
+                await _hubContext.Clients.Group($"friends-{userId}")
+                    .SendAsync("FriendsUpdated", new
+                    {
+                        Type = "FriendsUpdated",
+                        Timestamp = DateTime.UtcNow
+                    });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send friends update notification to user {UserId}", userId);
             }
         }
     }

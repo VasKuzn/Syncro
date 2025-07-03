@@ -5,10 +5,16 @@ namespace SyncroBackend.Controllers
     public class GroupConferenceController : ControllerBase
     {
         private readonly IGroupConferenceService<GroupConferenceModel> _groupConferenceService;
+        private readonly IGroupConferenceMemberService _groupConferenceMemberService;
+        private readonly IHubContext<GroupsHub> _hubContext;
+        private readonly ILogger<GroupConferenceController> _logger;
 
-        public GroupConferenceController(IGroupConferenceService<GroupConferenceModel> groupConferenceService)
+        public GroupConferenceController(IGroupConferenceService<GroupConferenceModel> groupConferenceService, IHubContext<GroupsHub> hubContext, ILogger<GroupConferenceController> logger, IGroupConferenceMemberService groupConferenceMemberService)
         {
             _groupConferenceService = groupConferenceService;
+            _hubContext = hubContext;
+            _logger = logger;
+            _groupConferenceMemberService = groupConferenceMemberService;
         }
 
         // GET /api/groupconference
@@ -90,6 +96,10 @@ namespace SyncroBackend.Controllers
             try
             {
                 var result = await _groupConferenceService.UpdateConferenceAsync(id, conferenceNickname);
+                if (result != null)
+                {
+                    await NotifyConferenceMembersUpdate(id);
+                }
                 return Ok(result);
             }
             catch (ArgumentException ex)
@@ -114,11 +124,37 @@ namespace SyncroBackend.Controllers
                 {
                     return NotFound($"Group conference with id {id} not found");
                 }
+                await NotifyConferenceMembersUpdate(id);
                 return NoContent();
             }
             catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+        private async Task NotifyConferenceMembersUpdate(Guid conferenceId)
+        {
+            try
+            {
+                // Получаем всех участников конференции
+                var members = await _groupConferenceMemberService.GetAllMembersByConferenceAsync(conferenceId);
+
+                // Создаем список задач для уведомления каждого участника
+                var notificationTasks = members.Select(member =>
+                    _hubContext.Clients.Group($"groups-{member.accountId}")
+                        .SendAsync("GroupsUpdated", new
+                        {
+                            Type = "GroupsUpdated",
+                            ConferenceId = conferenceId,
+                            Timestamp = DateTime.UtcNow
+                        }));
+
+                // Ожидаем завершения всех уведомлений
+                await Task.WhenAll(notificationTasks);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send conference update notifications for conference {ConferenceId}", conferenceId);
             }
         }
     }

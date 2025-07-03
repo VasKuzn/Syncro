@@ -89,7 +89,7 @@ namespace SyncroBackend.Controllers
         public async Task<ActionResult<SectorModel>> UpdateSector(
             Guid serverId,
             Guid sectorId,
-            [FromBody] SectorModelDto sectorDto)
+            [FromBody] SectorModelDTO sectorDto)
         {
             try
             {

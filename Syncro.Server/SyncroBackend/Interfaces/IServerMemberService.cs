@@ -7,7 +7,7 @@ namespace SyncroBackend.Interfaces
         Task<ServerMemberModel> GetMemberByIdAsync(Guid memberId);
         Task<ServerMemberModel> CreateMemberAsync(ServerMemberModel member);
         Task<bool> DeleteMemberAsync(Guid memberId);
-        Task<ServerMemberModel> UpdateMemberAsync(Guid memberId, ServerMemberDto memberDto);
+        Task<ServerMemberModel> UpdateMemberAsync(Guid memberId, ServerMemberDTO memberDto);
         Task<ServerMemberModel> BanMemberAsync(Guid memberId, string banReason);
         Task<ServerMemberModel> UnbanMemberAsync(Guid memberId);
     }
