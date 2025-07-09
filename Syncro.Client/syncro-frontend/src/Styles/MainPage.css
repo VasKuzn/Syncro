@@ -117,6 +117,13 @@ body {
     color: #ffffff;
 }
 
+.button-friends-status.active {
+    background-color: #3B82F6 !important;
+    color: #fff !important;
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.25);
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
 .button-friends-status.add {
     background-color: #3B82F6;
 }
@@ -192,16 +199,25 @@ body {
     display: flex;
     flex-direction: row;
     height: 60px;
-    padding: 0 20px;
-    opacity: 0;
-    margin: 8px 0;
-    border-radius: 12px;
+    padding: 0 12px;
+    opacity: 1;
+    margin: 4px 0;
     background-color: #1E293B;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    transform: translateY(10px);
     align-items: center;
     gap: 12px;
-    animation: appear 0.3s ease forwards;
+    border-radius: 10px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+    box-sizing: border-box;
+    z-index: 1;
+}
+
+.friend-item:hover {
+    background: #23244a;
+    box-shadow: 0 2px 8px #3b82f6;
+    transform: scale(1.02);
+    z-index: 2;
 }
 
 .friend-avatar-container {
@@ -310,7 +326,7 @@ body {
     animation: buttonClick 0.3s ease;
 }
 
-/* Уведомления */
+
 .notification {
     position: fixed;
     bottom: 20px;
@@ -346,7 +362,6 @@ body {
     }
 }
 
-/* Улучшаем карточки друзей */
 .friend-item {
     transition: all 0.2s ease;
     cursor: pointer;
@@ -369,12 +384,12 @@ body {
 }
 
 .online-status {
-    font-size: 0.85rem;
-    color: #94A3B8;
+    font-size: 0.9em;
+    color: #4ade80;
+    margin-left: 4px;
     position: relative;
     padding-left: 14px;
 }
-
 
 .online-status::before {
     content: "";
@@ -385,299 +400,107 @@ body {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background-color: #10B981;
+    background-color: #4ade80;
     transition: all 0.2s ease;
+}
+
+.online-status.offline {
+    color: #a1a1aa;
 }
 
 .online-status.offline::before {
-    background-color: #64748B;
+    background-color: #a1a1aa;
 }
 
-
-/* Инпут с анимацией */
-.input-box {
-    border: 1px solid #334155;
-    transition: all 0.25s ease;
-}
-
-.input-box:focus-within {
-    border-color: transparent;
-    outline: 2px solid #3B82F6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
-}
-
-.nickname {
-    font-weight: 500;
-    color: #F8FAFC;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-@keyframes pulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
-    }
-
-    70% {
-        box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
-    }
-
-    100% {
-        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
-    }
-}
-
-.button-friends-status.add.loading {
-    position: relative;
-}
-
-.button-friends-status.add.loading::after {
-    content: "";
+.friend-details-popover {
     position: absolute;
-    top: -2px;
-    left: -2px;
-    right: -2px;
-    bottom: -2px;
-    border-radius: 10px;
-    animation: pulse 1.5s infinite;
-}
-
-.button-loader {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    border-top-color: white;
-    animation: spin 1s ease-in-out infinite;
-    margin-right: 8px;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-/* Прогресс-бар уведомления */
-.notification-progress {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    height: 3px;
-    background: rgba(255, 255, 255, 0.5);
-    animation: progress 3.5s linear forwards;
-}
-
-@keyframes progress {
-    from {
-        width: 100%;
-    }
-
-    to {
-        width: 0%;
-    }
-}
-
-/* Улучшенное уведомление */
-.notification {
-    position: relative;
-    overflow: hidden;
-}
-
-.notification-content {
-    display: flex;
-    align-items: center;
-}
-
-/* Превью найденного пользователя */
-.friend-preview {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px;
-    background-color: #1A2438;
-    border-radius: 10px;
-    margin-top: 8px;
-    animation: fadeIn 0.3s ease;
-}
-
-.preview-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid #3B82F6;
-}
-
-.preview-nickname {
-    color: #F8FAFC;
-    font-weight: 600;
-}
-
-.preview-status {
-    font-size: 0.85rem;
-    color: #94A3B8;
-    margin-left: auto;
-}
-
-.preview-status.offline {
-    color: #64748B;
-}
-
-/* Анимации */
-
-@keyframes appear {
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: scale(0.96);
-    }
-
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-/* Кнопки фильтра */
-.button-friends-status.active {
-    background-color: #3B82F6;
-    color: white;
-    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.5);
-}
-
-/* Пустой список */
-.empty-state {
-    text-align: center;
-    color: #94A3B8;
-    padding: 40px;
-    opacity: 0.8;
-}
-
-.empty-state img {
-    width: 120px;
-    margin-bottom: 16px;
-}
-
-/* Иконка поиска */
-.input-box.with-icon {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.input-box.with-icon input {
-    padding-left: 35px;
-}
-
-.search-icon {
-    position: absolute;
-    left: 10px;
+    left: 50%;
     top: 50%;
-    transform: translateY(-50%);
-    width: 18px;
-    height: 18px;
-    object-fit: contain;
-    pointer-events: none;
-    opacity: 0.6;
-}
-
-/* Hover эффекты */
-.friend-avatar:hover {
-    transform: scale(1.05);
-    transition: transform 0.2s ease;
-}
-
-.nickname:hover {
-    cursor: pointer;
-}
-
-.friend-request-modal {
-    margin-top: 12px;
-    padding: 16px;
-    background: #1A2438;
-    border-radius: 12px;
-    color: #F8FAFC;
-    animation: slideFadeIn 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    border: 1px solid #3B82F6;
+    transform: translate(-50%, -50%);
+    z-index: 200;
+    background: #23244a;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), 0 1.5px 8px #3b82f6;
+    padding: 28px 28px 20px 24px;
+    min-width: 260px;
+    max-width: 90vw;
+    animation: popover-fade-in 0.2s;
     display: flex;
     flex-direction: column;
-    align-items: center;
-}
-
-.friend-request-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: #ffffff;
-}
-
-.friend-request-text {
-    font-size: 0.95rem;
-    color: #CBD5E1;
-    text-align: center;
-}
-
-.friend-request-actions {
-    margin-top: 14px;
-    display: flex;
-    justify-content: center;
     gap: 12px;
+    overflow: auto;
 }
 
-.accept-button,
-.decline-button {
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    font-weight: 500;
+@media (max-width: 700px) {
+    .friend-details-popover {
+        min-width: 80vw;
+        max-width: 98vw;
+        padding: 12px 4px 12px 8px;
+    }
+}
+
+.friend-details-popover .close-popover {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: transparent;
     border: none;
+    color: #fff;
+    font-size: 1.7rem;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: color 0.2s, transform 0.15s;
+    z-index: 11;
+    padding: 0 4px;
+    line-height: 1;
+}
+
+.friend-details-popover .close-popover:hover {
+    color: #f87171;
+    transform: scale(1.2) rotate(90deg);
+}
+
+.friend-details-popover .friend-request-actions {
     display: flex;
-    align-items: center;
-    gap: 6px;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
 }
 
-.accept-button {
-    background: #10B981;
-    color: #ffffff;
+.friend-details-popover .accept-button,
+.friend-details-popover .decline-button {
+    width: 100%;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.1s;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.08);
+    outline: none;
+    margin: 0;
+    text-align: center;
+    letter-spacing: 0.02em;
 }
 
-.accept-button:hover {
-    background: #059669;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
+.friend-details-popover .accept-button {
+    background: linear-gradient(90deg, #22c55e 60%, #16a34a 100%);
+    color: #fff;
 }
 
-.decline-button {
-    background: #EF4444;
-    color: #ffffff;
+.friend-details-popover .accept-button:hover {
+    background: linear-gradient(90deg, #16a34a 60%, #22c55e 100%);
+    box-shadow: 0 4px 16px rgba(34, 197, 94, 0.18);
+    transform: translateY(-2px) scale(1.04);
 }
 
-.decline-button:hover {
-    background: #DC2626;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
+.friend-details-popover .decline-button {
+    background: linear-gradient(90deg, #f87171 60%, #b91c1c 100%);
+    color: #fff;
 }
 
-@keyframes slideFadeIn {
-    from {
-        transform: translateY(10px);
-        opacity: 0;
-    }
-
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
+.friend-details-popover .decline-button:hover {
+    background: linear-gradient(90deg, #b91c1c 60%, #f87171 100%);
+    box-shadow: 0 4px 16px rgba(239, 113, 113, 0.18);
+    transform: translateY(-2px) scale(1.04);
 }
