@@ -124,6 +124,12 @@ const FriendsComponent = ({ friends, onFriendAdded }: FriendProps) => {
         return result;
     })();
 
+    // Закрывать окно с деталями друга при смене фильтра
+    useEffect(() => {
+        setSelectedFriend(null);
+        setSelectedRequestId(null);
+    }, [filter]);
+
     return (
         <div className="friends">
             {notification && (
@@ -190,13 +196,17 @@ const FriendsComponent = ({ friends, onFriendAdded }: FriendProps) => {
                     ) : (
                         filteredFriends.map(friend => {
                             const isIncomingRequest = friend.status === 0 && friend.userWhoReceived === currentUserId;
+                            const isMyRequest = friend.status === 0 && friend.userWhoSent === currentUserId;
                             const isSelected = selectedRequestId === friend.id;
+                            const isFriendSelected = selectedFriend?.id === friend.id;
 
                             return (
-                                <div key={friend.id} className="friend-item" onClick={() => {
-                                    setSelectedRequestId(prev => prev === friend.id ? null : friend.id);
-                                    setSelectedFriend(prev => prev?.id === friend.id ? null : friend);
-                                }}>
+                                <div key={friend.id} className="friend-item" style={{ position: 'relative', zIndex: isFriendSelected ? 100 : 1 }}
+                                    onClick={() => {
+                                        setSelectedRequestId(prev => prev === friend.id ? null : friend.id);
+                                        setSelectedFriend(prev => prev?.id === friend.id ? null : friend);
+                                    }}
+                                >
                                     <div className="friend-avatar-container">
                                         <img
                                             className="friend-avatar"
@@ -210,9 +220,7 @@ const FriendsComponent = ({ friends, onFriendAdded }: FriendProps) => {
                                     <div className="friend-info-container">
                                         <div className="friend-text-info">
                                             <span className="nickname">{friend.nickname}</span>
-                                            <span className={`online-status ${friend.isOnline ? '' : 'offline'}`}>
-                                                {friend.isOnline ? "В сети" : "Не в сети"}
-                                            </span>
+                                            <span className={`online-status ${friend.isOnline ? '' : 'offline'}`}>{friend.isOnline ? "В сети" : "Не в сети"}</span>
                                         </div>
 
                                         {isIncomingRequest && isSelected && (
@@ -242,22 +250,52 @@ const FriendsComponent = ({ friends, onFriendAdded }: FriendProps) => {
                                                 </div>
                                             </div>
                                         )}
+
+                                        {isFriendSelected && (
+                                            <div className="friend-details-popover" style={{ zIndex: 200 }} onClick={e => e.stopPropagation()}>
+                                                <FriendDetails
+                                                    friend={friend}
+                                                    onAccept={handleAccept}
+                                                    onCancel={handleCancel}
+                                                />
+                                                {filter === 'myrequests' && isMyRequest && (
+                                                    <>
+                                                        <p style={{ marginTop: 12, marginBottom: 0 }}>Вы отправили заявку {friend.nickname}</p>
+                                                        <div className="friend-request-actions">
+                                                            <button
+                                                                className="decline-button"
+                                                                onClick={async (e) => {
+                                                                    e.stopPropagation();
+                                                                    setIsLoading(true);
+                                                                    try {
+                                                                        await deleteFriendship(friend.friendShipId);
+                                                                        setSelectedFriend(null);
+                                                                        setSelectedRequestId(null);
+                                                                        onFriendAdded?.();
+                                                                    } catch (err) {
+                                                                        // handle error
+                                                                    } finally {
+                                                                        setIsLoading(false);
+                                                                    }
+                                                                }}
+                                                                disabled={isLoading}
+                                                            >
+                                                                ❌ Отклонить
+                                                            </button>
+                                                        </div>
+                                                    </>
+                                                )}
+                                                <button className="close-popover" onClick={e => { e.stopPropagation(); setSelectedFriend(null); }}>×</button>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             );
                         })
                     )}
-
                 </div>
-                {selectedFriend && (
-                    <FriendDetails
-                        friend={selectedFriend}
-                        onAccept={handleAccept}
-                        onCancel={handleCancel}
-                    />
-                )}
             </div>
-        </div >
+        </div>
     );
 };
 
