@@ -208,15 +208,16 @@ body {
     border-radius: 10px;
     position: relative;
     cursor: pointer;
-    transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
     box-sizing: border-box;
     z-index: 1;
+    transition: all 0.35s ease;
+    cursor: pointer;
 }
 
 .friend-item:hover {
     background: #23244a;
     box-shadow: 0 2px 8px #3b82f6;
-    transform: scale(1.02);
+    transform: scale(0.97);
     z-index: 2;
 }
 
@@ -233,13 +234,22 @@ body {
     display: flex;
     flex-direction: row;
     align-items: center;
+    gap: 7px;
+    cursor: pointer;
+}
+
+.pc-item .friend-info-container:hover {
+    background: #23244a;
+    box-shadow: 0 2px 8px #3b82f6;
+    border-radius: 5px;
+    transform: scale(1.02);
+    z-index: 2;
+    transition: all 0.25s ease;
 }
 
 .friend-text-info {
     display: flex;
     flex-direction: column;
-    flex: 1;
-    min-width: 0;
 }
 
 .friend-actions {
@@ -269,7 +279,7 @@ body {
 }
 
 .pc-item {
-    margin: 5px 0;
+    margin: 7px;
 }
 
 .button-friends-status {
@@ -307,7 +317,6 @@ body {
     opacity: 1;
 }
 
-/* Анимация при нажатии */
 @keyframes buttonClick {
     0% {
         transform: scale(1);
@@ -360,17 +369,6 @@ body {
         transform: translateX(0);
         opacity: 1;
     }
-}
-
-.friend-item {
-    transition: all 0.2s ease;
-    cursor: pointer;
-}
-
-.friend-item:hover {
-    background-color: #2E3A4D;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .friend-avatar {
