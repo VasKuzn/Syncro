@@ -17,8 +17,8 @@ const PersonalChatsComponent = ({ friends }: FriendProps) => {
                                 <img className="friend-avatar" src={"/logo.png"}></img>
                             </div>
                             <div className="friend-text-info">
-                                <label className="nickname">{friend.nickname}</label>
-                                <label className="online-status">{friend.isOnline ? "В сети" : "Не в сети"}</label>
+                                <span className="nickname">{friend.nickname}</span>
+                                <span className={`online-status ${friend.isOnline ? '' : 'offline'}`}>{friend.isOnline ? "В сети" : "Не в сети"}</span>
                             </div>
                         </div>
                     </div>
