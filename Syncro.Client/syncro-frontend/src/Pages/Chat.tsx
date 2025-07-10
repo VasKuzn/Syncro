@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import MessageWithMemo from '../Components/ChatPage/MessageComponent';
 import MessageInput from '../Components/ChatPage/MessageInput';
 import MainComponent from '../Components/ChatPage/MainComponents';
-import ChatComponent from '../Components/ChatPage/ChatComponent';
 import '../Styles/Chat.css';
 
 function parseJwt(token: string) {
