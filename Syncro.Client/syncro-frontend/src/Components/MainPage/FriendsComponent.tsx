@@ -124,7 +124,6 @@ const FriendsComponent = ({ friends, onFriendAdded }: FriendProps) => {
         return result;
     })();
 
-    // Закрывать окно с деталями друга при смене фильтра
     useEffect(() => {
         setSelectedFriend(null);
         setSelectedRequestId(null);
