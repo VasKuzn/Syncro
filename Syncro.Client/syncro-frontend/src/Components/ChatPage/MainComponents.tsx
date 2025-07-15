@@ -1,17 +1,12 @@
-import React from "react";
-import HeaderComponent from "./HeaderComponent";
+import HeaderComponent from "../MainPage/HeaderComponent";
 import BodyComponent from "./BodyComponent";
+import { PersonalChatProps } from "../../Types/ChatTypes";
 
-
-interface MainComponentsProps {
-  chatContent?: React.ReactNode;
-}
-
-const MainComponent: React.FC<MainComponentsProps> = ({ chatContent }) => {
+const MainComponent = ({ chatContent, friends }: PersonalChatProps) => {
   return (
     <div className="main-page">
-      <HeaderComponent />
-      <BodyComponent chatContent={chatContent} />
+      <HeaderComponent></HeaderComponent>
+      <BodyComponent chatContent={chatContent} friends={friends} />
     </div>
   );
 };

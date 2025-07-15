@@ -134,6 +134,7 @@ body {
     background-color: #3B82F6;
     border: 1px solid #1A2438;
     border-radius: 10px;
+    cursor: pointer;
 }
 
 .group-chat-list {
