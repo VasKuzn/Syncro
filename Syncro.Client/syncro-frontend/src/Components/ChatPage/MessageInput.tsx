@@ -1,10 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { MessageInputProps } from "../../Types/ChatTypes";
 
-interface Props {
-  onSend: (message: string) => void;
-}
-
-const MessageInput: React.FC<Props> = ({ onSend }) => {
+const MessageInput = ({ onSend }: MessageInputProps) => {
   const [value, setValue] = useState("");
 
   const handleSend = () => {
@@ -18,7 +15,7 @@ const MessageInput: React.FC<Props> = ({ onSend }) => {
     <div className="message-input-container">
       <input
         className="message-input-field"
-        placeholder="Написать"
+        placeholder="Отправить"
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && handleSend()}
