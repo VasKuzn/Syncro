@@ -3,12 +3,14 @@ import { GroupConf } from "../../Types/GroupConf";
 import { NetworkError } from "../../Types/LoginTypes";
 import { fetchCurrentUser, getGroups } from '../../Services/MainFormService';
 import * as signalR from "@microsoft/signalr";
+import { useNavigate } from "react-router-dom";
 
 const GroupChatsComponent = () => {
     const [groups, setGroups] = useState<GroupConf[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
+    const navigate = useNavigate();
 
     const initSignalR = useCallback(async (userId: string) => {
         const newConnection = new signalR.HubConnectionBuilder()
@@ -78,8 +80,7 @@ const GroupChatsComponent = () => {
     return (
         <div className="group-chats">
             <div className="main-logo">
-                <img src="/logo.png" alt="Syncro logo" width="50" height="50" />
-                <a href="/app/main"></a>
+                <img src="/logo.png" alt="Syncro logo" width="50" height="50" onClick={e => navigate("/main")} />
             </div>
             <div className="chat-separator"></div>
             <div className="group-chat-list">

@@ -81,7 +81,13 @@ const LoginComponent: React.FC<LoginComponentProps> = ({
                     <a href="forgot-password" className="forgot-element underline-element" >Forgot password? &#129327;</a>
                 </div>
                 <div className="buttons">
-                    <button type="submit" className="primary-button">Sign in {isLoading && <div className="spinner" aria-hidden="true"></div>} </button>
+                    <button type="submit" className="primary-button">
+                        {isLoading ? (
+                            <div className="spinner" aria-hidden="true"></div>
+                        ) : (
+                            "Sign in"
+                        )}
+                    </button>
                 </div>
             </form>
         </div>

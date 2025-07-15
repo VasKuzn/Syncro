@@ -1,61 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { MessageData } from '../Types/ChatTypes'
 import MessageWithMemo from '../Components/ChatPage/MessageComponent';
 import MessageInput from '../Components/ChatPage/MessageInput';
 import MainComponent from '../Components/ChatPage/MainComponents';
 import '../Styles/Chat.css';
+import { Friend } from '../Types/FriendType';
+import { fetchCurrentUser } from '../Services/MainFormService';
+import { useLocation } from 'react-router-dom';
 
-function parseJwt(token: string) {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map(function (c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        })
-        .join('')
-    );
-
-    return JSON.parse(jsonPayload);
-  } catch (e) {
-    console.error('Invalid JWT token', e);
-    return null;
-  }
-}
-
-function getCookie(name: string) {
-  let cookie = document.cookie.split('; ').find(row => row.startsWith(name + '='));
-  return cookie ? cookie.split('=')[1] : null;
-}
-
-interface MessageData {
-  id: number;
-  name: string;
-  time: string;
-  message: string;
-}
-
-const ChatPage: React.FC = () => {
+const ChatPage = () => {
   const [messages, setMessages] = useState<MessageData[]>([]);
-  const token = getCookie('token');
-  const user = token ? parseJwt(token) : null;
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const location = useLocation();
+
 
   useEffect(() => {
-    const saved = localStorage.getItem('chatMessages');
-    if (saved) {
-      setMessages(JSON.parse(saved));
+    if (location.state?.friends) {
+      setFriends(location.state.friends);
     }
-  }, []);
+  }, [location.state]);
 
-  useEffect(() => {
-    localStorage.setItem('chatMessages', JSON.stringify(messages));
-  }, [messages]);
-
-  const handleSend = (message: string) => {
+  const handleSend = async (message: string) => {
     const newMessage: MessageData = {
       id: Date.now(),
-      name: user?.name || "user",
+      name: await fetchCurrentUser(),
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       message,
     };
@@ -79,7 +47,7 @@ const ChatPage: React.FC = () => {
     </>
   );
 
-  return <MainComponent chatContent={chatContent} />;
+  return <MainComponent chatContent={chatContent} friends={friends} />;
 };
 
 export default ChatPage;

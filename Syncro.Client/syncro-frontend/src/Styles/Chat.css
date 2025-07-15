@@ -10,7 +10,7 @@ body {
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 100%;
+  height: 100vh;
   position: relative;
   background-color: #07081C;
 }
@@ -39,14 +39,16 @@ body {
 
 .title {
   display: flex;
-  height: 3%;
+  height: 3vh;
+  min-height: 30px;
   justify-content: center;
   align-items: center;
+  background-color: #07081C;
 }
 
 .body-container {
   display: flex;
-  height: 100%;
+  height: 97vh;
   width: 100%;
   flex-direction: row;
 }
@@ -62,7 +64,7 @@ body {
 }
 
 .chat-container {
-  height: 100vh;
+  height: 100%;
   flex: 1;
   overflow-y: auto;
   padding: 16px;

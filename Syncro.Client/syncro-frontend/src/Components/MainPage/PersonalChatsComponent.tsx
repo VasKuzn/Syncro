@@ -1,7 +1,7 @@
 import { FriendProps } from "../../Types/FriendType";
-
+import { useNavigate } from 'react-router-dom';
 const PersonalChatsComponent = ({ friends }: FriendProps) => {
-
+    const navigate = useNavigate();
     return (
         <div className="personal-chats">
             <div className="search-pm">
@@ -11,7 +11,7 @@ const PersonalChatsComponent = ({ friends }: FriendProps) => {
             </div>
             <div className="pc-list">
                 {friends.map(friend => (
-                    <div key={friend.id} className="pc-item">
+                    <div key={friend.id} className="pc-item" onClick={e => { navigate("/chat", { state: { friends } }); }}>
                         <div className="friend-info-container">
                             <div className="friend-avatar-container">
                                 <img className="friend-avatar" src={"/logo.png"}></img>
