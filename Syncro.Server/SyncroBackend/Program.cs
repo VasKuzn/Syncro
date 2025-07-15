@@ -1,3 +1,5 @@
+using Amazon.S3;
+
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 builder.Services.AddControllers();
@@ -48,6 +50,12 @@ builder.Services.AddScoped<ISectorRepository, SectorRepository>();
 builder.Services.AddScoped<ISectorService, SectorService>();
 builder.Services.AddScoped<ISectorPermissionsRepository, SectorPermissionsRepository>();
 builder.Services.AddScoped<ISectorPermissionsService, SectorPermissionsService>();
+
+//s3
+builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions());
+builder.Services.AddAWSService<IAmazonS3>();
+builder.Services.AddSingleton<ISelectelStorageService, SelectelStorageService>();
+//
 
 var app = builder.Build();
 
