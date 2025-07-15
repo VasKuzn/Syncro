@@ -118,8 +118,8 @@ body {
 }
 
 .button-friends-status.active {
-    background-color: #3B82F6 !important;
-    color: #fff !important;
+    background-color: #3B82F6;
+    color: #fff;
     box-shadow: 0 2px 6px rgba(59, 130, 246, 0.25);
     transition: background 0.2s, color 0.2s, box-shadow 0.2s;
 }
