@@ -1,15 +1,12 @@
+import { PersonalChatProps } from "../../Types/ChatTypes";
 import ChatComponent from "./ChatComponent";
-import SidebarComponent from "./SidebarComponent";
+import SidebarComponent from "../MainPage/SidebarComponent";
 
-interface BodyProps {
-  chatContent?: React.ReactNode;
-}
-
-const BodyComponent: React.FC<BodyProps> = ({ chatContent }) => {
+const BodyComponent = ({ chatContent, friends = [] }: PersonalChatProps) => {
   return (
     <div className="body-container">
-        <SidebarComponent />
-        <ChatComponent chatContent={chatContent} />
+      <SidebarComponent friends={friends} />
+      <ChatComponent chatContent={chatContent} />
     </div>
   );
 };

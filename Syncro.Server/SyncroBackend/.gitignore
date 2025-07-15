@@ -13,8 +13,11 @@
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
-# Remove developpement configuration files
-**/appsettings.*.json
+# Игнорировать все файлы appsettings.json
+appsettings.json
+
+# Игнорировать все локальные/персональные настройки (например, appsettings.Development.json)
+appsettings.*.json
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
