@@ -1,19 +1,20 @@
 import { useState, useEffect } from 'react';
-import { MessageData } from '../Types/ChatTypes'
-import MessageWithMemo from '../Components/ChatPage/MessageComponent';
+import { PersonalMessageData } from '../Types/ChatTypes';
+import Message from '../Components/ChatPage/MessageComponent';
 import MessageInput from '../Components/ChatPage/MessageInput';
 import MainComponent from '../Components/ChatPage/MainComponents';
 import '../Styles/Chat.css';
 import { Friend } from '../Types/FriendType';
 import { fetchCurrentUser } from '../Services/MainFormService';
 import { useLocation } from 'react-router-dom';
+import { createMessage, getMessages } from '../Services/ChatService';
 
 const ChatPage = () => {
-  const [messages, setMessages] = useState<MessageData[]>([]);
   const [friends, setFriends] = useState<Friend[]>([]);
   const [currentFriend, setCurrentFriend] = useState<Friend>();
+  const [personalConference, setPersonalConference] = useState<string | null>(null);
+  const [messages, setMessages] = useState<PersonalMessageData[]>([]);
   const location = useLocation();
-
 
   useEffect(() => {
     if (location.state?.friends) {
@@ -22,41 +23,59 @@ const ChatPage = () => {
     if (location.state?.friendId) {
       setCurrentFriend(location.state.friendId);
     }
+    if (location.state?.personalConferenceId) {
+      setPersonalConference(location.state.personalConferenceId);
+    }
   }, [location.state]);
-  //TODO
-  //почиситить этот мем с memo
-  //добавить структуру Message для более точной обработки
-  //добавить signalr для обработки сообщений
-  //handle вынести в chatservice
-  //
+
+  useEffect(() => {
+    if (personalConference) {
+      loadMessages();
+    }
+  }, [personalConference]);
+
+  const loadMessages = async () => {
+    const loadedMessages = await getMessages(personalConference!);
+    setMessages(loadedMessages);
+  };
+
   const handleSend = async (message: string) => {
-    const newMessage: MessageData = {
-      id: Date.now(),
-      name: await fetchCurrentUser(),
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      message,
+    const newMessage: PersonalMessageData = {
+      id: crypto.randomUUID(),
+      messageContent: message,
+      messageDateSent: new Date(),
+      accountId: await fetchCurrentUser(),
+      personalConferenceId: personalConference,
+      groupConferenceId: null,
+      sectorId: null,
+      idEdited: false,
+      previousMessageContent: null,
+      isPinned: false,
+      isRead: false,
+      referenceMessageId: null,
     };
+    await createMessage(newMessage);
     setMessages(prev => [...prev, newMessage]);
   };
 
-  const chatContent = (
-    <>
-      <div className="messages">
-        {messages.map((msg) => (
-          <MessageWithMemo
-            key={msg.id}
-            id={msg.id}
-            name={msg.name}
-            time={msg.time}
-            message={msg.message}
-          />
-        ))}
-      </div>
-      <MessageInput onSend={handleSend} />
-    </>
+  return (
+    <MainComponent
+      chatContent={
+        <>
+          <div className="messages">
+            {messages.map((msg) => (
+              <Message
+                key={msg.id}
+                {...msg}
+              />
+            ))}
+          </div>
+          <MessageInput onSend={handleSend} />
+        </>
+      }
+      friends={friends}
+    />
   );
-
-  return <MainComponent chatContent={chatContent} friends={friends} />;
 };
 
 export default ChatPage;

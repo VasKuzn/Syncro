@@ -12,6 +12,19 @@ namespace SyncroBackend.Repositories
         {
             return _context.messages.ToListAsync();
         }
+        public async Task<List<MessageModel>> GetAllMessagesByPersonalConferenceAsync(Guid personalConferenceId)
+        {
+            if (personalConferenceId == Guid.Empty)
+            {
+                throw new ArgumentException("Personal conference ID cannot be empty", nameof(personalConferenceId));
+            }
+
+            var messages = await _context.messages
+                .Where(m => m.personalConferenceId == personalConferenceId)
+                .ToListAsync();
+
+            return messages;
+        }
         public async Task<MessageModel> GetMessageByIdAsync(Guid messageId)
         {
             return await _context.messages.FirstOrDefaultAsync(m => m.Id == messageId)

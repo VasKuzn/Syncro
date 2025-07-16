@@ -1,6 +1,7 @@
 import { NetworkError } from "../Types/LoginTypes";
 import { FriendRequest, Friend } from "../Types/FriendType";
 import { FriendList } from "../Types/FriendListType";
+import { PersonalConference } from "../Types/ChatTypes";
 
 //Friend Components Methods
 export const getUserByNickname = async (nickname: string) => {
@@ -123,11 +124,62 @@ export const getFriends = async (userId: string | null) => {
     return await response.json();
 };
 
+export const getPersonalConference = async (userId: string | null, friendId: string | null): Promise<string> => {
+    try {
+        const response = await fetch(`http://localhost:5232/api/personalconference/${userId}/getbyaccount`, {
+            credentials: 'include'
+        });
 
-export async function loadFriendInfo(
+        if (!response.ok) {
+            throw new Error('Failed to fetch conferences');
+        }
+
+        const conferences: PersonalConference[] = await response.json();
+
+        const existingConference = conferences.find(conf =>
+            (conf.user1 === userId && conf.user2 === friendId) ||
+            (conf.user1 === friendId && conf.user2 === userId)
+        );
+
+        if (existingConference) {
+            return existingConference.id;
+        }
+
+        const newConference = {
+            id: crypto.randomUUID(),
+            user1: userId,
+            user2: friendId,
+            isFriend: true,
+            startingDate: new Date().toISOString(),
+            lastActivity: new Date().toISOString(),
+            callType: 0
+        };
+
+        const createResponse = await fetch('http://localhost:5232/api/personalconference', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(newConference)
+        });
+
+        if (!createResponse.ok) {
+            throw new Error('Failed to create conference');
+        }
+
+        return newConference.id;
+
+    } catch (error) {
+        console.error('Error in getPersonalConference:', error);
+        throw error;
+    }
+};
+
+export const loadFriendInfo = async (
     friendsList: FriendList[],
     userId: string | null
-): Promise<Friend[]> {
+): Promise<Friend[]> => {
     const loadedFriends: Friend[] = [];
 
     for (const friend of friendsList) {

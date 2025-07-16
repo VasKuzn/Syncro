@@ -4,4 +4,6 @@ type UserCredentials = {
     password: string;
 };
 
+
+
 export default UserCredentials;

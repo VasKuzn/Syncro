@@ -25,6 +25,20 @@ namespace SyncroBackend.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        // GET: api/messages/{id}/bypersonalconference
+        [HttpGet("bypersonalconference")]
+        public async Task<ActionResult<IEnumerable<MessageModel>>> GetAllMessagesByPersonalConference(Guid personalConferenceId)
+        {
+            try
+            {
+                var messages = await _messageService.GetAllMessagesByPersonalConferenceAsync(personalConferenceId);
+                return Ok(messages);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
         // GET: api/messages/{id}
         [HttpGet("{id}")]
         //[Authorize]
