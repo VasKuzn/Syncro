@@ -10,5 +10,6 @@ namespace SyncroBackend.Interfaces
         public Task<MessageModel> ToggleMessagePinAsync(Guid messageId);
         public Task<MessageModel> MarkMessageAsReadAsync(Guid messageId, Guid readerId, bool isRead);
         public Task<MessageModel> SetMessageReferenceAsync(Guid messageId, Guid referencedMessageId);
+        public Task<List<MessageModel>> GetAllMessagesByPersonalConferenceAsync(Guid personalConferenceId);
     }
 }
