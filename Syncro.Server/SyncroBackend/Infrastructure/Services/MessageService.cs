@@ -64,5 +64,10 @@ namespace SyncroBackend.Infrastructure.Services
         {
             return await _messageRepository.DeleteMessageAsync(messageId);
         }
+
+        public async Task<List<MessageModel>> GetAllMessagesByPersonalConferenceAsync(Guid personalConferenceId)
+        {
+            return await _messageRepository.GetAllMessagesByPersonalConferenceAsync(personalConferenceId);
+        }
     }
 }

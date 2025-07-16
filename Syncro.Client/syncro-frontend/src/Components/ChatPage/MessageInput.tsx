@@ -15,11 +15,18 @@ const MessageInput = ({ onSend }: MessageInputProps) => {
     <div className="message-input-container">
       <input
         className="message-input-field"
-        placeholder="Отправить"
+        placeholder="Type a message..."
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && handleSend()}
       />
+      <button
+        className="send-button"
+        onClick={handleSend}
+        disabled={!value.trim()}
+      >
+        Send
+      </button>
     </div>
   );
 };

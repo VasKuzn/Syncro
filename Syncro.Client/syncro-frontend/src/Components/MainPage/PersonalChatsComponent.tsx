@@ -1,3 +1,4 @@
+import { fetchCurrentUser, getPersonalConference } from "../../Services/MainFormService";
 import { FriendProps } from "../../Types/FriendType";
 import { useNavigate } from 'react-router-dom';
 const PersonalChatsComponent = ({ friends }: FriendProps) => {
@@ -11,7 +12,26 @@ const PersonalChatsComponent = ({ friends }: FriendProps) => {
             </div>
             <div className="pc-list">
                 {friends.map(friend => (
-                    <div key={friend.id} className="pc-item" onClick={e => { navigate("/chat", { state: { friends } }); }}>
+                    <div
+                        key={friend.id}
+                        className="pc-item"
+                        onClick={async (e) => {
+                            try {
+                                const currentUserId = await fetchCurrentUser();
+                                const personalConferenceId = await getPersonalConference(currentUserId, friend.id);
+
+                                navigate("/chat", {
+                                    state: {
+                                        friends,
+                                        friendId: friend.id,
+                                        personalConferenceId
+                                    }
+                                });
+                            } catch (error) {
+                                console.error("Ошибка при получении конференции:", error);
+                            }
+                        }}
+                    >
                         <div className="friend-info-container">
                             <div className="friend-avatar-container">
                                 <img className="friend-avatar" src={"/logo.png"}></img>

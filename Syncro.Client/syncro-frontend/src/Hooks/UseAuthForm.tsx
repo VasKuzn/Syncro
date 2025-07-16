@@ -68,7 +68,7 @@ export const useAuthForm = () => {
 
         return true;
     };
-
+    // Это желательно переделать, небезопасно.
     const handlePersistCredentials = () => {
         const { emailOrPhone, password, keepSignedIn } = formState;
         if (keepSignedIn) {
