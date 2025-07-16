@@ -8,5 +8,6 @@ namespace SyncroBackend.Interfaces
         public Task<bool> DeleteMessageAsync(Guid messageId);
         public Task<MessageModel> UpdateMessageTextAsync(MessageModel message);
         public Task<MessageModel> UpdateMessageAdditionalChangeAsync(Guid messageId, bool? togglePin = null, bool? toggleRead = null, Guid? setReferenceMessageId = null);
+        public Task<List<MessageModel>> GetAllMessagesByPersonalConferenceAsync(Guid personalConferenceId);
     }
 }

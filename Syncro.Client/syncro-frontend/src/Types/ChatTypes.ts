@@ -1,10 +1,18 @@
 import { Friend } from "./FriendType";
 
-export interface MessageData {
-    id: number;
-    name: string | null;
-    time: string;
-    message: string;
+export interface PersonalMessageData {
+    id: string,
+    messageContent: string,
+    messageDateSent: Date,
+    accountId: string | null,
+    personalConferenceId: string | null,
+    groupConferenceId: string | null,
+    sectorId: string | null,
+    idEdited: boolean,
+    previousMessageContent: string | null,
+    isPinned: boolean,
+    isRead: boolean,
+    referenceMessageId: string | null,
 }
 export interface PersonalChatProps {
     chatContent?: React.ReactNode;
@@ -12,4 +20,13 @@ export interface PersonalChatProps {
 }
 export interface MessageInputProps {
     onSend: (message: string) => void;
+}
+export interface PersonalConference {
+    id: string,
+    user1: string,
+    user2: string,
+    isFriend: boolean,
+    startingDate: Date,
+    lastActivity: Date,
+    callType: number
 }
