@@ -11,6 +11,7 @@ import { useLocation } from 'react-router-dom';
 const ChatPage = () => {
   const [messages, setMessages] = useState<MessageData[]>([]);
   const [friends, setFriends] = useState<Friend[]>([]);
+  const [currentFriend, setCurrentFriend] = useState<Friend>();
   const location = useLocation();
 
 
@@ -18,8 +19,16 @@ const ChatPage = () => {
     if (location.state?.friends) {
       setFriends(location.state.friends);
     }
+    if (location.state?.friendId) {
+      setCurrentFriend(location.state.friendId);
+    }
   }, [location.state]);
-
+  //TODO
+  //почиситить этот мем с memo
+  //добавить структуру Message для более точной обработки
+  //добавить signalr для обработки сообщений
+  //handle вынести в chatservice
+  //
   const handleSend = async (message: string) => {
     const newMessage: MessageData = {
       id: Date.now(),
