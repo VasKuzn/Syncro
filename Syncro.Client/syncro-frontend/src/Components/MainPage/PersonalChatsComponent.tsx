@@ -11,7 +11,7 @@ const PersonalChatsComponent = ({ friends }: FriendProps) => {
             </div>
             <div className="pc-list">
                 {friends.map(friend => (
-                    <div key={friend.id} className="pc-item" onClick={e => { navigate("/chat", { state: { friends } }); }}>
+                    <div key={friend.id} className="pc-item" onClick={e => { navigate("/chat", { state: { friends, friendId: friend.id } }); }}>
                         <div className="friend-info-container">
                             <div className="friend-avatar-container">
                                 <img className="friend-avatar" src={"/logo.png"}></img>
