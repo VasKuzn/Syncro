@@ -81,5 +81,6 @@ app.MapControllers();
 
 app.MapHub<FriendsHub>("/friendshub");
 app.MapHub<GroupsHub>("/groupshub");
+app.MapHub<PersonalMessagesHub>("/personalmessageshub");
 
 app.Run();
