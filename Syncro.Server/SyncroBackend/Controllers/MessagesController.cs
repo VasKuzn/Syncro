@@ -5,10 +5,12 @@ namespace SyncroBackend.Controllers
     public class MessagesController : ControllerBase
     {
         private readonly IMessageService _messageService;
+        private readonly IHubContext<PersonalMessagesHub> _messagesHub;
 
-        public MessagesController(IMessageService messageService)
+        public MessagesController(IMessageService messageService, IHubContext<PersonalMessagesHub> messagesHub)
         {
             _messageService = messageService;
+            _messagesHub = messagesHub;
         }
 
         // GET: api/messages
@@ -66,6 +68,12 @@ namespace SyncroBackend.Controllers
             try
             {
                 var createdMessage = await _messageService.CreateMessageAsync(account);
+                //персональные конференции
+                if (createdMessage.personalConferenceId != null)
+                {
+                    await _messagesHub.Clients.Group($"personalconference-{createdMessage.personalConferenceId}").SendAsync("ReceivePersonalMessage", createdMessage);
+                }
+                //
                 return CreatedAtAction(nameof(GetMessageById), new { id = createdMessage.Id }, createdMessage);
             }
             catch (ArgumentException ex)

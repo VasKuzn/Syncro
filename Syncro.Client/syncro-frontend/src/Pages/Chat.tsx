@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { PersonalMessageData } from '../Types/ChatTypes';
 import Message from '../Components/ChatPage/MessageComponent';
 import MessageInput from '../Components/ChatPage/MessageInput';
@@ -8,15 +8,36 @@ import { Friend } from '../Types/FriendType';
 import { fetchCurrentUser } from '../Services/MainFormService';
 import { useLocation } from 'react-router-dom';
 import { createMessage, getMessages } from '../Services/ChatService';
+import usePersonalMessagesHub from '../Hooks/UsePersonalMessages';
 
 const ChatPage = () => {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [currentFriend, setCurrentFriend] = useState<Friend>();
   const [personalConference, setPersonalConference] = useState<string | null>(null);
   const [messages, setMessages] = useState<PersonalMessageData[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const location = useLocation();
 
+  const handleNewMessage = useCallback((message: PersonalMessageData) => {
+    setMessages(prev => {
+      if (!prev.some(m => m.id === message.id)) {
+        return [...prev, message];
+      }
+      return prev;
+    });
+    setTimeout(scrollToBottom, 100);
+  }, []);
+
+  usePersonalMessagesHub(personalConference, handleNewMessage);
+
   useEffect(() => {
+    const initializeUser = async () => {
+      const userId = await fetchCurrentUser();
+      setCurrentUserId(userId);
+    };
+
+    initializeUser();
+
     if (location.state?.friends) {
       setFriends(location.state.friends);
     }
@@ -28,23 +49,30 @@ const ChatPage = () => {
     }
   }, [location.state]);
 
-  useEffect(() => {
-    if (personalConference) {
-      loadMessages();
+  const loadMessages = useCallback(async () => {
+    if (!personalConference) return;
+
+    try {
+      const loadedMessages = await getMessages(personalConference);
+      setMessages(loadedMessages);
+      setTimeout(scrollToBottom, 100);
+    } catch (error) {
+      console.error('Failed to load messages:', error);
     }
   }, [personalConference]);
 
-  const loadMessages = async () => {
-    const loadedMessages = await getMessages(personalConference!);
-    setMessages(loadedMessages);
-  };
+  useEffect(() => {
+    loadMessages();
+  }, [loadMessages]);
 
   const handleSend = async (message: string) => {
+    if (!currentUserId || !personalConference) return;
+
     const newMessage: PersonalMessageData = {
       id: crypto.randomUUID(),
       messageContent: message,
       messageDateSent: new Date(),
-      accountId: await fetchCurrentUser(),
+      accountId: currentUserId,
       personalConferenceId: personalConference,
       groupConferenceId: null,
       sectorId: null,
@@ -54,8 +82,19 @@ const ChatPage = () => {
       isRead: false,
       referenceMessageId: null,
     };
-    await createMessage(newMessage);
-    setMessages(prev => [...prev, newMessage]);
+
+    try {
+      await createMessage(newMessage);
+      setTimeout(scrollToBottom, 100);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+    }
+  };
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
@@ -69,6 +108,7 @@ const ChatPage = () => {
                 {...msg}
               />
             ))}
+            <div ref={messagesEndRef} />
           </div>
           <MessageInput onSend={handleSend} />
         </>

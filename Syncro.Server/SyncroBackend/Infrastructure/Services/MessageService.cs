@@ -3,10 +3,12 @@ namespace SyncroBackend.Infrastructure.Services
     public class MessageService : IMessageService
     {
         private readonly IMessageRepository _messageRepository;
+        private readonly IAccountRepository _accountRepository;
 
-        public MessageService(IMessageRepository messageRepository)
+        public MessageService(IMessageRepository messageRepository, IAccountRepository accountRepository)
         {
             _messageRepository = messageRepository;
+            _accountRepository = accountRepository;
         }
         public async Task<List<MessageModel>> GetAllMessagesAsync()
         {
@@ -24,6 +26,15 @@ namespace SyncroBackend.Infrastructure.Services
             {
                 throw new ArgumentException("message content is empty");
             }
+
+            if (message.accountId == null)
+            {
+                throw new ArgumentException("accountId cannot be null");
+            }
+
+            var account = await _accountRepository.GetAccountByIdAsync((Guid)message.accountId);
+            message.accountNickname = account.nickname;
+
             return await _messageRepository.AddMessageAsync(message);
         }
 
