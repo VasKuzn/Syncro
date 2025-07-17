@@ -5,6 +5,7 @@ export interface PersonalMessageData {
     messageContent: string,
     messageDateSent: Date,
     accountId: string | null,
+    accountNickname?: string | null,
     personalConferenceId: string | null,
     groupConferenceId: string | null,
     sectorId: string | null,

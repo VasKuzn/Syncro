@@ -6,6 +6,7 @@ namespace SyncroBackend.Entities.Models
         public required string messageContent { get; set; }
         public DateTime messageDateSent { get; set; }
         public Guid? accountId { get; set; }
+        public string? accountNickname { get; set; }
         public Guid? personalConferenceId { get; set; }
         public Guid? groupConferenceId { get; set; }
         public Guid? sectorId { get; set; }
