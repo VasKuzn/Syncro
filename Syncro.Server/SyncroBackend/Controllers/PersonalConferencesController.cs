@@ -5,10 +5,12 @@ namespace SyncroBackend.Controllers
     public class PersonalConferencesController : ControllerBase
     {
         private readonly IConferenceService<PersonalConferenceModel> _personalConferenceService;
+        private readonly IHubContext<PersonalMessagesHub> _messagesHub;
 
-        public PersonalConferencesController(IConferenceService<PersonalConferenceModel> personalConference)
+        public PersonalConferencesController(IConferenceService<PersonalConferenceModel> personalConference, IHubContext<PersonalMessagesHub> messagesHub)
         {
             _personalConferenceService = personalConference;
+            _messagesHub = messagesHub;
         }
         // GET /api/personalconference
         [HttpGet]
@@ -66,6 +68,7 @@ namespace SyncroBackend.Controllers
             try
             {
                 var result = await _personalConferenceService.CreateConferenceAsync(conference);
+                await _messagesHub.Clients.Users(conference.user1.ToString(), conference.user2.ToString()).SendAsync("PersonalConferenceCreated", result);
                 return CreatedAtAction(nameof(GetPersonalConferenceById), new { id = result.Id }, result);
             }
             catch (ArgumentException ex)

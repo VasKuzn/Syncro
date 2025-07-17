@@ -1,7 +1,7 @@
 import { PersonalMessageData } from "../Types/ChatTypes";
 
 export const createMessage = async (message: PersonalMessageData) => {
-    fetch('http://localhost:5232/api/messages', {
+    const response = await fetch('http://localhost:5232/api/messages', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -9,6 +9,12 @@ export const createMessage = async (message: PersonalMessageData) => {
         credentials: 'include',
         body: JSON.stringify(message)
     });
+
+    if (!response.ok) {
+        throw new Error('Failed to create message');
+    }
+
+    return await response.json();
 }
 export const getMessages = async (personalConferenceId: string | null) => {
     if (!personalConferenceId) {
@@ -31,4 +37,12 @@ export const getMessages = async (personalConferenceId: string | null) => {
     }
 
     return await response.json();
+}
+export const getNicknameById = async (userId: string | null) => {
+    const response = await fetch(`http://localhost:5232/api/accounts/${userId}/nickname`,
+        {
+            method: "GET",
+            credentials: "include",
+        });
+    return await response.text();
 }
