@@ -80,5 +80,10 @@ namespace SyncroBackend.Infrastructure.Services
         {
             return await _messageRepository.GetAllMessagesByPersonalConferenceAsync(personalConferenceId);
         }
+
+        public async Task<MessageModel> UpdateMessageAsync(MessageModel message)
+        {
+            return await _messageRepository.UpdateMessageAsync(message);
+        }
     }
 }

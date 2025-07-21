@@ -1,117 +1,96 @@
-using Amazon.S3;
-
 [ApiController]
 [Route("api/storage")]
 public class StorageController : ControllerBase
 {
     private readonly ISelectelStorageService _storageService;
+    private readonly IMessageService _messageService;
+    private readonly IHubContext<PersonalMessagesHub> _messagesHub;
+    private readonly string? _cdnUrl;
 
-    public StorageController(ISelectelStorageService storageService)
+    public StorageController(ISelectelStorageService storageService, IMessageService messageService, IHubContext<PersonalMessagesHub> messagesHub, IConfiguration configuration)
     {
         _storageService = storageService;
+        _messageService = messageService;
+        _messagesHub = messagesHub;
+        _cdnUrl = configuration["S3Storage:CdnUrl"];
     }
 
-    [HttpPost("upload")]
-    public async Task<IActionResult> UploadFile(IFormFile file, string path = "")
+    [HttpPost("{personalConferenceId}/{accountId}/{messageId}/media")]
+    public async Task<IActionResult> UploadMessageMedia(
+        Guid personalConferenceId,
+        Guid accountId,
+        Guid messageId,
+        [FromForm] IFormFile file)
     {
-        if (file == null || file.Length == 0)
-            return BadRequest("File is required");
-
-        var keyName = GenerateKeyName(file.FileName, path);
-
         try
         {
-            var result = await _storageService.UploadFile(file, keyName);
-            return Ok(new { KeyName = result });
+            var result = await _storageService.UploadMessageFileAsync(file, messageId, accountId, personalConferenceId);
+
+            var mediaType = result.ContentType.ToLower();
+            MessageType typeEnum = mediaType switch
+            {
+                var t when t.StartsWith("image/") => MessageType.Image,
+                var t when t.StartsWith("video/") => MessageType.Video,
+                var t when t.StartsWith("audio/") => MessageType.Audio,
+                var t when t.Contains("pdf") || t.Contains("word") || t.Contains("excel") => MessageType.Document,
+                _ => MessageType.Other
+            };
+
+            var message = new MessageModel
+            {
+                Id = messageId,
+                messageContent = string.Empty,
+                messageDateSent = DateTime.UtcNow,
+                accountId = accountId,
+                personalConferenceId = personalConferenceId,
+                groupConferenceId = null,
+                sectorId = null,
+                isEdited = false,
+                previousMessageContent = null,
+                isPinned = false,
+                isRead = false,
+                referenceMessageId = null,
+                MediaUrl = result.FileUrl,
+                MediaType = typeEnum,
+                FileName = result.FileName
+            };
+
+            var created = await _messageService.CreateMessageAsync(message);
+            if (created.personalConferenceId != null)
+            {
+                await _messagesHub.Clients.Group($"personalconference-{created.personalConferenceId}").SendAsync("ReceivePersonalMessage", created);
+            }
+            return Ok(created);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
         }
         catch (Exception ex)
         {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
+            return StatusCode(500, ex.Message);
         }
     }
 
-    [HttpPost("upload-big")]
-    public async Task<IActionResult> UploadBigFile(IFormFile file, string path = "")
+    [HttpGet("{personalconferenceId}/{accountId}/{messageId}/media")]
+    public async Task<IActionResult> GetMessageMedia(Guid messageId)
     {
-        if (file == null || file.Length == 0)
-            return BadRequest("File is required");
-
-        var keyName = GenerateKeyName(file.FileName, path);
-
         try
         {
-            var result = await _storageService.UploadBigFile(
-                file,
-                keyName,
-                progress => Console.WriteLine($"Current progress: {progress}%")
-            );
-            return Ok(new { KeyName = result });
+            var message = await _messageService.GetMessageByIdAsync(messageId);
+            if (string.IsNullOrEmpty(message.MediaUrl))
+            {
+                return NotFound();
+            }
+
+            var key = message.MediaUrl.Replace($"{_cdnUrl}/", "");
+            var url = await _storageService.GetTemporaryFileUrlAsync(key);
+
+            return Redirect(url);
         }
         catch (Exception ex)
         {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
+            return StatusCode(500, ex.Message);
         }
-    }
-
-    [HttpGet("download/{keyName}")]
-    public async Task<IActionResult> DownloadFile(string keyName, string path = "")
-    {
-        if (string.IsNullOrEmpty(keyName))
-            return BadRequest("Key name is required");
-
-        try
-        {
-            var fullPath = CombinePath(path, keyName);
-            var stream = await _storageService.DownloadFileAsync(fullPath);
-            return File(stream, "application/octet-stream", keyName);
-        }
-        catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-        {
-            return NotFound();
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
-        }
-    }
-
-    [HttpDelete("{keyName}")]
-    public async Task<IActionResult> DeleteFile(string keyName, string path = "")
-    {
-        if (string.IsNullOrEmpty(keyName))
-            return BadRequest("Key name is required");
-
-        try
-        {
-            var fullPath = CombinePath(path, keyName);
-            await _storageService.DeleteFileAsync(fullPath);
-            return NoContent();
-        }
-        catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-        {
-            return NotFound();
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
-        }
-    }
-
-    private string GenerateKeyName(string fileName, string path)
-    {
-        var extension = Path.GetExtension(fileName);
-        var ulid = Ulid.NewUlid().ToString();
-        var keyName = $"{ulid}{extension}";
-
-        return string.IsNullOrEmpty(path)
-            ? keyName
-            : $"{path.TrimEnd('/')}/{keyName}";
-    }
-
-    private string CombinePath(string path, string keyName)
-    {
-        return string.IsNullOrEmpty(path)
-            ? keyName
-            : $"{path.TrimEnd('/')}/{keyName}";
     }
 }
