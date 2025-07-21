@@ -15,5 +15,9 @@ namespace SyncroBackend.Entities.Models
         public bool isPinned { get; set; }
         public bool isRead { get; set; }
         public Guid? referenceMessageId { get; set; }
+
+        public string? MediaUrl { get; set; } // URL медиафайла в S3
+        public MessageType? MediaType { get; set; } // Тип медиа (изображение, видео и т.д.)
+        public string? FileName { get; set; } // имя файла
     }
 }

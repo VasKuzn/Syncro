@@ -81,5 +81,13 @@ namespace SyncroBackend.Repositories
             await _context.SaveChangesAsync();
             return message;
         }
+
+        public async Task<MessageModel> UpdateMessageAsync(MessageModel message)
+        {
+            _context.messages.Update(message);
+            await _context.SaveChangesAsync();
+
+            return message;
+        }
     }
 }

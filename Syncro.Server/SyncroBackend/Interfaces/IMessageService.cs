@@ -11,5 +11,6 @@ namespace SyncroBackend.Interfaces
         public Task<MessageModel> MarkMessageAsReadAsync(Guid messageId, Guid readerId, bool isRead);
         public Task<MessageModel> SetMessageReferenceAsync(Guid messageId, Guid referencedMessageId);
         public Task<List<MessageModel>> GetAllMessagesByPersonalConferenceAsync(Guid personalConferenceId);
+        public Task<MessageModel> UpdateMessageAsync(MessageModel message);
     }
 }

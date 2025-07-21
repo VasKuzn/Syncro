@@ -46,3 +46,32 @@ export const getNicknameById = async (userId: string | null) => {
         });
     return await response.text();
 }
+
+export const uploadMediaMessage = async (
+    messageId: string,
+    data: {
+        file: File;
+        messageContent: string;
+        accountId: string;
+        personalConferenceId: string;
+    }
+) => {
+    const formData = new FormData();
+    formData.append('file', data.file);
+    formData.append('messageId', messageId);
+    formData.append('messageContent', data.messageContent);
+    formData.append('accountId', data.accountId);
+    formData.append('personalConferenceId', data.personalConferenceId);
+
+    const response = await fetch(`http://localhost:5232/api/storage/${data.personalConferenceId}/${data.accountId}/${messageId}/media`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to upload media');
+    }
+
+    return await response.json();
+};
