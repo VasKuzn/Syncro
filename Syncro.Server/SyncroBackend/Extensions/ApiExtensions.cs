@@ -40,6 +40,7 @@ namespace SyncroBackend.Extensions
         }
         public static void AddCoreServicesExtension(this IServiceCollection services, IConfiguration configuration)
         {
+            services.AddScoped<IMediaMessageService, MediaMessageService>();
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IMessageService, MessageService>();
             services.AddScoped<IConferenceService<PersonalConferenceModel>, PersonalConferenceService>();
