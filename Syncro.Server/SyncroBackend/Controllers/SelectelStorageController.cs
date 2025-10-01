@@ -20,7 +20,7 @@ public class StorageController : ControllerBase
         Guid personalConferenceId,
         Guid accountId,
         Guid messageId,
-        [FromForm] IFormFile file)
+        IFormFile file)
     {
         try
         {
