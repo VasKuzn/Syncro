@@ -146,24 +146,3 @@ public class SelectelStorageService : ISelectelStorageService
         _ => "application/octet-stream"
     };
 }
-
-public interface ISelectelStorageService
-{
-    Task<FileUploadResult> UploadMessageFileAsync(IFormFile file, Guid messageId, Guid? accountId, Guid? personalConferenceId);
-    Task<string> GetTemporaryFileUrlAsync(string keyName);
-    Task DeleteMessageFilesAsync(Guid messageId, Guid personalConferenceId, Guid accountId);
-    Task<FileDownloadResult> DownloadFileAsync(string keyName);
-}
-
-public record FileUploadResult(
-    string FileUrl,
-    string FileName,
-    string ContentType,
-    long FileSize
-);
-
-public record FileDownloadResult(
-    Stream Stream,
-    string ContentType,
-    string FileName
-);
