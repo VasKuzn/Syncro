@@ -24,7 +24,6 @@ namespace SyncroBackend.Infrastructure.Services
 
         public async Task<FriendsModel> CreateFriendsAsync(FriendsModel friends)
         {
-            // Проверяем существует ли уже связь между этими пользователями в любом направлении
             var existingFriendship = await _friendsRepository.CheckFriendshipExistsAsync(
                 friends.userWhoSent,
                 friends.userWhoRecieved);
