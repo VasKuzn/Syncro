@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Syncro.Application\Syncro.Application.csproj" />
     <ProjectReference Include="..\Syncro.Domain\Syncro.Domain.csproj" />
+    <ProjectReference Include="..\Syncro.Infrastructure\Syncro.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

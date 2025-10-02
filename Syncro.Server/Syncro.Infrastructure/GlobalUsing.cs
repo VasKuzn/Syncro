@@ -1,0 +1,6 @@
+global using Syncro.Application.ModelsDTO;
+global using Syncro.Application.Repositories;
+global using Syncro.Application.Services;
+global using Syncro.Domain.Models;
+global using Syncro.Domain.Enums;
+global using Syncro.Infrastructure.Data.DataBaseContext;
