@@ -33,6 +33,43 @@
             "related": ".pdb;.xml"
           }
         }
+      },
+      "Syncro.Application/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "dependencies": {
+          "Syncro.Domain": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Syncro.Application.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Syncro.Application.dll": {}
+        }
+      },
+      "Syncro.Domain/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "compile": {
+          "bin/placeholder/Syncro.Domain.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Syncro.Domain.dll": {}
+        }
+      },
+      "Syncro.Infrastructure/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "dependencies": {
+          "Syncro.Application": "1.0.0",
+          "Syncro.Domain": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Syncro.Infrastructure.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Syncro.Infrastructure.dll": {}
+        }
       }
     }
   },
@@ -67,11 +104,29 @@
         "microsoft.openapi.1.6.17.nupkg.sha512",
         "microsoft.openapi.nuspec"
       ]
+    },
+    "Syncro.Application/1.0.0": {
+      "type": "project",
+      "path": "../Syncro.Application/Syncro.Application.csproj",
+      "msbuildProject": "../Syncro.Application/Syncro.Application.csproj"
+    },
+    "Syncro.Domain/1.0.0": {
+      "type": "project",
+      "path": "../Syncro.Domain/Syncro.Domain.csproj",
+      "msbuildProject": "../Syncro.Domain/Syncro.Domain.csproj"
+    },
+    "Syncro.Infrastructure/1.0.0": {
+      "type": "project",
+      "path": "../Syncro.Infrastructure/Syncro.Infrastructure.csproj",
+      "msbuildProject": "../Syncro.Infrastructure/Syncro.Infrastructure.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net9.0": [
-      "Microsoft.AspNetCore.OpenApi >= 9.0.3"
+      "Microsoft.AspNetCore.OpenApi >= 9.0.3",
+      "Syncro.Application >= 1.0.0",
+      "Syncro.Domain >= 1.0.0",
+      "Syncro.Infrastructure >= 1.0.0"
     ]
   },
   "packageFolders": {
@@ -108,7 +163,17 @@
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "D:\\visual studio code\\Syncro\\Syncro.Server\\Syncro.Application\\Syncro.Application.csproj": {
+              "projectPath": "D:\\visual studio code\\Syncro\\Syncro.Server\\Syncro.Application\\Syncro.Application.csproj"
+            },
+            "D:\\visual studio code\\Syncro\\Syncro.Server\\Syncro.Domain\\Syncro.Domain.csproj": {
+              "projectPath": "D:\\visual studio code\\Syncro\\Syncro.Server\\Syncro.Domain\\Syncro.Domain.csproj"
+            },
+            "D:\\visual studio code\\Syncro\\Syncro.Server\\Syncro.Infrastructure\\Syncro.Infrastructure.csproj": {
+              "projectPath": "D:\\visual studio code\\Syncro\\Syncro.Server\\Syncro.Infrastructure\\Syncro.Infrastructure.csproj"
+            }
+          }
         }
       },
       "warningProperties": {

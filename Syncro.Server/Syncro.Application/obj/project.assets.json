@@ -1,11 +1,30 @@
 {
   "version": 3,
   "targets": {
-    "net9.0": {}
+    "net9.0": {
+      "Syncro.Domain/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "compile": {
+          "bin/placeholder/Syncro.Domain.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Syncro.Domain.dll": {}
+        }
+      }
+    }
   },
-  "libraries": {},
+  "libraries": {
+    "Syncro.Domain/1.0.0": {
+      "type": "project",
+      "path": "../Syncro.Domain/Syncro.Domain.csproj",
+      "msbuildProject": "../Syncro.Domain/Syncro.Domain.csproj"
+    }
+  },
   "projectFileDependencyGroups": {
-    "net9.0": []
+    "net9.0": [
+      "Syncro.Domain >= 1.0.0"
+    ]
   },
   "packageFolders": {
     "C:\\Users\\Александр\\.nuget\\packages\\": {},
@@ -41,7 +60,11 @@
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "D:\\visual studio code\\Syncro\\Syncro.Server\\Syncro.Domain\\Syncro.Domain.csproj": {
+              "projectPath": "D:\\visual studio code\\Syncro\\Syncro.Server\\Syncro.Domain\\Syncro.Domain.csproj"
+            }
+          }
         }
       },
       "warningProperties": {
