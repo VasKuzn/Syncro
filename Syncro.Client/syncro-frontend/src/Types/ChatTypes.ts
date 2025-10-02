@@ -14,13 +14,23 @@ export interface PersonalMessageData {
     isPinned: boolean,
     isRead: boolean,
     referenceMessageId: string | null,
+    mediaUrl?: string | null,
+    mediaType?: string | null,
+    fileName?: string | null
+
 }
 export interface PersonalChatProps {
     chatContent?: React.ReactNode;
     friends?: Friend[];
 }
 export interface MessageInputProps {
-    onSend: (message: string) => void;
+    onSend: (text: string, media?: {
+        mediaUrl: string;
+        mediaType: string;
+        fileName: string;
+    }) => void;
+    onMediaUpload: (file: File) => void;
+    isUploading: boolean;
 }
 export interface PersonalConference {
     id: string,

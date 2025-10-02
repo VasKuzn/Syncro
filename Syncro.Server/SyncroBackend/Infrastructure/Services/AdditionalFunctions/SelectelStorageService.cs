@@ -1,11 +1,13 @@
 using Amazon.S3;
 using Amazon.S3.Model;
-using Amazon.S3.Transfer;
+using System.Web;
 
 public class SelectelStorageService : ISelectelStorageService
 {
     private readonly IAmazonS3 _s3Client;
     private readonly string _bucketName;
+    private readonly string _cdnUrl;
+    private readonly int _urlExpirationHours;
 
     public SelectelStorageService(IConfiguration configuration)
     {
@@ -23,55 +25,76 @@ public class SelectelStorageService : ISelectelStorageService
         );
 
         _bucketName = configuration["S3Storage:BucketName"];
+        _cdnUrl = configuration["S3Storage:CdnUrl"];
+        _urlExpirationHours = configuration.GetValue<int>("S3Storage:UrlExpirationHours", 24);
     }
 
-    public async Task<string> UploadFile(IFormFile file, string keyName)
+    public async Task<FileUploadResult> UploadMessageFileAsync(IFormFile file, Guid messageId, Guid? accountId, Guid? personalConferenceId)
     {
-        using MemoryStream memoryStream = new MemoryStream();
+        ValidateFile(file);
+        var fileExtension = Path.GetExtension(file.FileName).ToLower();
+        var contentType = GetContentType(fileExtension);
+        var folder = $"messages/{DateTime.UtcNow:yyyy/MM/dd}";
+        var keyName = $"{folder}/{personalConferenceId}/{accountId}/{messageId}{fileExtension}";
+
+        using var memoryStream = new MemoryStream();
         await file.CopyToAsync(memoryStream);
+        memoryStream.Position = 0;
 
         var request = new PutObjectRequest
         {
             BucketName = _bucketName,
             Key = keyName,
             InputStream = memoryStream,
-            UseChunkEncoding = false
+            ContentType = contentType,
+            CannedACL = S3CannedACL.PublicRead,
+            Metadata =
+            {
+                ["original-filename"] = HttpUtility.UrlEncode(file.FileName)
+            }
         };
 
         await _s3Client.PutObjectAsync(request);
-        return keyName;
+
+        return new FileUploadResult(
+            FileUrl: $"{_cdnUrl}/{keyName}",
+            FileName: file.FileName,
+            ContentType: contentType,
+            FileSize: file.Length
+        );
     }
 
-    public async Task<string> UploadBigFile(IFormFile file, string keyName, Action<int> progressCallback = null)
+    public async Task<string> GetTemporaryFileUrlAsync(string keyName)
     {
-        var fileTransferUtility = new TransferUtility(_s3Client);
-
-        using MemoryStream memoryStream = new MemoryStream();
-        await file.CopyToAsync(memoryStream);
-
-        var fileTransferUtilityRequest = new TransferUtilityUploadRequest
+        var request = new GetPreSignedUrlRequest
         {
             BucketName = _bucketName,
             Key = keyName,
-            InputStream = memoryStream,
-            StorageClass = S3StorageClass.StandardInfrequentAccess,
-            PartSize = 6291456, // 6 MB
-            CannedACL = S3CannedACL.PublicRead
+            Expires = DateTime.UtcNow.AddHours(_urlExpirationHours),
+            Protocol = Protocol.HTTPS
         };
 
-        if (progressCallback != null)
-        {
-            fileTransferUtilityRequest.UploadProgressEvent += (s, e) =>
-            {
-                progressCallback?.Invoke(e.PercentDone);
-            };
-        }
-
-        await fileTransferUtility.UploadAsync(fileTransferUtilityRequest);
-        return keyName;
+        return _s3Client.GetPreSignedURL(request);
     }
 
-    public async Task<Stream> DownloadFileAsync(string keyName)
+    public async Task DeleteMessageFilesAsync(Guid messageId, Guid personalConferenceId, Guid accountId)
+    {
+        var prefix = $"messages/{DateTime.UtcNow:yyyy/MM/dd}/{personalConferenceId}/{accountId}/{messageId}";
+        var request = new ListObjectsV2Request
+        {
+            BucketName = _bucketName,
+            Prefix = prefix
+        };
+
+        var response = await _s3Client.ListObjectsV2Async(request);
+
+        foreach (var s3Object in response.S3Objects)
+        {
+            await _s3Client.DeleteObjectAsync(_bucketName, s3Object.Key);
+        }
+    }
+
+    public async Task<FileDownloadResult> DownloadFileAsync(string keyName)
     {
         var request = new GetObjectRequest
         {
@@ -80,25 +103,46 @@ public class SelectelStorageService : ISelectelStorageService
         };
 
         var response = await _s3Client.GetObjectAsync(request);
-        return response.ResponseStream;
+
+        return new FileDownloadResult(
+            Stream: response.ResponseStream,
+            ContentType: response.Headers.ContentType,
+            FileName: response.Metadata["x-amz-meta-original-filename"] ?? keyName.Split('/').Last()
+        );
     }
 
-    public async Task DeleteFileAsync(string keyName)
+    private void ValidateFile(IFormFile file)
     {
-        var request = new DeleteObjectRequest
+        var maxFileSize = 25 * 1024 * 1024; // 25MB
+        if (file.Length > maxFileSize)
         {
-            BucketName = _bucketName,
-            Key = keyName
-        };
+            throw new ArgumentException($"File size exceeds the limit of {maxFileSize / (1024 * 1024)}MB");
+        }
 
-        await _s3Client.DeleteObjectAsync(request);
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".mp4", ".webm", ".mp3", ".ogg", ".pdf", ".doc", ".docx", ".xls", ".xlsx" };
+        var extension = Path.GetExtension(file.FileName).ToLower();
+
+        if (!allowedExtensions.Contains(extension))
+        {
+            throw new ArgumentException("File type not allowed");
+        }
     }
-}
 
-public interface ISelectelStorageService
-{
-    Task<string> UploadFile(IFormFile file, string keyName);
-    Task<string> UploadBigFile(IFormFile file, string keyName, Action<int> progressCallback = null);
-    Task<Stream> DownloadFileAsync(string keyName);
-    Task DeleteFileAsync(string keyName);
+    private string GetContentType(string fileExtension) => fileExtension switch
+    {
+        ".jpg" => "image/jpeg",
+        ".jpeg" => "image/jpeg",
+        ".png" => "image/png",
+        ".gif" => "image/gif",
+        ".mp4" => "video/mp4",
+        ".webm" => "video/webm",
+        ".mp3" => "audio/mpeg",
+        ".ogg" => "audio/ogg",
+        ".pdf" => "application/pdf",
+        ".doc" => "application/msword",
+        ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ".xls" => "application/vnd.ms-excel",
+        ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        _ => "application/octet-stream"
+    };
 }
