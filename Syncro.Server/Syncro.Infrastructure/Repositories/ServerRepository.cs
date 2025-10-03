@@ -25,7 +25,6 @@ namespace Syncro.Infrastructure.Repositories
         {
             server.creationDate = DateTime.UtcNow;
             await _context.servers.AddAsync(server);
-            await _context.SaveChangesAsync();
             return server;
         }
 
@@ -40,7 +39,6 @@ namespace Syncro.Infrastructure.Repositories
         public async Task<ServerModel> UpdateServerAsync(ServerModel server)
         {
             _context.servers.Update(server);
-            await _context.SaveChangesAsync();
             return server;
         }
 

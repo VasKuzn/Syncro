@@ -38,7 +38,6 @@ namespace Syncro.Infrastructure.Repositories
         public async Task<ServerMemberRoles> AddMemberRoleAsync(ServerMemberRoles memberRole)
         {
             await _context.serverMemberRoles.AddAsync(memberRole);
-            await _context.SaveChangesAsync();
             return memberRole;
         }
 

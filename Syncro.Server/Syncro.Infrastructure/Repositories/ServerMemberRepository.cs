@@ -32,7 +32,6 @@ namespace Syncro.Infrastructure.Repositories
         {
             member.joiningDate = DateTime.UtcNow;
             await _context.serverMembers.AddAsync(member);
-            await _context.SaveChangesAsync();
             return member;
         }
 
@@ -47,7 +46,6 @@ namespace Syncro.Infrastructure.Repositories
         public async Task<ServerMemberModel> UpdateMemberAsync(ServerMemberModel member)
         {
             _context.serverMembers.Update(member);
-            await _context.SaveChangesAsync();
             return member;
         }
 

@@ -1,5 +1,9 @@
 using Amazon.S3;
 using Amazon.S3.Model;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using Syncro.Application.SelectelStorage;
+using Syncro.Domain.Records;
 using System.Web;
 namespace Syncro.Infrastructure.Selectel
 {

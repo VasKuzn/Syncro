@@ -33,7 +33,6 @@ namespace Syncro.Infrastructure.Repositories
         public async Task<MessageModel> AddMessageAsync(MessageModel message)
         {
             await _context.messages.AddAsync(message);
-            await _context.SaveChangesAsync();
 
             return message;
         }
@@ -49,7 +48,6 @@ namespace Syncro.Infrastructure.Repositories
         {
 
             _context.messages.Update(message);
-            await _context.SaveChangesAsync();
 
             return message;
         }
@@ -78,14 +76,12 @@ namespace Syncro.Infrastructure.Repositories
                 message.referenceMessageId = setReferenceMessageId.Value;
             }
 
-            await _context.SaveChangesAsync();
             return message;
         }
 
         public async Task<MessageModel> UpdateMessageAsync(MessageModel message)
         {
             _context.messages.Update(message);
-            await _context.SaveChangesAsync();
 
             return message;
         }

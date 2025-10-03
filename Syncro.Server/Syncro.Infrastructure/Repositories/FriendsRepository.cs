@@ -34,14 +34,12 @@ namespace Syncro.Infrastructure.Repositories
         public async Task<FriendsModel> CreateFriendsAsync(FriendsModel friends)
         {
             await _context.friends.AddAsync(friends);
-            await _context.SaveChangesAsync();
             return friends;
         }
 
         public async Task<FriendsModel> UpdateFriendsAsync(FriendsModel friends)
         {
             _context.friends.Update(friends);
-            await _context.SaveChangesAsync();
             return friends;
         }
 
