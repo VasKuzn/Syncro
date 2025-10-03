@@ -1,4 +1,4 @@
-namespace Syncro.Infrastructure.Records
+namespace Syncro.Domain.Records
 {
     public record FileUploadResult(
     string FileUrl,

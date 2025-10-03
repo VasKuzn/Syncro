@@ -1,7 +1,6 @@
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Http;
 using Syncro.Application.JWT;
 using Syncro.Domain.Utils;
+using Amazon.Runtime.Internal.Util;
 
 namespace Syncro.Infrastructure.Services
 {

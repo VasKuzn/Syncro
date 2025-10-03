@@ -31,7 +31,6 @@ namespace Syncro.Infrastructure.Repositories
         public async Task<SectorModel> AddSectorAsync(SectorModel sector)
         {
             await _context.sectors.AddAsync(sector);
-            await _context.SaveChangesAsync();
             return sector;
         }
 
@@ -46,7 +45,6 @@ namespace Syncro.Infrastructure.Repositories
         public async Task<SectorModel> UpdateSectorAsync(SectorModel sector)
         {
             _context.sectors.Update(sector);
-            await _context.SaveChangesAsync();
             return sector;
         }
 

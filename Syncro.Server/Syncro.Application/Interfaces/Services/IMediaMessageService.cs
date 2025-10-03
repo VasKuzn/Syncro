@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Http;
+
 namespace Syncro.Application.Services
 {
     public interface IMediaMessageService

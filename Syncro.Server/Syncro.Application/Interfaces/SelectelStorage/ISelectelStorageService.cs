@@ -1,4 +1,7 @@
-namespace SyncroBackend.Application.SelectelStorage
+using Microsoft.AspNetCore.Http;
+using Syncro.Domain.Records;
+
+namespace Syncro.Application.SelectelStorage
 {
     public interface ISelectelStorageService
     {

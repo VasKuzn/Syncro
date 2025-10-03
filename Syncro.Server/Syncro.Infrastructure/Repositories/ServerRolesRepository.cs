@@ -40,7 +40,6 @@ namespace Syncro.Infrastructure.Repositories
             role.position = maxPosition + 1;
 
             await _context.roles.AddAsync(role);
-            await _context.SaveChangesAsync();
             return role;
         }
 
@@ -55,7 +54,6 @@ namespace Syncro.Infrastructure.Repositories
         public async Task<RolesModel> UpdateRoleAsync(RolesModel role)
         {
             _context.roles.Update(role);
-            await _context.SaveChangesAsync();
             return role;
         }
 

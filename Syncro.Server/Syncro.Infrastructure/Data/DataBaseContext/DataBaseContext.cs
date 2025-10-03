@@ -1,3 +1,5 @@
+using System.Reflection;
+
 namespace Syncro.Infrastructure.Data.DataBaseContext
 {
     public class DataBaseContext : DbContext

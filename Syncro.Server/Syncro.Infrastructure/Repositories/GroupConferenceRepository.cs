@@ -34,7 +34,6 @@ namespace Syncro.Infrastructure.Repositories
         public async Task<GroupConferenceModel> AddConferenceAsync(GroupConferenceModel groupConference)
         {
             await _context.groupConferences.AddAsync(groupConference);
-            await _context.SaveChangesAsync();
             return groupConference;
         }
         public async Task<bool> DeleteConferenceAsync(Guid groupConferenceId)
@@ -48,7 +47,6 @@ namespace Syncro.Infrastructure.Repositories
         public async Task<GroupConferenceModel> UpdateConferenceAsync(GroupConferenceModel conference)
         {
             _context.groupConferences.Update(conference);
-            await _context.SaveChangesAsync();
 
             return conference;
         }
