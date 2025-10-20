@@ -79,6 +79,41 @@ namespace Syncro.Infrastructure.Selectel
                 Protocol = Protocol.HTTPS
             };
 
+            // Try to read metadata to preserve ContentType and original filename in the presigned URL
+            string? contentType = null;
+            string? originalFileName = null;
+            try
+            {
+                var meta = await _s3Client.GetObjectMetadataAsync(_bucketName, keyName);
+                contentType = meta.Headers.ContentType;
+                // Metadata keys are available via indexer; check for existence
+                if (meta.Metadata != null)
+                {
+                    // AmazonS3 SDK prepends user metadata keys with "x-amz-meta-" when returning headers
+                    var keyCandidate = "x-amz-meta-original-filename";
+                    foreach (var k in meta.Metadata.Keys)
+                    {
+                        var keyStr = k?.ToString() ?? string.Empty;
+                        if (string.Equals(keyStr, keyCandidate, StringComparison.OrdinalIgnoreCase) || string.Equals(keyStr, "original-filename", StringComparison.OrdinalIgnoreCase))
+                        {
+                            originalFileName = HttpUtility.UrlDecode(meta.Metadata[keyStr]);
+                            break;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // ignore metadata retrieval errors and fall back to default presigned URL
+            }
+
+            if (!string.IsNullOrEmpty(contentType) || !string.IsNullOrEmpty(originalFileName))
+            {
+                request.ResponseHeaderOverrides = new ResponseHeaderOverrides();
+                if (!string.IsNullOrEmpty(contentType)) request.ResponseHeaderOverrides.ContentType = contentType;
+                if (!string.IsNullOrEmpty(originalFileName)) request.ResponseHeaderOverrides.ContentDisposition = $"inline; filename=\"{originalFileName}\"";
+            }
+
             return _s3Client.GetPreSignedURL(request);
         }
 
