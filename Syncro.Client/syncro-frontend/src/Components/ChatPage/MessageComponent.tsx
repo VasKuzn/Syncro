@@ -5,7 +5,6 @@ import ErrorBoundary from '../Common/ErrorBoundary';
 const isString = (v: any): v is string => typeof v === 'string';
 
 function detectMediaCategory(mediaTypeOrEnum?: string | number | null, fileName?: string | null) {
-    // Return one of: 'image', 'video', 'audio', 'other'
     if (!mediaTypeOrEnum && !fileName) return 'other';
     if (isString(mediaTypeOrEnum)) {
         const mt = mediaTypeOrEnum as string;
@@ -14,7 +13,6 @@ function detectMediaCategory(mediaTypeOrEnum?: string | number | null, fileName?
         if (mt.startsWith('audio/')) return 'audio';
         return 'other';
     }
-    // numeric enum or unknown: fall back to file extension
     if (fileName) {
         const ext = fileName.split('.').pop()?.toLowerCase();
         if (!ext) return 'other';
@@ -30,11 +28,11 @@ const MediaRenderer = ({ url, category, fileName }: { url: string; category: str
     if (!url) return null;
     if (category === 'image') {
         return (
-            <a href={url} target="_blank" rel="noopener noreferrer">
+            <a href={url} target="_blank" rel="noopener noreferrer" className="media-preview">
                 <img
                     src={url}
                     alt={fileName || 'media'}
-                    style={{ maxWidth: 200, maxHeight: 100, objectFit: 'cover', borderRadius: 8, display: 'block' }}
+                    style={{ objectFit: 'cover', borderRadius: 8, display: 'block' }}
                     onError={e => {
                         const target = e.target as HTMLImageElement;
                         target.style.display = 'none';
@@ -45,21 +43,24 @@ const MediaRenderer = ({ url, category, fileName }: { url: string; category: str
     }
     if (category === 'video') {
         return (
-            <video controls style={{ maxWidth: 400, maxHeight: 300, borderRadius: 8 }}>
-                <source src={url} />
-                Ваш браузер не поддерживает видео.
-            </video>
+            <div className="media-file">
+                <video controls className="media-video" style={{ borderRadius: 8 }}>
+                    <source src={url} />
+                    Ваш браузер не поддерживает видео.
+                </video>
+            </div>
         );
     }
     if (category === 'audio') {
         return (
-            <audio controls style={{ width: '100%' }}>
-                <source src={url} />
-                Ваш браузер не поддерживает аудио.
-            </audio>
+            <div className="media-file">
+                <audio controls className="media-audio">
+                    <source src={url} />
+                    Ваш браузер не поддерживает аудио.
+                </audio>
+            </div>
         );
     }
-    // other: show file icon + download link
     return (
         <div className="media-file">
             {getFileIconByType(undefined, fileName || undefined)}

@@ -79,17 +79,14 @@ namespace Syncro.Infrastructure.Selectel
                 Protocol = Protocol.HTTPS
             };
 
-            // Try to read metadata to preserve ContentType and original filename in the presigned URL
             string? contentType = null;
             string? originalFileName = null;
             try
             {
                 var meta = await _s3Client.GetObjectMetadataAsync(_bucketName, keyName);
                 contentType = meta.Headers.ContentType;
-                // Metadata keys are available via indexer; check for existence
                 if (meta.Metadata != null)
                 {
-                    // AmazonS3 SDK prepends user metadata keys with "x-amz-meta-" when returning headers
                     var keyCandidate = "x-amz-meta-original-filename";
                     foreach (var k in meta.Metadata.Keys)
                     {
@@ -104,7 +101,6 @@ namespace Syncro.Infrastructure.Selectel
             }
             catch
             {
-                // ignore metadata retrieval errors and fall back to default presigned URL
             }
 
             if (!string.IsNullOrEmpty(contentType) || !string.IsNullOrEmpty(originalFileName))
