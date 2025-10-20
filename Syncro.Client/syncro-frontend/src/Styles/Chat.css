@@ -390,3 +390,37 @@ body {
   height: 38px;
   transition: all 0.5s ease;
 }
+
+.media-preview img {
+  max-width: 245px;
+  max-height: 122px;
+}
+
+.media-file video {
+  max-width: 400px;
+  max-height: 300px;
+}
+
+.media-file audio {
+  width: 30%;
+  min-width: 120px;
+}
+
+.chat-container {
+  position: relative;
+}
+
+.message-input-container {
+  position: sticky;
+  bottom: 0;
+  z-index: 40;
+}
+
+video::-webkit-media-controls-panel {
+  z-index: 9999;
+}
+
+:fullscreen,
+:-webkit-full-screen {
+  z-index: 99999;
+}

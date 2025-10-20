@@ -15,7 +15,7 @@ export interface PersonalMessageData {
     isRead: boolean,
     referenceMessageId: string | null,
     mediaUrl?: string | null,
-    mediaType?: string | null,
+    mediaType?: string | number | null,
     fileName?: string | null
 
 }
