@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Syncro.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8388e495f8e3a7493c78075cb9ba76d72da5793e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+74ed8e1aec3a3042aa6915cf9c2a7f46a34209e1")]
 [assembly: System.Reflection.AssemblyProductAttribute("Syncro.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Syncro.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

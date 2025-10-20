@@ -23,6 +23,7 @@ namespace Syncro.Infrastructure.Repositories
         public async Task<AccountModel> AddAccountAsync(AccountModel account)
         {
             await _context.accounts.AddAsync(account);
+            await _context.SaveChangesAsync();
             return account;
         }
 
@@ -37,6 +38,7 @@ namespace Syncro.Infrastructure.Repositories
         public async Task<AccountModel> UpdateAccountAsync(AccountModel account)
         {
             _context.accounts.Update(account);
+            await _context.SaveChangesAsync();
             return account;
         }
 

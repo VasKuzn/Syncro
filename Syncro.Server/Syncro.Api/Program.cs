@@ -1,16 +1,23 @@
+using Microsoft.EntityFrameworkCore;
+using Syncro.Api.Extensions;
+using Syncro.Infrastructure.Data.DataBaseContext;
+
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
-//PRESENTATION LAYER все web сервисы - контроллеры, signalr... 
+//INFRASTRUCTURE LAYER core+infrastructure
+builder.Services.AddInfrastructureServices(configuration);
+//PRESENTATION LAYER все web сервисы - контроллеры, signalr, authentication... 
 builder.Services.AddWebServices(configuration);
 
-//CORE LAYER все scoped зависимости интерфейсов+сервисов+репозиториев
-builder.Services.AddCoreServicesExtension(configuration);
-builder.Services.AddCoreRepositoriesExtension(configuration);
-//INFRASTRUCTURE LAYER s3 и сервисы в будущем
-builder.Services.AddInfrastructureServices(configuration);
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<DataBaseContext>();
+    db.Database.Migrate();
+}
 
 app.ConfigureWebApplication();
 
