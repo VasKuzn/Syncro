@@ -12,6 +12,7 @@ namespace Syncro.Infrastructure.Repositories
         public async Task<GroupConferenceMemberModel> AddConferenceMemberAsync(GroupConferenceMemberModel conferenceMember)
         {
             await _context.groupConferenceMembers.AddAsync(conferenceMember);
+            await _context.SaveChangesAsync();
             return conferenceMember;
         }
 
@@ -46,6 +47,7 @@ namespace Syncro.Infrastructure.Repositories
         public async Task<GroupConferenceMemberModel> UpdateConferenceMemberAsync(GroupConferenceMemberModel conferenceMember)
         {
             _context.groupConferenceMembers.Update(conferenceMember);
+            await _context.SaveChangesAsync();
             return conferenceMember;
         }
     }

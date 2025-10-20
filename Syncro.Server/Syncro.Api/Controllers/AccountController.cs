@@ -152,7 +152,7 @@ namespace Syncro.Api.Controllers
         }
         // POST: api/accounts/login
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> Login([FromBody] Application.ModelsDTO.LoginRequest request)
         {
             if (!ModelState.IsValid)
             {

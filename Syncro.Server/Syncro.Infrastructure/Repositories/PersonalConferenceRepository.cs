@@ -32,6 +32,7 @@ namespace Syncro.Infrastructure.Repositories
             personalConference.lastActivity = DateTime.UtcNow;
 
             await _context.personalConferences.AddAsync(personalConference);
+            await _context.SaveChangesAsync();
             return personalConference;
         }
         public async Task<bool> DeleteConferenceAsync(Guid personaConferenceId)

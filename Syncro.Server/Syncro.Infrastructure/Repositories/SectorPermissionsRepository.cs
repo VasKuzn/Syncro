@@ -13,6 +13,7 @@ namespace Syncro.Infrastructure.Repositories
         {
             permission.assignedAt = DateTime.UtcNow;
             await _context.sectorPermissions.AddAsync(permission);
+            await _context.SaveChangesAsync();
             return permission;
         }
 

@@ -1,4 +1,4 @@
-namespace Syncro.Application.Hubs
+namespace Syncro.Api.Hubs
 {
     public class PersonalMessagesHub : Hub
     {

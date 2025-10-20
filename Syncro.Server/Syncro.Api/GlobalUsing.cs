@@ -7,3 +7,5 @@ global using Syncro.Domain.Models;
 global using Syncro.Application.Services;
 global using Microsoft.AspNetCore.SignalR;
 global using Syncro.Domain.Enums;
+global using Microsoft.AspNetCore.CookiePolicy;
+global using Syncro.Api.Hubs;

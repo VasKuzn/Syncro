@@ -22,6 +22,7 @@ namespace Syncro.Infrastructure.Repositories
         public async Task<ConferenceRolesModel> CreateGroupRoleAsync(ConferenceRolesModel conferenceRoles)
         {
             await _context.conferenceRoles.AddAsync(conferenceRoles);
+            await _context.SaveChangesAsync();
             return conferenceRoles;
         }
 
@@ -37,7 +38,7 @@ namespace Syncro.Infrastructure.Repositories
         public async Task<ConferenceRolesModel> UpdateGroupRoleAsync(ConferenceRolesModel conferenceRole)
         {
             _context.conferenceRoles.Update(conferenceRole);
-
+            await _context.SaveChangesAsync();
             return conferenceRole;
         }
     }
