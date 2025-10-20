@@ -15,7 +15,8 @@ export interface PersonalMessageData {
     isRead: boolean,
     referenceMessageId: string | null,
     mediaUrl?: string | null,
-    mediaType?: string | null,
+    // backend may return either a MIME string (e.g. "video/mp4") or a numeric enum value
+    mediaType?: string | number | null,
     fileName?: string | null
 
 }
