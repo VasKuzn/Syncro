@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Syncro.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0381affbf6415d72568ad64ef874d2100eaffa0d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+884ca9bee4ade018f28130c9cc3f6313262588d8")]
 [assembly: System.Reflection.AssemblyProductAttribute("Syncro.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Syncro.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
