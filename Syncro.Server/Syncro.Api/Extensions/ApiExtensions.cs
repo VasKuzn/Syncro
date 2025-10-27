@@ -10,11 +10,14 @@ namespace Syncro.Api.Extensions
     {
         public static void AddApiAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
-            var jwtOptions = configuration.GetSection("JWToptions").Get<JWToptions>();
+            var secret = configuration["JWTOptions:SecretKey"]
+                         ?? configuration["JWTOptions__SecretKey"]
+                         ?? configuration["JWT_SECRET"]
+                         ?? Environment.GetEnvironmentVariable("JWT_SECRET");
 
-            if (string.IsNullOrEmpty(jwtOptions?.secretKey))
+            if (string.IsNullOrEmpty(secret))
             {
-                throw new ArgumentNullException("JWT secret key is not configured");
+                throw new InvalidOperationException("JWT secret key is not configured. Set 'JWTOptions:SecretKey' in user-secrets, appsettings or provide JWT_SECRET environment variable.");
             }
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -27,7 +30,7 @@ namespace Syncro.Api.Extensions
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(jwtOptions.secretKey))
+                        Encoding.UTF8.GetBytes(secret))
                 };
                 options.Events = new JwtBearerEvents
                 {
@@ -58,8 +61,8 @@ namespace Syncro.Api.Extensions
         }
         public static void AddAuthenticationServices(this IServiceCollection services, IConfiguration configuration)
         {
+            services.Configure<JWToptions>(configuration.GetSection("JWTOptions"));
             services.AddApiAuthentication(configuration);
-            services.Configure<JWToptions>(configuration.GetSection(nameof(JWToptions)));
         }
         public static void AddCorsPolicy(this IServiceCollection services, IConfiguration configuration)
         {
