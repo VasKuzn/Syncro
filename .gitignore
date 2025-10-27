@@ -569,5 +569,6 @@ dist-ssr
 *.sln
 *.sw?
 
+password.txt
 
 # End of https://www.toptal.com/developers/gitignore/api/csharp,aspnetcore,dotnetcore
