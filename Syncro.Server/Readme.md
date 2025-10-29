@@ -32,3 +32,5 @@ EF DbContext, миграции, реализации репозиториев, �
 Controllers, Program.cs, middleware, mapping (AutoMapper) и DI (регистрация инфраструктуры и application внедрений).
 
 ## God bless this project🙌🙌⛪⛪☦️✝️ 
+
+lobster -> 🦞
