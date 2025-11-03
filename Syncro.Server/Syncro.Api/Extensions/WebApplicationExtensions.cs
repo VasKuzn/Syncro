@@ -32,6 +32,7 @@ namespace Syncro.Api.Extensions
             app.MapControllers();
             app.MapHub<FriendsHub>("/friendshub");
             app.MapHub<GroupsHub>("/groupshub");
+            app.MapHub<AccountsHub>("/accountshub");
             app.MapHub<PersonalMessagesHub>("/personalmessageshub");
         }
     }

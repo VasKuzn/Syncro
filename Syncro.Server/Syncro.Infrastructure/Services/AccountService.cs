@@ -71,12 +71,6 @@ namespace Syncro.Infrastructure.Services
 
             return await _accountRepository.UpdateAccountAsync(existingAccount);
         }
-        public async Task<AccountModel> UpdateOnlineAccountAsync(Guid accountId)
-        {
-            var existingAccount = await _accountRepository.GetAccountByIdAsync(accountId);
-            existingAccount.isOnline = !existingAccount.isOnline;
-            return await _accountRepository.UpdateAccountAsync(existingAccount);
-        }
 
         public bool VerifyPassword(string password, string hashedPassword)
         {
