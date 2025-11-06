@@ -14,7 +14,7 @@ namespace Syncro.Infrastructure.Data.Configurations
             builder.Property(x => x.firstname).IsRequired(false);
             builder.Property(x => x.lastname).IsRequired(false);
             builder.Property(x => x.phonenumber).HasMaxLength(20);
-            builder.Property(x => x.isOnline).IsRequired(true);
+            //builder.Property(x => x.isOnline).IsRequired(true);
         }
     }
 }

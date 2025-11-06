@@ -8,7 +8,7 @@ namespace Syncro.Application.ModelsDTO
         public string? firstname { get; set; }
         public string? lastname { get; set; }
         public string? phonenumber { get; set; }
-        public required bool isOnline { get; set; } = false;
+        public string? avatar { get; set; }
     }
 
 }
