@@ -35,7 +35,6 @@ namespace Syncro.Infrastructure.Services
             var existingPersonalInfo = await _infoRepository.GetPersonalAccountInfoByIdAsync(accountId);
 
             existingPersonalInfo.dateOfLastOnline = personalAccountInfoDto.dateOfLastOnline;
-            existingPersonalInfo.isHidden = personalAccountInfoDto.isHidden;
             existingPersonalInfo.dateOfAccountCreation = personalAccountInfoDto.dateOfAccountCreation;
             existingPersonalInfo.country = personalAccountInfoDto.country;
 
