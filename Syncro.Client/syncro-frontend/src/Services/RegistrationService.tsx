@@ -1,8 +1,8 @@
 import { NetworkError } from '../Types/LoginTypes';
 
-export const registerUser = async (email: string, password: string, nickname: string, phonenumber: string, isOnline: boolean) => {
+export const registerUser = async (email: string, password: string, nickname: string, phonenumber: string, avatar: string | null) => {
 
-    const credentials = { email, password, nickname, phonenumber, isOnline }
+    const credentials = { email, password, nickname, phonenumber, avatar }
 
     try {
         const response = await fetch('http://localhost:5232/api/accounts/', {

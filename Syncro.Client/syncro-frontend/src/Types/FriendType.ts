@@ -12,6 +12,7 @@ export interface Friend {
     userWhoSent: string;
     userWhoReceived: string;
     friendShipId: string;
+    //обновить avatar: string, подумать над isOnline и AccountActivity
 }
 
 export interface FriendProps {
@@ -30,4 +31,9 @@ export interface FriendDetailsProps {
     friend: Friend | null;
     onAccept?: (friend: Friend) => void;
     onCancel?: (friend: Friend) => void;
+}
+export interface AccountActivity {
+    UserId: string;
+    IsOnline: boolean;
+    Timestamp: string
 }

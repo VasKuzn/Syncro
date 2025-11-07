@@ -12,6 +12,10 @@ namespace Syncro.Api.Hubs
         public async Task SubscribeToFriendsUpdates(string userId)
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, $"friends-{userId}");
+
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"account-status-{userId}");
+
+
             _logger.LogInformation($"User {userId} subscribed to friends updates");
         }
 
