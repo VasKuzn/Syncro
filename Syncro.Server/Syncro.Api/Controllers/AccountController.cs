@@ -209,7 +209,7 @@ namespace Syncro.Api.Controllers
         }
 
         // GET: получение personal account info по id
-        [HttpGet("{id}")]
+        [HttpGet("{id}/personal_info")]
         public async Task<ActionResult<AccountModel>> GetPersonalAccountInfoById(Guid id)
         {
             try
@@ -228,7 +228,7 @@ namespace Syncro.Api.Controllers
         }
 
         // PUT: обновление personal account info по id
-        [HttpPut("{id}")]
+        [HttpPut("{id}/personal_info")]
         public async Task<IActionResult> UpdatePersonalAccountInfo(Guid id, [FromBody] PersonalAccountInfoModelDTO infoDto)
         {
             try
@@ -251,7 +251,7 @@ namespace Syncro.Api.Controllers
         }
 
         // DELETE: удаление personal account info по id
-        [HttpDelete("{id}")]
+        [HttpDelete("{id}/personal_info")]
         public async Task<IActionResult> DeletePersonalAccountInfo(Guid id)
         {
             try

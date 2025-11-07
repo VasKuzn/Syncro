@@ -4,8 +4,8 @@ namespace Syncro.Application.Interfaces.Repositories
     {
         public Task<List<PersonalAccountInfoModel>> GetAllPersonalAccountInfosAsync();
         public Task<PersonalAccountInfoModel> GetPersonalAccountInfoByIdAsync(Guid accountId);
-        public Task<PersonalAccountInfoModel> AddPersonalAccountInfoAsync(PersonalAccountInfoModel account);
+        public Task<PersonalAccountInfoModel> AddPersonalAccountInfoAsync(PersonalAccountInfoModel personalAccountInfo);
         public Task<bool> DeletePersonalAccountInfoAsync(Guid accountId);
-        public Task<PersonalAccountInfoModel> UpdatePersonalAccountInfoAsync(PersonalAccountInfoModel account);
+        public Task<PersonalAccountInfoModel> UpdatePersonalAccountInfoAsync(PersonalAccountInfoModel personalAccountInfo);
     }
 }
