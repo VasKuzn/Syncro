@@ -8,7 +8,6 @@ namespace Syncro.Infrastructure.Services
     {
         private readonly IAccountRepository _accountRepository;
         private readonly IJwtProvider _jwtProvider;
-        private readonly ILogger _logger;
 
         public AccountService(IAccountRepository accountRepository, IJwtProvider jwtProvider)
         {
@@ -69,6 +68,18 @@ namespace Syncro.Infrastructure.Services
             existingAccount.firstname = accountDto.firstname;
             existingAccount.lastname = accountDto.lastname;
             existingAccount.avatar = accountDto.avatar;
+
+            return await _accountRepository.UpdateAccountAsync(existingAccount);
+        }
+        public async Task<AccountModel> UpdateAccountAvatarAsync(Guid accountId, string? avatar)
+        {
+            var existingAccount = await _accountRepository.GetAccountByIdAsync(accountId);
+            if (existingAccount == null)
+            {
+                throw new KeyNotFoundException($"Account with id {accountId} not found");
+            }
+
+            existingAccount.avatar = avatar;
 
             return await _accountRepository.UpdateAccountAsync(existingAccount);
         }

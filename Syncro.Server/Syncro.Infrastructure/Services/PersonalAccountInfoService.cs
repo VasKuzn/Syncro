@@ -22,14 +22,16 @@ namespace Syncro.Infrastructure.Services
         {
             return await _infoRepository.GetPersonalAccountInfoByIdAsync(accountId);
         }
-        public async Task<PersonalAccountInfoModel> CreatePersonalAccountInfoAsync(PersonalAccountInfoModel personalAccountInfo, Guid accountId )
+        public async Task<PersonalAccountInfoModel> CreatePersonalAccountInfoAsync(Guid id)
         {
-            PersonalAccountInfoModel tempInfo = new PersonalAccountInfoModel();
-            tempInfo.Id = accountId;
-            tempInfo.dateOfLastOnline = personalAccountInfo.dateOfLastOnline;
-            tempInfo.dateOfAccountCreation = personalAccountInfo.dateOfAccountCreation;
-            tempInfo.country = personalAccountInfo.country;
-            return await _infoRepository.AddPersonalAccountInfoAsync(tempInfo);
+            var personalAccountInfo = new PersonalAccountInfoModel
+            {
+                Id = id,
+                dateOfAccountCreation = DateTime.UtcNow,
+                dateOfLastOnline = DateTime.UtcNow,
+                country = 0,
+            };
+            return await _infoRepository.AddPersonalAccountInfoAsync(personalAccountInfo);
         }
         public async Task<bool> DeletePersonalAccountInfoAsync(Guid accountId)
         {
@@ -44,6 +46,16 @@ namespace Syncro.Infrastructure.Services
             existingPersonalInfo.country = personalAccountInfoDto.country;
 
             return await _infoRepository.UpdatePersonalAccountInfoAsync(existingPersonalInfo);
+        }
+
+        public async Task<PersonalAccountInfoModel> UpdatePersonalAccountCountryAsync(Guid accountId, int? country)
+        {
+            var existingPersonalInfo = await _infoRepository.GetPersonalAccountInfoByIdAsync(accountId);
+
+            existingPersonalInfo.country = country;
+
+            return await _infoRepository.UpdatePersonalAccountInfoAsync(existingPersonalInfo);
+
         }
     }
 }
