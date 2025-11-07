@@ -35,7 +35,7 @@ const Register = () => {
                 formState.password,
                 formState.nickname,
                 formState.phone,
-                false
+                null
             );
             setFormState(prev => ({ ...prev, showSuccess: true }));
         } catch (error) {
