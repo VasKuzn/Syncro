@@ -6,7 +6,7 @@ namespace Syncro.Application.Services
     {
         public Task<List<PersonalAccountInfoModel>> GetAllPersonalAccountInfosAsync();
         public Task<PersonalAccountInfoModel> GetPersonalAccountInfoByIdAsync(Guid accountId);
-        public Task<PersonalAccountInfoModel> CreatePersonalAccountInfoAsync(PersonalAccountInfoModel personalAccountInfo);
+        public Task<PersonalAccountInfoModel> CreatePersonalAccountInfoAsync(PersonalAccountInfoModel personalAccountInfo, Guid accountId );
         public Task<bool> DeletePersonalAccountInfoAsync(Guid accountId);
         public Task<PersonalAccountInfoModel> UpdatePersonalAccountInfoAsync(Guid accountId, PersonalAccountInfoModelDTO personalAccountInfoDto);
     }

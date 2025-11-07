@@ -9,7 +9,7 @@ namespace Syncro.Api.Controllers
 
         public AccountController(IAccountService accountService, IPersonalAccountInfoService infoService)
         {
-            _accountService = accountService;
+            _accountService = accountService;          
             _infoService = infoService;
         }
 
@@ -98,7 +98,9 @@ namespace Syncro.Api.Controllers
         {
             try
             {
+                PersonalAccountInfoModel personalAccountInfo = new PersonalAccountInfoModel();
                 var createdAccount = await _accountService.CreateAccountAsync(account);
+                var createdPersonalAccountInfo = await _infoService.CreatePersonalAccountInfoAsync(personalAccountInfo, createdAccount.Id);
                 return CreatedAtAction(nameof(GetAccountById), new { id = createdAccount.Id }, createdAccount);
             }
             catch (ArgumentException ex)
@@ -194,7 +196,7 @@ namespace Syncro.Api.Controllers
         /* personal account infos */
 
         // GET: получение всех personal account info (хз зачем может пригодиться)
-        [HttpGet]
+        [HttpGet("personal_info")]
         public async Task<ActionResult<IEnumerable<PersonalAccountInfoModel>>> GetAllPersonalAccontInfos()
         {
             try
@@ -209,7 +211,7 @@ namespace Syncro.Api.Controllers
         }
 
         // GET: получение personal account info по id
-        [HttpGet("{id}/personal_info")]
+        [HttpGet("personal_info/{id}")]
         public async Task<ActionResult<AccountModel>> GetPersonalAccountInfoById(Guid id)
         {
             try
@@ -228,7 +230,7 @@ namespace Syncro.Api.Controllers
         }
 
         // PUT: обновление personal account info по id
-        [HttpPut("{id}/personal_info")]
+        [HttpPut("personal_info/{id}")]
         public async Task<IActionResult> UpdatePersonalAccountInfo(Guid id, [FromBody] PersonalAccountInfoModelDTO infoDto)
         {
             try
@@ -251,7 +253,7 @@ namespace Syncro.Api.Controllers
         }
 
         // DELETE: удаление personal account info по id
-        [HttpDelete("{id}/personal_info")]
+        [HttpDelete("personal_info/{id}")]
         public async Task<IActionResult> DeletePersonalAccountInfo(Guid id)
         {
             try

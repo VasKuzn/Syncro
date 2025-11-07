@@ -22,9 +22,14 @@ namespace Syncro.Infrastructure.Services
         {
             return await _infoRepository.GetPersonalAccountInfoByIdAsync(accountId);
         }
-        public async Task<PersonalAccountInfoModel> CreatePersonalAccountInfoAsync(PersonalAccountInfoModel personalAccountInfo)
+        public async Task<PersonalAccountInfoModel> CreatePersonalAccountInfoAsync(PersonalAccountInfoModel personalAccountInfo, Guid accountId )
         {
-            return await _infoRepository.AddPersonalAccountInfoAsync(personalAccountInfo);
+            PersonalAccountInfoModel tempInfo = new PersonalAccountInfoModel();
+            tempInfo.Id = accountId;
+            tempInfo.dateOfLastOnline = personalAccountInfo.dateOfLastOnline;
+            tempInfo.dateOfAccountCreation = personalAccountInfo.dateOfAccountCreation;
+            tempInfo.country = personalAccountInfo.country;
+            return await _infoRepository.AddPersonalAccountInfoAsync(tempInfo);
         }
         public async Task<bool> DeletePersonalAccountInfoAsync(Guid accountId)
         {
