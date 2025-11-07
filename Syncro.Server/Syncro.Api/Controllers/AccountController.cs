@@ -5,10 +5,12 @@ namespace Syncro.Api.Controllers
     public class AccountController : ControllerBase
     {
         private readonly IAccountService _accountService;
+        private readonly IPersonalAccountInfoService _infoService;
 
-        public AccountController(IAccountService accountService)
+        public AccountController(IAccountService accountService, IPersonalAccountInfoService infoService)
         {
-            _accountService = accountService;
+            _accountService = accountService;          
+            _infoService = infoService;
         }
 
         // GET: api/accounts
@@ -96,7 +98,9 @@ namespace Syncro.Api.Controllers
         {
             try
             {
+                PersonalAccountInfoModel personalAccountInfo = new PersonalAccountInfoModel();
                 var createdAccount = await _accountService.CreateAccountAsync(account);
+                var createdPersonalAccountInfo = await _infoService.CreatePersonalAccountInfoAsync(personalAccountInfo, createdAccount.Id);
                 return CreatedAtAction(nameof(GetAccountById), new { id = createdAccount.Id }, createdAccount);
             }
             catch (ArgumentException ex)
@@ -187,6 +191,84 @@ namespace Syncro.Api.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             return Ok(new { UserId = userId });
+        }
+
+        /* personal account infos */
+
+        // GET: получение всех personal account info (хз зачем может пригодиться)
+        [HttpGet("personal_info")]
+        public async Task<ActionResult<IEnumerable<PersonalAccountInfoModel>>> GetAllPersonalAccontInfos()
+        {
+            try
+            {
+                var infos = await _infoService.GetAllPersonalAccountInfosAsync();
+                return Ok(infos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        // GET: получение personal account info по id
+        [HttpGet("personal_info/{id}")]
+        public async Task<ActionResult<AccountModel>> GetPersonalAccountInfoById(Guid id)
+        {
+            try
+            {
+                var info = await _infoService.GetPersonalAccountInfoByIdAsync(id);
+                return Ok(info);
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        // PUT: обновление personal account info по id
+        [HttpPut("personal_info/{id}")]
+        public async Task<IActionResult> UpdatePersonalAccountInfo(Guid id, [FromBody] PersonalAccountInfoModelDTO infoDto)
+        {
+            try
+            {
+                var updatedAccountsInfo = await _infoService.UpdatePersonalAccountInfoAsync(id, infoDto);
+                return Ok(updatedAccountsInfo);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        // DELETE: удаление personal account info по id
+        [HttpDelete("personal_info/{id}")]
+        public async Task<IActionResult> DeletePersonalAccountInfo(Guid id)
+        {
+            try
+            {
+                var result = await _infoService.DeletePersonalAccountInfoAsync(id);
+                if (!result)
+                {
+                    return NotFound($"Account with id {id} not found");
+                }
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
     }
 }

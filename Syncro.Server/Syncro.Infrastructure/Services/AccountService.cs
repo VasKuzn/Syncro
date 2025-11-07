@@ -68,7 +68,15 @@ namespace Syncro.Infrastructure.Services
             existingAccount.phonenumber = accountDto.phonenumber;
             existingAccount.firstname = accountDto.firstname;
             existingAccount.lastname = accountDto.lastname;
+            existingAccount.avatar = accountDto.avatar;
 
+            return await _accountRepository.UpdateAccountAsync(existingAccount);
+        }
+        public async Task<AccountModel> UpdateOnlineAccountAsync(Guid accountId)
+        {
+            var existingAccount = await _accountRepository.GetAccountByIdAsync(accountId);
+            //existingAccount.isOnline = !existingAccount.isOnline; 
+            // todo: нормальное отслеживание статуса в сети
             return await _accountRepository.UpdateAccountAsync(existingAccount);
         }
 

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Syncro.Infrastructure.Selectel;
 using Syncro.Application.SelectelStorage;
+using Syncro.Application.Interfaces.Repositories;
 
 public static class ServiceRegistration
 {
@@ -23,6 +24,7 @@ public static class ServiceRegistration
         services.AddScoped<IServerMemberRolesService, ServerMemberRolesService>();
         services.AddScoped<ISectorService, SectorService>();
         services.AddScoped<ISectorPermissionsService, SectorPermissionsService>();
+        services.AddScoped<IPersonalAccountInfoService, PersonalAccountInfoService>();
     }
     public static void AddCoreRepositoriesExtension(this IServiceCollection services, IConfiguration configuration)
     {
@@ -39,6 +41,7 @@ public static class ServiceRegistration
         services.AddScoped<IServerMemberRolesRepository, ServerMemberRolesRepository>();
         services.AddScoped<ISectorRepository, SectorRepository>();
         services.AddScoped<ISectorPermissionsRepository, SectorPermissionsRepository>();
+        services.AddScoped<IPersonalAccountInfoRepository, PersonalAccountInfoRepository>();
     }
 
     public static void AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)

@@ -10,6 +10,5 @@ namespace Syncro.Domain.Models
         public string? lastname { get; set; }
         public string? phonenumber { get; set; }
         public string? avatar { get; set; }
-        //public required bool isOnline { get; set; } = false;
     }
 }
