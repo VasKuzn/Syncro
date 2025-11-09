@@ -1,8 +1,7 @@
-namespace Syncro.Domain.Models
+namespace Syncro.Application.TransferModels
 {
-    public class AccountModel
+    public class AccountWithPersonalInfoModel
     {
-        public Guid Id { get; set; }
         public required string nickname { get; set; }
         public string? email { get; set; }
         public required string password { get; set; }
@@ -10,5 +9,6 @@ namespace Syncro.Domain.Models
         public string? lastname { get; set; }
         public string? phonenumber { get; set; }
         public string? avatar { get; set; }
+        public int? country { get; set; }
     }
 }

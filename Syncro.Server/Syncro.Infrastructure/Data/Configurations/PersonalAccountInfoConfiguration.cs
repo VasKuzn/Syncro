@@ -9,10 +9,9 @@ namespace Syncro.Infrastructure.Data.Configurations
             builder.HasKey(x => x.Id);
 
             builder.Property(x => x.Id).ValueGeneratedOnAdd().HasColumnType("uuid").HasDefaultValueSql("gen_random_uuid()");
-            builder.Property(x => x.isHidden).IsRequired().HasDefaultValue(false);
             builder.Property(x => x.dateOfAccountCreation).IsRequired().HasDefaultValueSql("CURRENT_TIMESTAMP");
             builder.Property(x => x.dateOfLastOnline).IsRequired().HasDefaultValueSql("CURRENT_TIMESTAMP");
-            builder.Property(x => x.dateOfLastChange).IsRequired().HasDefaultValueSql("CURRENT_TIMESTAMP");
+            builder.Property(x => x.country).IsRequired(false);
 
             builder.HasOne<AccountModel>()
                 .WithOne()

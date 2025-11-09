@@ -1,8 +1,8 @@
-namespace Syncro.Domain.Models
+
+namespace Syncro.Application.ModelsDTO
 {
-    public class PersonalAccountInfoModel
+    public class PersonalAccountInfoModelDTO
     {
-        public Guid Id { get; set; }
         public DateTime dateOfAccountCreation { get; set; }
         public DateTime dateOfLastOnline { get; set; }
         public int? country { get; set; }
