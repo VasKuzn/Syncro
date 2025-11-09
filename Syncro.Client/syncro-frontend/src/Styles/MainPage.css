@@ -1,14 +1,14 @@
 body {
     margin: 0;
     padding: 0;
-    align-items: baseline;    
+    align-items: baseline;
     animation: none;
     color: #ffffff;
 }
 
 .main-page {
     display: flex;
-    flex-direction: column;    
+    flex-direction: column;
     width: 100%;
     height: 100%;
     position: relative;
@@ -33,8 +33,8 @@ body {
     display: flex;
     position: relative;
     height: 100%;
-    flex-direction: row;   
-    background-color: #07081C;    
+    flex-direction: row;
+    background-color: #07081C;
     flex-shrink: 0;
     min-width: 372px;
 }
@@ -56,7 +56,7 @@ body {
 
 .personal-chats {
     justify-items: center;
-    width: 300px;    
+    width: 300px;
     outline: 1px solid #D5D6DA;
     border-radius: 10px 0 0 0;
     flex-shrink: 0;
@@ -117,6 +117,13 @@ body {
     color: #ffffff;
 }
 
+.button-friends-status.active {
+    background-color: #3B82F6;
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.25);
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
 .button-friends-status.add {
     background-color: #3B82F6;
 }
@@ -127,6 +134,7 @@ body {
     background-color: #3B82F6;
     border: 1px solid #1A2438;
     border-radius: 10px;
+    cursor: pointer;
 }
 
 .group-chat-list {
@@ -166,12 +174,11 @@ body {
     padding: 10px 30px;
 }
 
-.input-box{
+.input-box {
     display: flex;
-    padding: 10px 10px;
+    padding: 5px 5px;
     background-color: #07081C;
     border-radius: 10px;
-    color: #ffffff;
 }
 
 .friends-search {
@@ -180,6 +187,7 @@ body {
     flex: 1;
     border: none;
     background-color: transparent;
+    color: #ffffff;
 }
 
 .search-icon {
@@ -192,27 +200,52 @@ body {
     display: flex;
     flex-direction: row;
     height: 60px;
-    padding: 5px 30px;
-    border-top: 1px solid #d5d6da0e;
-    border-bottom: 1px solid #d5d6da0e;
-    justify-content: space-between;
+    padding: 0 12px;
+    opacity: 1;
+    margin: 4px 0;
+    background-color: #1E293B;
+    align-items: center;
+    gap: 12px;
+    border-radius: 10px;
+    position: relative;
+    cursor: pointer;
+    box-sizing: border-box;
+    z-index: 1;
+    transition: all 0.35s ease;
+    cursor: pointer;
+}
+
+.friend-item:hover {
+    background: #23244a;
+    box-shadow: 0 2px 8px #3b82f6;
+    transform: scale(0.97);
+    z-index: 2;
 }
 
 .friend-avatar-container {
-    align-content: center;
-    height: 50px;
-    width: 50px;    
-    margin-right: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
 }
 
-.friend-avatar {
-    align-content: center;
-}
 
 .friend-info-container {
     display: flex;
     flex-direction: row;
     align-items: center;
+    gap: 7px;
+    cursor: pointer;
+}
+
+.pc-item .friend-info-container:hover {
+    background: #23244a;
+    box-shadow: 0 2px 8px #3b82f6;
+    border-radius: 5px;
+    transform: scale(1.02);
+    z-index: 2;
+    transition: all 0.25s ease;
 }
 
 .friend-text-info {
@@ -247,5 +280,226 @@ body {
 }
 
 .pc-item {
-    margin: 5px 0;
+    margin: 7px;
+}
+
+.button-friends-status {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.button-friends-status:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.button-friends-status:active {
+    transform: translateY(0);
+}
+
+.button-friends-status.add {
+    position: relative;
+    overflow: hidden;
+}
+
+.button-friends-status.add::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.button-friends-status.add:hover::after {
+    opacity: 1;
+}
+
+@keyframes buttonClick {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(0.95);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.button-friends-status.add:active {
+    animation: buttonClick 0.3s ease;
+}
+
+
+.notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #3B82F6;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    animation: slideIn 0.3s ease forwards;
+}
+
+.notification.error {
+    background-color: #EF4444;
+}
+
+.notification-icon {
+    margin-right: 8px;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.friend-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    align-content: center;
+    border: 2px solid #3B82F6;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.online-status {
+    font-size: 0.9em;
+    color: #4ade80;
+    margin-left: 4px;
+    position: relative;
+    padding-left: 14px;
+}
+
+.online-status::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #4ade80;
+    transition: all 0.2s ease;
+}
+
+.online-status.offline {
+    color: #a1a1aa;
+}
+
+.online-status.offline::before {
+    background-color: #a1a1aa;
+}
+
+.friend-details-popover {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 200;
+    background: #23244a;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), 0 1.5px 8px #3b82f6;
+    padding: 28px 28px 20px 24px;
+    min-width: 260px;
+    max-width: 90vw;
+    animation: popover-fade-in 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow: auto;
+}
+
+@media (max-width: 700px) {
+    .friend-details-popover {
+        min-width: 80vw;
+        max-width: 98vw;
+        padding: 12px 4px 12px 8px;
+    }
+}
+
+.friend-details-popover .close-popover {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 1.7rem;
+    cursor: pointer;
+    transition: color 0.2s, transform 0.15s;
+    z-index: 11;
+    padding: 0 4px;
+    line-height: 1;
+}
+
+.friend-details-popover .close-popover:hover {
+    color: #f87171;
+    transform: scale(1.2) rotate(90deg);
+}
+
+.friend-details-popover .friend-request-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.friend-details-popover .accept-button,
+.friend-details-popover .decline-button {
+    width: 100%;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.1s;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.08);
+    outline: none;
+    margin: 0;
+    text-align: center;
+    letter-spacing: 0.02em;
+}
+
+.friend-details-popover .accept-button {
+    background: linear-gradient(90deg, #22c55e 60%, #16a34a 100%);
+    color: #fff;
+}
+
+.friend-details-popover .accept-button:hover {
+    background: linear-gradient(90deg, #16a34a 60%, #22c55e 100%);
+    box-shadow: 0 4px 16px rgba(34, 197, 94, 0.18);
+    transform: translateY(-2px) scale(1.04);
+}
+
+.friend-details-popover .decline-button {
+    background: linear-gradient(90deg, #f87171 60%, #b91c1c 100%);
+    color: #fff;
+}
+
+.friend-details-popover .decline-button:hover {
+    background: linear-gradient(90deg, #b91c1c 60%, #f87171 100%);
+    box-shadow: 0 4px 16px rgba(239, 113, 113, 0.18);
+    transform: translateY(-2px) scale(1.04);
 }

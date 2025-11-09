@@ -1,0 +1,82 @@
+.video-call-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #1e1f22;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.video-top {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  background: #2b2d31;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.video-avatar {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.video-placeholder {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 48px;
+  color: #ccc;
+}
+
+.video-controls {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.control-btn {
+  background: #3a3b3e;
+  border: none;
+  color: white;
+  padding: 10px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.control-btn:hover {
+  background: #505154;
+}
+
+.control-btn.off {
+  background: #a33b3b;
+}
+
+.end-call {
+  background: #e34b4b;
+}
+
+.end-call:hover {
+  background: #ff5f5f;
+}

@@ -1,86 +1,211 @@
-import React, { useState, useEffect } from 'react';
-import MessageWithMemo from '../Components/ChatPage/MessageComponent';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { PersonalMessageData } from '../Types/ChatTypes';
+import Message from '../Components/ChatPage/MessageComponent';
 import MessageInput from '../Components/ChatPage/MessageInput';
 import MainComponent from '../Components/ChatPage/MainComponents';
-import ChatComponent from '../Components/ChatPage/ChatComponent';
+import VideoCall from "../Components/ChatPage/VideoCallComponent";
+import CallWindow from "../Components/ChatPage/CallWindowComponent";
 import '../Styles/Chat.css';
+import { Friend } from '../Types/FriendType';
+import { fetchCurrentUser } from '../Services/MainFormService';
+import { useLocation } from 'react-router-dom';
+import { createMessage, getMessages, uploadMediaMessage } from '../Services/ChatService';
+import usePersonalMessagesHub from '../Hooks/UsePersonalMessages';
 
-function parseJwt(token: string) {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map(function (c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        })
-        .join('')
-    );
+const ChatPage = () => {
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [personalConference, setPersonalConference] = useState<string | null>(null);
+  const [messages, setMessages] = useState<PersonalMessageData[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const location = useLocation();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    return JSON.parse(jsonPayload);
-  } catch (e) {
-    console.error('Invalid JWT token', e);
-    return null;
-  }
-}
-
-function getCookie(name: string) {
-  let cookie = document.cookie.split('; ').find(row => row.startsWith(name + '='));
-  return cookie ? cookie.split('=')[1] : null;
-}
-
-interface MessageData {
-  id: number;
-  name: string;
-  time: string;
-  message: string;
-}
-
-const ChatPage: React.FC = () => {
-  const [messages, setMessages] = useState<MessageData[]>([]);
-  const token = getCookie('token');
-  const user = token ? parseJwt(token) : null;
-
-  useEffect(() => {
-    const saved = localStorage.getItem('chatMessages');
-    if (saved) {
-      setMessages(JSON.parse(saved));
-    }
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem('chatMessages', JSON.stringify(messages));
-  }, [messages]);
+  const handleNewMessage = useCallback((message: PersonalMessageData) => {
+    setMessages(prev => {
+      if (!prev.some(m => m.id === message.id)) {
+        return [...prev, message];
+      }
+      return prev;
+    });
+    setTimeout(scrollToBottom, 100);
+  }, [scrollToBottom]);
 
-  const handleSend = (message: string) => {
-    const newMessage: MessageData = {
-      id: Date.now(),
-      name: user?.name || "user",
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      message,
+  usePersonalMessagesHub(personalConference, handleNewMessage);
+
+  useEffect(() => {
+    const initializeUser = async () => {
+      const userId = await fetchCurrentUser();
+      setCurrentUserId(userId);
     };
-    setMessages(prev => [...prev, newMessage]);
+
+    initializeUser();
+
+    if (location.state?.friends) {
+      setFriends(location.state.friends);
+    }
+    if (location.state?.personalConferenceId) {
+      setPersonalConference(location.state.personalConferenceId);
+    }
+  }, [location.state]);
+
+  const loadMessages = useCallback(async () => {
+    if (!personalConference) return;
+
+    try {
+      const loadedMessages = await getMessages(personalConference);
+      setMessages(loadedMessages);
+      setTimeout(scrollToBottom, 100);
+    } catch (error) {
+      console.error('Failed to load messages:', error);
+    }
+  }, [personalConference, scrollToBottom]);
+
+  useEffect(() => {
+    loadMessages();
+  }, [loadMessages]);
+
+  const handleSend = async (text: string, media?: {
+    mediaUrl: string;
+    mediaType: string;
+    fileName: string;
+    file?: File;
+  }) => {
+    if (!currentUserId || !personalConference) return;
+
+    const newMessage: PersonalMessageData = {
+      id: crypto.randomUUID(),
+      messageContent: text,
+      messageDateSent: new Date(),
+      accountId: currentUserId,
+      personalConferenceId: personalConference,
+      groupConferenceId: null,
+      sectorId: null,
+      idEdited: false,
+      previousMessageContent: null,
+      isPinned: false,
+      isRead: false,
+      referenceMessageId: null,
+      mediaUrl: media?.mediaUrl,
+      mediaType: media?.mediaType,
+      fileName: media?.fileName
+    };
+
+    try {
+      if (media && media.file) {
+        setIsUploading(true);
+        await uploadMediaMessage(newMessage.id, {
+          file: media.file,
+          messageContent: text,
+          accountId: currentUserId,
+          personalConferenceId: personalConference
+        });
+      } else {
+        await createMessage(newMessage);
+      }
+      setTimeout(scrollToBottom, 100);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
-  const chatContent = (
-    <>
-      <div className="messages">
-        {messages.map((msg) => (
-          <MessageWithMemo
-            key={msg.id}
-            id={msg.id}
-            name={msg.name}
-            time={msg.time}
-            message={msg.message}
-          />
-        ))}
-      </div>
-      <MessageInput onSend={handleSend} />
-    </>
-  );
+  const handleMediaUpload = async (file: File) => {
+    if (!currentUserId || !personalConference) return;
 
-  return <MainComponent chatContent={chatContent} />;
+    try {
+      setIsUploading(true);
+      const messageId = crypto.randomUUID();
+
+      const response = await uploadMediaMessage(messageId, {
+        file,
+        messageContent: '',
+        accountId: currentUserId,
+        personalConferenceId: personalConference
+      });
+
+      setTimeout(scrollToBottom, 100);
+    } catch (error) {
+      console.error('Failed to upload media:', error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const [showCallModal, setShowCallModal] = useState(false);
+  const [inCall, setInCall] = useState(false);
+  const [incomingCall, setIncomingCall] = useState(false);
+  const [outgoingCall, setOutgoingCall] = useState(false);
+
+  const handleStartCall = () => {
+    setShowCallModal(true);
+  };
+
+  const handleAcceptCall = () => {
+    setShowCallModal(false);
+    setInCall(true);
+  };
+
+  const handleRejectCall = () => {
+    setShowCallModal(false);
+  };
+
+  const handleEndCall = () => {
+    setInCall(false);
+  };
+
+  return (
+    <MainComponent
+      chatContent={
+        <>
+          {!inCall && (
+            <div className="call-button-container">
+              <button className="call-button" onClick={handleStartCall}>
+                📞 Вызов
+              </button>
+            </div>
+          )}
+          {showCallModal && currentFriend && (
+          <CallWindow
+            isIncoming={incomingCall}  // true — если звонят тебе
+            userName={currentFriend.name}
+            avatarUrl={currentFriend.avatarUrl || "/avatars/default.jpg"}
+            onAccept={() => {
+              setShowCallModal(false);
+              setInCall(true);
+            }}
+            onReject={() => {
+              setShowCallModal(false);
+              setIncomingCall(false);
+              setOutgoingCall(false);
+            }}
+          />
+          )}
+          {inCall && <VideoCall onEndCall={handleEndCall} />}
+          <div className="messages">
+            {messages.map((msg) => (
+              <Message
+                key={msg.id}
+                {...msg}
+              />
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+          <MessageInput
+            onSend={handleSend}
+            onMediaUpload={handleMediaUpload}
+            isUploading={isUploading}
+          />
+        </>
+      }
+      friends={friends}
+    />
+  );
 };
 
 export default ChatPage;

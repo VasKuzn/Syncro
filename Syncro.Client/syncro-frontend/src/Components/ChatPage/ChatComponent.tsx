@@ -1,11 +1,6 @@
-import React from "react";
+import { PersonalChatProps } from "../../Types/ChatTypes";
 
-interface ChatComponentProps {
-    chatContent?: React.ReactNode;
-}
-
-
-const ChatComponent: React.FC<ChatComponentProps> = ({ chatContent }) => {
+const ChatComponent = ({ chatContent }: PersonalChatProps) => {
     return (
         <div className="chat-container">
             {chatContent}

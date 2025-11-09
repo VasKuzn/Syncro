@@ -1,0 +1,71 @@
+.call-window {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20, 20, 20, 0.9);
+  border-radius: 16px;
+  padding: 24px 32px;
+  color: #fff;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+  z-index: 100;
+}
+
+.call-avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 12px;
+}
+
+.call-info {
+  margin-bottom: 16px;
+}
+
+.call-username {
+  font-size: 1.2rem;
+  margin-bottom: 4px;
+}
+
+.call-status {
+  font-size: 0.95rem;
+  color: #ccc;
+}
+
+.call-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.btn {
+  width: 60px;
+  height: 60px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  background: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s;
+}
+
+.btn img {
+  width: 28px;
+  height: 28px;
+}
+
+.btn.accept {
+  background: #2ecc71;
+}
+
+.btn.reject {
+  background: #e74c3c;
+}
+
+.btn:hover {
+  transform: scale(1.1);
+}

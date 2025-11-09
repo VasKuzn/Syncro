@@ -1,21 +1,13 @@
-import { Friend } from "../../Types/FriendType";
+import { FriendProps } from "../../Types/FriendType";
 import FriendsComponent from "./FriendsComponent";
 import SidebarComponent from "./SidebarComponent";
 
-interface BodyComponentProps{
-    friends: Friend[]
-}
 
-const BodyComponent: React.FC<BodyComponentProps> = ({friends}) => {
+const BodyComponent = ({ friends }: FriendProps) => {
     return (
         <div className="body-container">
-            <SidebarComponent
-                friends={friends}
-            >
-            </SidebarComponent>
-            <FriendsComponent 
-                friends={friends}>
-            </FriendsComponent>
+            <SidebarComponent friends={friends} />
+            <FriendsComponent friends={friends} />
         </div>
     );
 }
