@@ -1,13 +1,6 @@
 import React from "react";
-import "../../Styles/CallWindow.css";
+import { CallWindowProps } from "../../Types/ChatTypes";
 
-interface CallWindowProps {
-  isIncoming: boolean;           
-  userName: string;              
-  avatarUrl: string;             
-  onAccept?: () => void;        
-  onReject: () => void;      
-}
 
 const CallWindow: React.FC<CallWindowProps> = ({
   isIncoming,
@@ -20,7 +13,6 @@ const CallWindow: React.FC<CallWindowProps> = ({
     <div className="call-window">
       <div className="call-content">
         <img src={avatarUrl} alt={userName} className="call-avatar" />
-
         <div className="call-info">
           <h3 className="call-username">{userName}</h3>
           <p className="call-status">
@@ -32,15 +24,15 @@ const CallWindow: React.FC<CallWindowProps> = ({
           {isIncoming ? (
             <>
               <button className="btn accept" onClick={onAccept}>
-                <img src="search.png" alt="Принять" />
+                <img src="call_received_icon.png" alt="Принять" />
               </button>
               <button className="btn reject" onClick={onReject}>
-                <img src="search.png" alt="Отклонить" />
+                <img src="call_remove_icon.png" alt="Отклонить" />
               </button>
             </>
           ) : (
             <button className="btn reject" onClick={onReject}>
-              <img src="search.png" alt="Отменить" />
+              <img src="call_remove_icon.png" alt="Отменить" />
             </button>
           )}
         </div>

@@ -9,7 +9,7 @@ import '../Styles/Chat.css';
 import { Friend } from '../Types/FriendType';
 import { fetchCurrentUser } from '../Services/MainFormService';
 import { useLocation } from 'react-router-dom';
-import { createMessage, getMessages, uploadMediaMessage } from '../Services/ChatService';
+import { createMessage, getMessages, uploadMediaMessage, getPersonalConferenceById, getNicknameById } from '../Services/ChatService';
 import usePersonalMessagesHub from '../Hooks/UsePersonalMessages';
 
 const ChatPage = () => {
@@ -137,27 +137,55 @@ const ChatPage = () => {
     }
   };
 
-  const [showCallModal, setShowCallModal] = useState(false);
+  const [showCallModal, setShowCallModal] = useState(true);
   const [inCall, setInCall] = useState(false);
-  const [incomingCall, setIncomingCall] = useState(false);
-  const [outgoingCall, setOutgoingCall] = useState(false);
+  const [incomingCall, setIncomingCall] = useState(true);
 
   const handleStartCall = () => {
     setShowCallModal(true);
   };
 
-  const handleAcceptCall = () => {
-    setShowCallModal(false);
-    setInCall(true);
-  };
-
-  const handleRejectCall = () => {
-    setShowCallModal(false);
-  };
-
   const handleEndCall = () => {
     setInCall(false);
   };
+
+  const [currentFriend, setCurrentFriend] = useState<Friend | null>(null);
+  const [currentUser, setCurrentUser] = useState<Friend | null>(null);
+
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      if (!personalConference || !currentUserId) return;
+      try {
+        const res = await fetch(`http://localhost:5232/api/accounts/${currentUserId}`);
+        const currentUserData = await res.json();
+        setCurrentUser(currentUserData);
+      }
+      catch (err) {
+        console.error("Failed to load current user", err);
+      }
+    };
+    fetchCurrentUser();
+  }, [personalConference, currentUserId]);
+
+  useEffect(() => {
+    const fetchConferenceAndFriend = async () => {
+      if (!personalConference || !currentUserId) return;
+      try {
+        const conf = await getPersonalConferenceById(personalConference);
+
+        const friendId =
+          String(conf.user1).toLowerCase() === String(currentUserId).toLowerCase()
+            ? conf.user2
+            : conf.user1;
+        const res = await fetch(`http://localhost:5232/api/accounts/${friendId}`);
+        const friendData = await res.json();
+        setCurrentFriend(friendData);
+      } catch (err) {
+        console.error("Failed to load conference or friend", err);
+      }
+    };
+    fetchConferenceAndFriend();
+  }, [personalConference, currentUserId]);
 
   return (
     <MainComponent
@@ -166,15 +194,15 @@ const ChatPage = () => {
           {!inCall && (
             <div className="call-button-container">
               <button className="call-button" onClick={handleStartCall}>
-                📞 Вызов
+                Вызов
               </button>
             </div>
           )}
-          {showCallModal && currentFriend && (
+          {showCallModal && (
           <CallWindow
-            isIncoming={incomingCall}  // true — если звонят тебе
-            userName={currentFriend.name}
-            avatarUrl={currentFriend.avatarUrl || "/avatars/default.jpg"}
+            isIncoming={incomingCall}
+            userName={currentFriend?.nickname || 'nan'}
+            avatarUrl={currentFriend?.avatar || './logo.png'}
             onAccept={() => {
               setShowCallModal(false);
               setInCall(true);
@@ -182,11 +210,17 @@ const ChatPage = () => {
             onReject={() => {
               setShowCallModal(false);
               setIncomingCall(false);
-              setOutgoingCall(false);
             }}
           />
           )}
-          {inCall && <VideoCall onEndCall={handleEndCall} />}
+          {inCall &&
+          <VideoCall
+            remoteUserName={currentFriend?.nickname || "nan"}
+            remoteAvatarUrl={currentFriend?.avatar || './logo.png'}
+            localUserName={currentUser?.nickname || "you"}
+            localAvatarUrl={currentUser?.avatar || './logo.png'}
+            onEndCall={handleEndCall}
+          />}
           <div className="messages">
             {messages.map((msg) => (
               <Message
