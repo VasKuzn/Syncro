@@ -78,19 +78,24 @@ const GroupChatsComponent = () => {
     if (error) return <div>Error: {error}</div>;
 
     return (
-        <div className="group-chats">
-            <div className="main-logo">
-                <img src="/logo.png" alt="Syncro logo" width="50" height="50" onClick={e => navigate("/main")} />
+        <div className="group-chats-container">
+            <div className="group-chats">
+                <div className="main-logo">
+                    <img src="/logo.png" alt="Syncro logo" width="50" height="50" onClick={e => navigate("/main")} />
+                </div>
+                <div className="chat-separator"></div>
+                <div className="group-chat-list">
+                    {groups.map(group => (
+                        <div key={group.id} className="group-chat-item">
+                            {group.conferenceName}
+                        </div>
+                    ))}
+                </div>
+                <div className="group-chat-item add">+</div>
             </div>
-            <div className="chat-separator"></div>
-            <div className="group-chat-list">
-                {groups.map(group => (
-                    <div key={group.id} className="group-chat-item">
-                        {group.conferenceName}
-                    </div>
-                ))}
+            <div className="profile-button">
+                <img src="/logo.png" width="72" height="72" onClick={e => navigate("/settings")} />
             </div>
-            <div className="group-chat-item add">+</div>
         </div>
     );
 };

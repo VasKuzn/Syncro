@@ -2,6 +2,7 @@ import { NetworkError } from "../Types/LoginTypes";
 import { FriendRequest, Friend } from "../Types/FriendType";
 import { FriendList } from "../Types/FriendListType";
 import { PersonalConference } from "../Types/ChatTypes";
+import { UserInfo } from "../Types/UserInfo";
 
 //Friend Components Methods
 export const getUserByNickname = async (nickname: string) => {
@@ -220,3 +221,23 @@ export const loadFriendInfo = async (
     return loadedFriends;
 }
 //
+export async function getUserInfo(id:string | null): Promise<UserInfo | null> {
+        try {
+        const response = await fetch(`http://localhost:5232/api/accounts/full_account_info/${id}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Ошибка аутентификации');
+        }
+
+        return response.json();
+    } catch (error) {
+        throw new Error((error as NetworkError).message || 'Ошибка сети');
+    }
+}
