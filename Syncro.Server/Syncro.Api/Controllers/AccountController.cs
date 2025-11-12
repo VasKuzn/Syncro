@@ -1,4 +1,3 @@
-using Syncro.Application.Requests;
 using Syncro.Application.TransferModels;
 
 namespace Syncro.Api.Controllers
@@ -321,7 +320,9 @@ namespace Syncro.Api.Controllers
         }
 
         [HttpPut("full_account_info/{id}")]
-        public async Task<IActionResult> UpdateAccountWithPersonalInfoAsync(Guid id, AccountWithPersonalInfoModel model)
+        public async Task<IActionResult> UpdateAccountWithPersonalInfoAsync(
+    Guid id,
+    [FromForm] AccountWithPersonalInfoModel model)
         {
             try
             {
@@ -336,32 +337,12 @@ namespace Syncro.Api.Controllers
                     lastname = model.lastname,
                     phonenumber = model.phonenumber,
                     avatar = model.avatar,
+                    AvatarFile = model.AvatarFile
                 };
 
                 var accountUpdateResult = await _accountService.UpdateAccountAsync(id, updatedAccount);
 
-                return Ok("account and personal info updated!");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
-        }
-        [HttpPatch("avatar_update/{id}")]
-        public async Task<IActionResult> AccountAvatarUpdateAsync([FromRoute] Guid id, [FromBody] AvatarUpdateRequest request)
-        {
-            try
-            {
-                var updated = await _accountService.UpdateAccountAvatarAsync(id, request?.Avatar);
-                return Ok(updated);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(ex.Message);
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
+                return Ok("Account and personal info updated!");
             }
             catch (Exception ex)
             {

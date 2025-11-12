@@ -1,6 +1,7 @@
 using Syncro.Application.JWT;
 using Syncro.Domain.Utils;
-using Amazon.Runtime.Internal.Util;
+using Syncro.Application.SelectelStorage;
+using Microsoft.Extensions.Configuration;
 
 namespace Syncro.Infrastructure.Services
 {
@@ -8,11 +9,15 @@ namespace Syncro.Infrastructure.Services
     {
         private readonly IAccountRepository _accountRepository;
         private readonly IJwtProvider _jwtProvider;
+        private readonly ISelectelStorageService _selectelStorageService;
+        private readonly string? _cdnUrl;
 
-        public AccountService(IAccountRepository accountRepository, IJwtProvider jwtProvider)
+        public AccountService(IAccountRepository accountRepository, IJwtProvider jwtProvider, ISelectelStorageService selectelStorageService, IConfiguration configuration)
         {
             _accountRepository = accountRepository;
             _jwtProvider = jwtProvider;
+            _selectelStorageService = selectelStorageService;
+            _cdnUrl = configuration["S3Storage:CdnUrl"];
         }
         public async Task<List<AccountModel>> GetAllAccountsAsync()
         {
@@ -67,11 +72,33 @@ namespace Syncro.Infrastructure.Services
             existingAccount.phonenumber = accountDto.phonenumber;
             existingAccount.firstname = accountDto.firstname;
             existingAccount.lastname = accountDto.lastname;
-            existingAccount.avatar = accountDto.avatar;
+
+            if (accountDto.AvatarFile != null && accountDto.AvatarFile.Length > 0)
+            {
+                var result = await _selectelStorageService.UploadAvatarFileAsync(accountDto.AvatarFile, accountId);
+                existingAccount.avatar = result.FileUrl;
+            }
+            else if (!string.IsNullOrEmpty(accountDto.avatar))
+            {
+                existingAccount.avatar = accountDto.avatar;
+            }
 
             return await _accountRepository.UpdateAccountAsync(existingAccount);
         }
-        public async Task<AccountModel> UpdateAccountAvatarAsync(Guid accountId, string? avatar)
+
+        public async Task<string> GetAccountAvatarUrlAsync(Guid accountId)
+        {
+            var account = await _accountRepository.GetAccountByIdAsync(accountId);
+            if (string.IsNullOrEmpty(account.avatar))
+            {
+                throw new FileNotFoundException("Avatar not found for account");
+            }
+
+            var key = account.avatar.Replace($"{_cdnUrl}/", "");
+            return await _selectelStorageService.GetTemporaryFileUrlAsync(key);
+        }
+
+        public async Task<AccountModel> DeleteAccountAvatarAsync(Guid accountId)
         {
             var existingAccount = await _accountRepository.GetAccountByIdAsync(accountId);
             if (existingAccount == null)
@@ -79,7 +106,13 @@ namespace Syncro.Infrastructure.Services
                 throw new KeyNotFoundException($"Account with id {accountId} not found");
             }
 
-            existingAccount.avatar = avatar;
+            if (!string.IsNullOrEmpty(existingAccount.avatar))
+            {
+                var key = existingAccount.avatar.Replace($"{_cdnUrl}/", "");
+                await _selectelStorageService.DeleteAvatarFileAsync(key, accountId);
+            }
+
+            existingAccount.avatar = null;
 
             return await _accountRepository.UpdateAccountAsync(existingAccount);
         }
