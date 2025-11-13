@@ -41,3 +41,17 @@ export interface PersonalConference {
     lastActivity: Date,
     callType: number
 }
+export interface CallWindowProps {
+  isIncoming: boolean;           
+  userName: string;              
+  avatarUrl: string;             
+  onAccept?: () => void;        
+  onReject: () => void;      
+}
+export interface VideoCallProps {
+  onEndCall: () => void;
+  localUserName: string;
+  remoteUserName: string;
+  localAvatarUrl: string;
+  remoteAvatarUrl: string;
+}

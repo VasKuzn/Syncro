@@ -424,3 +424,401 @@ video::-webkit-media-controls-panel {
 :-webkit-full-screen {
   z-index: 99999;
 }
+
+.call-button-container {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 12px;
+}
+
+.call-button {
+  background: #4a8cff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.call-button:hover {
+  background: #357ae8;
+}
+
+.call-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.call-modal-content {
+  background: #2b2d31;
+  color: white;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.call-modal-actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.accept-btn {
+  background: #47c44b;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.reject-btn {
+  background: #b61e1e;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.call-window {
+  position: absolute;
+  height: max-content;
+  width: 180px;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #07081C;
+  border-radius: 8px;
+  padding: 24px 32px;
+  color: #fff;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+  z-index: 100;
+}
+
+.call-avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  align-content: center;
+  border: 2px solid #3B82F6;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 12px;
+}
+
+.call-username {
+  font-size: 1.2rem;
+  margin-bottom: 4px;
+}
+
+.call-status {
+  font-size: 0.95rem;
+  color: #ccc;
+}
+
+.call-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  background: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s;
+}
+
+.btn img {
+  width: 28px;
+  height: 28px;
+}
+
+.btn.accept {
+  background: #2ecc71;
+}
+
+.btn.reject {
+  background: #e74c3c;
+}
+
+.btn:hover {
+  transform: scale(1.1);
+}
+
+.video-call-container {
+  position: relative;
+  height: 40%;
+  background-color: #1A2438;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  z-index: 9999;
+  font-family: 'Arial', sans-serif;
+}
+
+.video-top {
+  display: flex;
+  height: 13%;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 6px;
+  background-color: #1A2438;
+  border-bottom: 1px solid #333;
+}
+
+.call-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.video-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.video-info .icon {
+  width: 28px;
+  height: 28px;
+}
+
+.participants {
+  font-size: 15px;
+  font-weight: 500;
+  color: #ccc;
+}
+
+.video-avatar {
+  width: 96px;
+  height: 96px;
+  position: relative;
+  border-radius: 50%;
+  object-fit: cover;
+  align-content: center;
+  border: 2px solid #3B82F6;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 12px;
+}
+
+.video-avatar.speaking {
+  border: 3px solid #18b11d;
+}
+
+.video-section {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.video-section.has-video {
+  width: 48%;
+}
+
+.video-avatar img.avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.video-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 18px;
+  color: #fff;
+}
+
+.video-body.single-video {
+  justify-content: center;
+}
+
+.video-section.main-video {
+  width: 60%;
+}
+
+.video-section.side-video {
+  width: 30%;
+}
+
+.user-name {
+  font-size: 16px;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.video-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  gap: 16px;
+  border-top: 1px solid #333;
+}
+
+.control-btn {
+  background-color: #4A5568;
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.control-btn:hover {
+  background-color: #555;
+}
+
+.control-btn.off {
+  background-color: #e03e3e;
+}
+
+.control-btn.end-call {
+  background-color: #e03e3e;
+}
+
+.control-btn.end-call:hover {
+  background-color: #ff5c5c;
+}
+
+.control-btn img.icon {
+  width: 30px;
+  height: 30px;
+}
+
+.main-video {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  overflow: hidden;
+  z-index: 2;
+}
+
+.video-stream.main {
+  width: 50%;
+  height: 50%;
+  object-fit: contain; 
+}
+
+.avatars-row {
+  display: flex;
+  gap: 10px;
+}
+
+.video-body {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  height: 100%;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  padding: 10px;
+  background-color: #1A2438;
+}
+
+.video-box {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #111;
+  cursor: pointer;
+  transition: all 0.4s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-box.main {
+  flex: 1 1 70%;
+  height: 100%;
+}
+
+.video-box.side {
+  flex: 0 0 25%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+}
+
+.video-box.speaking {
+  border: 3px solid #18b11d;
+}
+
+.video-body:has(.main) {
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.video-stream {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+.avatars-row {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+}
+
+.video-box {
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: #222;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}

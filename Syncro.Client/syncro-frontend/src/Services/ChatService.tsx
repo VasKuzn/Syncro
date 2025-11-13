@@ -74,4 +74,12 @@ export const uploadMediaMessage = async (
     }
 
     return await response.json();
+}
+
+export const getPersonalConferenceById = async (id: string) => {
+    const response = await fetch(`http://localhost:5232/api/personalconference/${id}`);
+    if (!response.ok) {
+        throw new Error("Failed to fetch conference");
+    }
+    return await response.json();
 };
