@@ -1,15 +1,17 @@
 import { useState, useEffect, useCallback } from "react";
 import { GroupConf } from "../../Types/GroupConf";
 import { NetworkError } from "../../Types/LoginTypes";
-import { fetchCurrentUser, getGroups } from '../../Services/MainFormService';
+import { fetchCurrentUser, getUserInfo, getGroups } from '../../Services/MainFormService';
 import * as signalR from "@microsoft/signalr";
 import { useNavigate } from "react-router-dom";
+import { UserInfo } from "../../Types/UserInfo";
 
 const GroupChatsComponent = () => {
     const [groups, setGroups] = useState<GroupConf[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
+    const [currentUser, setCurrentUser] = useState<UserInfo | null>(null);
     const navigate = useNavigate();
 
     const initSignalR = useCallback(async (userId: string) => {
@@ -58,6 +60,9 @@ const GroupChatsComponent = () => {
             try {
                 const userId = await fetchCurrentUser();
                 if (isMounted && userId) {
+                    const userData = await getUserInfo(userId);
+                    setCurrentUser(userData);
+
                     await refreshGroupsData(userId);
                     await initSignalR(userId);
                 }
@@ -74,6 +79,7 @@ const GroupChatsComponent = () => {
         };
     }, [fetchCurrentUser, refreshGroupsData, initSignalR]);
 
+    const avatarUrl = currentUser?.avatar || "/logo.png";
     if (loading) return <div>Loading groups...</div>;
     if (error) return <div>Error: {error}</div>;
 
@@ -94,7 +100,14 @@ const GroupChatsComponent = () => {
                 <div className="group-chat-item add">+</div>
             </div>
             <div className="profile-button">
-                <img src="/logo.png" width="72" height="72" onClick={e => navigate("/settings")} />
+                <img
+                    src={avatarUrl}
+                    alt="User avatar"
+                    onClick={e => navigate("/settings")}
+                    onError={(e) => {
+                        e.currentTarget.src = "/logo.png";
+                    }}
+                />
             </div>
         </div>
     );

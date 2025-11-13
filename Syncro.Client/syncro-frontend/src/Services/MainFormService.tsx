@@ -202,7 +202,7 @@ export const loadFriendInfo = async (
         const cleanedFriend: Friend = {
             id: friendId,
             nickname: friendData.nickname,
-            avatar: friendData.avatar ?? '',
+            avatar: friendData.avatar ?? null,
             isOnline: friendData.isOnline,
             status: friend.status,
             email: friendData.email,
@@ -221,8 +221,8 @@ export const loadFriendInfo = async (
     return loadedFriends;
 }
 //
-export async function getUserInfo(id:string | null): Promise<UserInfo | null> {
-        try {
+export async function getUserInfo(id: string | null): Promise<UserInfo | null> {
+    try {
         const response = await fetch(`http://localhost:5232/api/accounts/full_account_info/${id}`, {
             method: 'GET',
             headers: {

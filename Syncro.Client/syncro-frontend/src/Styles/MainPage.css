@@ -174,13 +174,16 @@ body {
     width: 50px;
 }
 
-.profile-button {
-    flex-shrink: 0;
+.profile-button img {
     display: flex;
-    font-size: large;
     align-items: center;
     height: 72px;
     width: 72px;
+    border-radius: 35%;
+}
+
+.group-chats-container .profile-button {
+    background-color: #0F172A;
 }
 
 .friends-list {

@@ -199,33 +199,37 @@ const ChatPage = () => {
             </div>
           )}
           {showCallModal && (
-          <CallWindow
-            isIncoming={incomingCall}
-            userName={currentFriend?.nickname || 'nan'}
-            avatarUrl={currentFriend?.avatar || './logo.png'}
-            onAccept={() => {
-              setShowCallModal(false);
-              setInCall(true);
-            }}
-            onReject={() => {
-              setShowCallModal(false);
-              setIncomingCall(false);
-            }}
-          />
+            <CallWindow
+              isIncoming={incomingCall}
+              userName={currentFriend?.nickname || 'nan'}
+              avatarUrl={currentFriend?.avatar || './logo.png'}
+              onAccept={() => {
+                setShowCallModal(false);
+                setInCall(true);
+              }}
+              onReject={() => {
+                setShowCallModal(false);
+                setIncomingCall(false);
+              }}
+            />
           )}
           {inCall &&
-          <VideoCall
-            remoteUserName={currentFriend?.nickname || "nan"}
-            remoteAvatarUrl={currentFriend?.avatar || './logo.png'}
-            localUserName={currentUser?.nickname || "you"}
-            localAvatarUrl={currentUser?.avatar || './logo.png'}
-            onEndCall={handleEndCall}
-          />}
+            <VideoCall
+              remoteUserName={currentFriend?.nickname || "nan"}
+              remoteAvatarUrl={currentFriend?.avatar || './logo.png'}
+              localUserName={currentUser?.nickname || "you"}
+              localAvatarUrl={currentUser?.avatar || './logo.png'}
+              onEndCall={handleEndCall}
+            />}
           <div className="messages">
             {messages.map((msg) => (
               <Message
                 key={msg.id}
                 {...msg}
+                isOwnMessage={msg.accountId === currentUserId}
+                avatarUrl={msg.accountId === currentUserId ?
+                  (currentUser?.avatar || './logo.png') :
+                  (currentFriend?.avatar || './logo.png')}
               />
             ))}
             <div ref={messagesEndRef} />

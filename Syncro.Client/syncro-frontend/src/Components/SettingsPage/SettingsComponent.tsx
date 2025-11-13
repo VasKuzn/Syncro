@@ -127,8 +127,7 @@ const SettingsComponent: React.FC = () => {
 
                 <div className="setting">
                     <div className="setting-label">Аватар</div>
-                    <img src="/logo.png" width="100" height="100" />
-                    <button className="setting-button">Сменить аватар</button>
+                    <img src={currentUserInfo?.avatar || "logo.png"} width="100" height="100" />
                 </div>
 
                 <div className="setting">
@@ -197,7 +196,7 @@ const SettingsComponent: React.FC = () => {
                 </div>
 
                 <div className="setting">
-                    <div className="setting-label">Пароль</div>
+                    <div className="setting-label">Новый пароль</div>
                     <div className="setting-input-box">
                         <input
                             name="password"

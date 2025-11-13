@@ -42,16 +42,21 @@ export interface PersonalConference {
     callType: number
 }
 export interface CallWindowProps {
-  isIncoming: boolean;           
-  userName: string;              
-  avatarUrl: string;             
-  onAccept?: () => void;        
-  onReject: () => void;      
+    isIncoming: boolean;
+    userName: string;
+    avatarUrl: string;
+    onAccept?: () => void;
+    onReject: () => void;
 }
 export interface VideoCallProps {
-  onEndCall: () => void;
-  localUserName: string;
-  remoteUserName: string;
-  localAvatarUrl: string;
-  remoteAvatarUrl: string;
+    onEndCall: () => void;
+    localUserName: string;
+    remoteUserName: string;
+    localAvatarUrl: string;
+    remoteAvatarUrl: string;
+}
+
+export interface MessageProps extends PersonalMessageData {
+    isOwnMessage: boolean;
+    avatarUrl: string;
 }

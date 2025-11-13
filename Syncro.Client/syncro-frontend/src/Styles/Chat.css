@@ -220,6 +220,12 @@ body {
   color: #CBD5E0;
 }
 
+.photo img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
 .content {
   flex: 1;
 }
@@ -738,7 +744,7 @@ video::-webkit-media-controls-panel {
 .video-stream.main {
   width: 50%;
   height: 50%;
-  object-fit: contain; 
+  object-fit: contain;
 }
 
 .avatars-row {
