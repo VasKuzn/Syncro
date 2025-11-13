@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Http;
+
 namespace Syncro.Application.ModelsDTO
 {
     public class AccountModelDTO
@@ -9,6 +11,8 @@ namespace Syncro.Application.ModelsDTO
         public string? lastname { get; set; }
         public string? phonenumber { get; set; }
         public string? avatar { get; set; }
+
+        public IFormFile? AvatarFile { get; set; } // Поле для возможного файла
     }
 
 }

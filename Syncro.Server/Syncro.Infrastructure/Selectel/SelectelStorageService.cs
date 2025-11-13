@@ -38,9 +38,44 @@ namespace Syncro.Infrastructure.Selectel
         {
             ValidateFile(file);
             var fileExtension = Path.GetExtension(file.FileName).ToLower();
-            var contentType = GetContentType(fileExtension);
+            var contentType = GetContentTypeMessage(fileExtension);
             var folder = $"messages/{DateTime.UtcNow:yyyy/MM/dd}";
             var keyName = $"{folder}/{personalConferenceId}/{accountId}/{messageId}{fileExtension}";
+
+            using var memoryStream = new MemoryStream();
+            await file.CopyToAsync(memoryStream);
+            memoryStream.Position = 0;
+
+            var request = new PutObjectRequest
+            {
+                BucketName = _bucketName,
+                Key = keyName,
+                InputStream = memoryStream,
+                ContentType = contentType,
+                CannedACL = S3CannedACL.PublicRead,
+                Metadata =
+            {
+                ["original-filename"] = HttpUtility.UrlEncode(file.FileName)
+            }
+            };
+
+            await _s3Client.PutObjectAsync(request);
+
+            return new FileUploadResult(
+                FileUrl: $"{_cdnUrl}/{keyName}",
+                FileName: file.FileName,
+                ContentType: contentType,
+                FileSize: file.Length
+            );
+        }
+        public async Task<FileUploadResult> UploadAvatarFileAsync(IFormFile file, Guid? accountId)
+        {
+            ValidateFile(file);
+            var fileExtension = Path.GetExtension(file.FileName).ToLower();
+            var contentType = GetContentTypeAvatar(fileExtension);
+            var avatarName = file.FileName;
+            var folder = $"avatars/{accountId}";
+            var keyName = $"{folder}/{avatarName}";
 
             using var memoryStream = new MemoryStream();
             await file.CopyToAsync(memoryStream);
@@ -113,9 +148,25 @@ namespace Syncro.Infrastructure.Selectel
             return _s3Client.GetPreSignedURL(request);
         }
 
-        public async Task DeleteMessageFilesAsync(Guid messageId, Guid personalConferenceId, Guid accountId)
+        public async Task DeleteMessageFileAsync(Guid messageId, Guid personalConferenceId, Guid accountId)
         {
             var prefix = $"messages/{DateTime.UtcNow:yyyy/MM/dd}/{personalConferenceId}/{accountId}/{messageId}";
+            var request = new ListObjectsV2Request
+            {
+                BucketName = _bucketName,
+                Prefix = prefix
+            };
+
+            var response = await _s3Client.ListObjectsV2Async(request);
+
+            foreach (var s3Object in response.S3Objects)
+            {
+                await _s3Client.DeleteObjectAsync(_bucketName, s3Object.Key);
+            }
+        }
+        public async Task DeleteAvatarFileAsync(string key, Guid accountId)
+        {
+            var prefix = $"avatars/{accountId}/{key}";
             var request = new ListObjectsV2Request
             {
                 BucketName = _bucketName,
@@ -149,6 +200,7 @@ namespace Syncro.Infrastructure.Selectel
 
         private void ValidateFile(IFormFile file)
         {
+            //потом поставить ограничение на гигабайта 2-4
             var maxFileSize = 25 * 1024 * 1024; // 25MB
             if (file.Length > maxFileSize)
             {
@@ -164,7 +216,7 @@ namespace Syncro.Infrastructure.Selectel
             }
         }
 
-        private string GetContentType(string fileExtension) => fileExtension switch
+        private string GetContentTypeMessage(string fileExtension) => fileExtension switch
         {
             ".jpg" => "image/jpeg",
             ".jpeg" => "image/jpeg",
@@ -181,5 +233,15 @@ namespace Syncro.Infrastructure.Selectel
             ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             _ => "application/octet-stream"
         };
+        private string GetContentTypeAvatar(string fileExtension) => fileExtension switch
+        {
+            ".jpg" => "image/jpeg",
+            ".jpeg" => "image/jpeg",
+            ".png" => "image/png",
+            ".gif" => "image/gif",
+            _ => "application/octet-stream"
+        };
+
+
     }
 }

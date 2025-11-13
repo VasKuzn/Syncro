@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Http;
+
 namespace Syncro.Application.TransferModels
 {
     public class AccountWithPersonalInfoModel
@@ -10,5 +12,7 @@ namespace Syncro.Application.TransferModels
         public string? phonenumber { get; set; }
         public string? avatar { get; set; }
         public int? country { get; set; }
+
+        public IFormFile? AvatarFile { get; set; } // Для нового файла
     }
 }
