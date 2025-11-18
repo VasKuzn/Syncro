@@ -34,6 +34,7 @@ namespace Syncro.Api.Extensions
             app.MapHub<GroupsHub>("/groupshub");
             app.MapHub<AccountsHub>("/accountshub");
             app.MapHub<PersonalMessagesHub>("/personalmessageshub");
+            app.MapHub<VideoChatHub>("/videochathub");
         }
     }
 }
