@@ -1,161 +1,69 @@
-import React, { useState, useEffect, useRef } from 'react';
-import '../Styles/Login.css'
-import { NetworkError } from '../Types/LoginTypes';
+import '../Styles/Login.css';
+
+import React from 'react';
+
 import LoginComponent from '../Components/LoginPage/LoginComponents';
 import FooterComponent from '../Components/LoginPage/FooterComponent';
 
+import { useNavigate } from 'react-router-dom';
+import { loginUser } from '../Services/AuthService';
+import { useAuthForm } from '../Hooks/UseAuthForm';
+
 const Login = () => {
-    const [emailOrPhone, setEmailOrPhone] = useState('');
-    const [password, setPassword] = useState('');
-    const [passwordVisible, setPasswordVisible] = useState(false);
-    const [keepSignedIn, setKeepSignedIn] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [maxLength, setMaxLength] = useState(100);
-
-    const emailField = useRef<HTMLInputElement>(null);
-    const passwordField = useRef<HTMLInputElement>(null);
-
-    let SavedEmailOrPhone;
-    let SavedPassword;
-
-    useEffect(() => {
-        SavedEmailOrPhone = localStorage.getItem('emailOrPhone');
-        SavedPassword = localStorage.getItem('password');
-
-        if (SavedEmailOrPhone) {
-            setEmailOrPhone(SavedEmailOrPhone);
-        }
-        if (SavedPassword) {
-            setPassword(SavedPassword || '');
-        }
-    }, []);
-
-    const loginUser = async (email: string, password: string) => {
-        let credentials = { email, password }
-        try {
-            const response = await fetch('http://localhost:5232/api/accounts/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(credentials),
-                credentials: 'include',
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Ошибка аутентификации');
-            }
-
-        const data = await response.json();
-        const token = data.token;
-
-        localStorage.setItem('jwt', token);
-
-        return data;
-        } catch (error) {
-            throw new Error((error as NetworkError).message || 'Ошибка сети');
-        }
-    };
-
-    const handleEmailOrPhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-
-        const value = e.target.value;
-
-        setEmailOrPhone(value);
-
-        if (emailField.current) {
-            emailField.current.setCustomValidity('');
-        }
-
-        if (value.startsWith('+')) {
-            setMaxLength(12);
-        }
-        else {
-            setMaxLength(100);
-        }
-    }
-    const togglePasswordVisibility = () => {
-        setPasswordVisible(!passwordVisible);
-    }
-
-    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setPassword(e.target.value);
-
-        if (passwordField.current) {
-            passwordField.current.setCustomValidity('');
-        }
-    };
-
-    const handleKeepSignedInChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setKeepSignedIn(e.target.checked);
-    };
+    const navigate = useNavigate();
+    const {
+        formState,
+        setFormState,
+        emailField,
+        passwordField,
+        validateForm,
+        handlePersistCredentials,
+    } = useAuthForm();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!validateForm()) return;
 
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        handlePersistCredentials();
+        setFormState(prev => ({ ...prev, isLoading: true }));
 
-        if (!emailOrPhone) {
-            emailField.current?.setCustomValidity('Пожалуйста, введите email.');
-            emailField.current?.reportValidity();
-            return;
-        } else if (!(emailRegex.test(emailOrPhone))) {
-            emailField.current?.setCustomValidity('Введите корректный email.');
-            emailField.current?.reportValidity();
-            return;
-        }
-
-        if (!password) {
-            passwordField.current?.setCustomValidity('Введите пароль.');
-            passwordField.current?.reportValidity();
-            return;
-        } else if (password.length < 6) {
-            passwordField.current?.setCustomValidity('Пароль должен содержать минимум 6 символов.');
-            passwordField.current?.reportValidity();
-            return;
-        }
-
-        setIsLoading(true)
         try {
-            const response = await loginUser(
-                emailOrPhone,
-                password
-            );
-            
-            if (keepSignedIn) {
-                localStorage.setItem('authToken', response.token);
-            } else {
-                sessionStorage.setItem('authToken', response.token);
-            }
-
-            window.location.href = '/app/main';
-
+            await loginUser(formState.emailOrPhone, formState.password);
+            navigate('/main');
         } catch (error) {
             console.error('Ошибка авторизации:', error);
-
             if (emailField.current) {
-                emailField.current.setCustomValidity('Неверные учетные данные');
+                emailField.current.setCustomValidity(
+                    error instanceof Error ? error.message : 'Неверные учетные данные',
+                );
                 emailField.current.reportValidity();
             }
         } finally {
-            setIsLoading(false);
+            setFormState(prev => ({ ...prev, isLoading: false }));
         }
-    }
+    };
 
     return (
         <div className="centered-container">
             <LoginComponent
-                emailOrPhone={emailOrPhone}
-                password={password}
-                passwordVisible={passwordVisible}
-                keepSignedIn={keepSignedIn}
-                isLoading={isLoading}
-                maxLength={maxLength}
-                onEmailOrPhoneChange={handleEmailOrPhoneChange}
-                onPasswordChange={handlePasswordChange}
-                onKeepSignedInChange={handleKeepSignedInChange}
-                onTogglePasswordVisibility={togglePasswordVisibility}
+                emailOrPhone={formState.emailOrPhone}
+                password={formState.password}
+                passwordVisible={formState.passwordVisible}
+                keepSignedIn={formState.keepSignedIn}
+                isLoading={formState.isLoading}
+                maxLength={formState.maxLength}
+                onEmailOrPhoneChange={(e) =>
+                    setFormState(prev => ({ ...prev, emailOrPhone: e.target.value }))
+                }
+                onPasswordChange={(e) =>
+                    setFormState(prev => ({ ...prev, password: e.target.value }))
+                }
+                onKeepSignedInChange={(e) =>
+                    setFormState(prev => ({ ...prev, keepSignedIn: e.target.checked }))
+                }
+                onTogglePasswordVisibility={() =>
+                    setFormState(prev => ({ ...prev, passwordVisible: !prev.passwordVisible }))
+                }
                 onSubmit={handleSubmit}
                 emailRef={emailField}
                 passwordRef={passwordField}
@@ -163,6 +71,6 @@ const Login = () => {
             <FooterComponent />
         </div>
     );
-}
+};
 
 export default Login;

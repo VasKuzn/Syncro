@@ -1,0 +1,353 @@
+using Syncro.Application.TransferModels;
+
+namespace Syncro.Api.Controllers
+{
+    [ApiController]
+    [Route("api/accounts")]
+    public class AccountController : ControllerBase
+    {
+        private readonly IAccountService _accountService;
+        private readonly IPersonalAccountInfoService _infoService;
+
+        public AccountController(IAccountService accountService, IPersonalAccountInfoService infoService)
+        {
+            _accountService = accountService;
+            _infoService = infoService;
+        }
+
+        // GET: api/accounts
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<AccountModel>>> GetAllAccounts()
+        {
+            try
+            {
+                var accounts = await _accountService.GetAllAccountsAsync();
+                return Ok(accounts);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        // GET: api/accounts/{id}
+        [HttpGet("{id}")]
+        public async Task<ActionResult<AccountModel>> GetAccountById(Guid id)
+        {
+            try
+            {
+                var account = await _accountService.GetAccountByIdAsync(id);
+                return Ok(account);
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+        // GET: api/accounts/{email}
+        [HttpGet("{email}/get")]
+        public async Task<ActionResult<AccountModel>> GetAccountByEmail(string email)
+        {
+            try
+            {
+                var account = await _accountService.GetAccountByEmailAsync(email);
+                return Ok(account);
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+        // GET: api/accounts/{email}
+        [HttpGet("{nickname}/getnick")]
+        public async Task<ActionResult<AccountModel>> GetAccountByNickname(string nickname)
+        {
+            try
+            {
+                var account = await _accountService.GetAccountByNicknameAsync(nickname);
+                return Ok(account);
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+        // Мб потом убрать
+        // GET: api/accounts/{id}/nickname
+        [HttpGet("{userId}/nickname")]
+        public async Task<ActionResult<string>> GetNickname(Guid userId)
+        {
+            var account = await _accountService.GetAccountByIdAsync(userId);
+            if (account == null) return NotFound();
+            return Ok(account.nickname);
+        }
+        //
+        // POST: api/accounts
+        [HttpPost]
+        public async Task<ActionResult<AccountModel>> CreateAccount([FromBody] AccountModel account)
+        {
+            try
+            {
+                var createdAccount = await _accountService.CreateAccountAsync(account);
+                var createdPersonalAccountInfo = await _infoService.CreatePersonalAccountInfoAsync(account.Id);
+                return CreatedAtAction(nameof(GetAccountById), new { id = createdAccount.Id }, createdAccount);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        // PUT: api/accounts/{id}
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateAccount(Guid id, [FromBody] AccountModelDTO accountDto)
+        {
+            try
+            {
+                var updatedAccount = await _accountService.UpdateAccountAsync(id, accountDto);
+                return Ok(updatedAccount);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        // DELETE: api/accounts/{id}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteAccount(Guid id)
+        {
+            try
+            {
+                var result = await _accountService.DeleteAccountAsync(id);
+                if (!result)
+                {
+                    return NotFound($"Account with id {id} not found");
+                }
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+        // POST: api/accounts/login
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] Application.ModelsDTO.LoginRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                var result = await _accountService.Login(request.Email, request.Password);
+
+                if (result.IsSuccess)
+                {
+                    HttpContext.Response.Cookies.Append("access-token", result.Value, new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = true,
+                        SameSite = SameSiteMode.Strict
+                    });
+                    return Ok(new { Message = "Logged in successfully" });
+                }
+                return Unauthorized(new { Error = result.Error });
+            }
+            catch (Exception)
+            {
+                return StatusCode(404, new { Error = "Аккаунт с таким email не найден" });
+            }
+
+        }
+        // POST: api/accounts/current - получение accountid из jwt выданного
+        [HttpGet("current")]
+        [Authorize]
+        public IActionResult GetCurrentUserId()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return Ok(new { UserId = userId });
+        }
+
+        /* personal account infos */
+
+        // GET: получение всех personal account info (хз зачем может пригодиться)
+        [HttpGet("personal_info")]
+        public async Task<ActionResult<IEnumerable<PersonalAccountInfoModel>>> GetAllPersonalAccontInfos()
+        {
+            try
+            {
+                var infos = await _infoService.GetAllPersonalAccountInfosAsync();
+                return Ok(infos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        // GET: получение personal account info по id
+        [HttpGet("personal_info/{id}")]
+        public async Task<ActionResult<PersonalAccountInfoModel>> GetPersonalAccountInfoById(Guid id)
+        {
+            try
+            {
+                var info = await _infoService.GetPersonalAccountInfoByIdAsync(id);
+                return Ok(info);
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+        // POST: api/accounts/personal_info/{id} - создание персональной информации при ее отсутствии(для тех у кого раньше не было, для разрабов в основе) 
+        [HttpPost("personal_info/{id}")]
+        public async Task<ActionResult<PersonalAccountInfoModel>> CreatePersonalAccountInfoAsync(Guid id)
+        {
+            try
+            {
+                var result = await _infoService.CreatePersonalAccountInfoAsync(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        // PUT: обновление personal account info по id
+        [HttpPut("personal_info/{id}")]
+        public async Task<IActionResult> UpdatePersonalAccountInfo(Guid id, [FromBody] PersonalAccountInfoModelDTO infoDto)
+        {
+            try
+            {
+                var updatedAccountsInfo = await _infoService.UpdatePersonalAccountInfoAsync(id, infoDto);
+                return Ok(updatedAccountsInfo);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        // DELETE: удаление personal account info по id
+        [HttpDelete("personal_info/{id}")]
+        public async Task<IActionResult> DeletePersonalAccountInfo(Guid id)
+        {
+            try
+            {
+                var result = await _infoService.DeletePersonalAccountInfoAsync(id);
+                if (!result)
+                {
+                    return NotFound($"Account with id {id} not found");
+                }
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        /* combined account+personalaccount for frontend  */
+
+        //GET: api/accounts/full_account_info/{id} - вся инфа для обновления для фронтенда
+        [HttpGet("full_account_info/{id}")]
+        public async Task<ActionResult<AccountWithPersonalInfoModel>> GetAccountWithPersonalInfoAsync(Guid id)
+        {
+            try
+            {
+                var accountInfo = await _accountService.GetAccountByIdAsync(id);
+                if (accountInfo is null)
+                {
+                    return NotFound($"Account with id {id} not found");
+                }
+                var personalInfo = await _infoService.GetPersonalAccountInfoByIdAsync(id);
+                var fullAccountInfo = new AccountWithPersonalInfoModel
+                {
+                    nickname = accountInfo.nickname,
+                    email = accountInfo.email,
+                    password = accountInfo.password,
+                    firstname = accountInfo.firstname,
+                    lastname = accountInfo.lastname,
+                    phonenumber = accountInfo.phonenumber,
+                    avatar = accountInfo.avatar,
+                    country = personalInfo.country,
+                };
+                return Ok(fullAccountInfo);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpPut("full_account_info/{id}")]
+        public async Task<IActionResult> UpdateAccountWithPersonalInfoAsync(
+    Guid id,
+    [FromForm] AccountWithPersonalInfoModel model)
+        {
+            try
+            {
+                var countryUpdateResult = await _infoService.UpdatePersonalAccountCountryAsync(id, model.country);
+
+                var updatedAccount = new AccountModelDTO
+                {
+                    nickname = model.nickname,
+                    email = model.email,
+                    password = model.password,
+                    firstname = model.firstname,
+                    lastname = model.lastname,
+                    phonenumber = model.phonenumber,
+                    avatar = model.avatar,
+                    AvatarFile = model.AvatarFile
+                };
+
+                var accountUpdateResult = await _accountService.UpdateAccountAsync(id, updatedAccount);
+
+                return Ok("Account and personal info updated!");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+    }
+}

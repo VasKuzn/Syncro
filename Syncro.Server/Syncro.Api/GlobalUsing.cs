@@ -1,0 +1,11 @@
+global using System.Security.Claims;
+global using Microsoft.AspNetCore.Authorization;
+global using Microsoft.AspNetCore.Identity.Data;
+global using Microsoft.AspNetCore.Mvc;
+global using Syncro.Application.ModelsDTO;
+global using Syncro.Domain.Models;
+global using Syncro.Application.Services;
+global using Microsoft.AspNetCore.SignalR;
+global using Syncro.Domain.Enums;
+global using Microsoft.AspNetCore.CookiePolicy;
+global using Syncro.Api.Hubs;

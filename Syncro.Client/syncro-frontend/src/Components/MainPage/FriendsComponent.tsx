@@ -1,112 +1,301 @@
-import { Friend } from "../../Types/FriendType";
-import { NetworkError } from "../../Types/LoginTypes";
+import { Friend, FriendProps } from "../../Types/FriendType";
+import { useState, useRef, useEffect } from "react";
+import { getUserByNickname, fetchCurrentUser, sendFriendRequest, updateFriendStatus, deleteFriendship } from "../../Services/MainFormService";
+import { FriendDetails } from "./FriendDetails";
 
-interface FriendsComponentProps {
-    friends: Friend[],
-}
+const FriendsComponent = ({ friends, onFriendAdded }: FriendProps) => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [notification, setNotification] = useState<{ message: string, isError: boolean } | null>(null);
+    const [filter, setFilter] = useState<'all' | 'online' | 'myrequests' | 'banned' | 'requestsfromme'>('all');
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+    const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+    const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
 
-const FriendsComponent: React.FC<FriendsComponentProps> = ({friends}) => {
+    const addFriendInputRef = useRef<HTMLInputElement>(null);
 
-    const inputBox: HTMLInputElement = document.getElementById("add-friend");
-
-    const getUserByNickname = async (nickname: string) => {
-        try {
-            const response = await fetch(`http://localhost:5232/api/accounts/${nickname}/getnick`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Ошибка аутентификации');
-            }
-
-            return response.json();
-        } catch (error) {
-            throw new Error((error as NetworkError).message || 'Ошибка сети');          
-        }
-    }
+    useEffect(() => {
+        const loadCurrentUser = async () => {
+            const id = await fetchCurrentUser();
+            setCurrentUserId(id);
+        };
+        loadCurrentUser();
+    }, []);
 
     const addFriend = async () => {
-        try {
-            let now = Date.now();
-            let timestamp = new Date(now);
-            let user = await getUserByNickname(inputBox.value);
-            let request = {userWhoSent: localStorage.getItem("id"), userWhoRecieved: user["id"], status: 1, friendsSince: timestamp.toISOString()}
-            console.log(request);
-            const response = await fetch(`http://localhost:5232/api/Friends`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(request),
-                credentials: 'include',
-            });
+        const nickname = addFriendInputRef.current?.value.trim();
+        if (!nickname) {
+            setNotification({ message: "Введите никнейм", isError: true });
+            return;
+        }
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Ошибка аутентификации');
+        try {
+            setIsLoading(true);
+            setNotification(null);
+
+            const timestamp = new Date(Date.now());
+            const user = await getUserByNickname(nickname);
+            if (!user || !user.id) {
+                throw new Error("Пользователь не найден");
             }
 
+            const currentUserId = await fetchCurrentUser();
+            if (!currentUserId) throw new Error("Не удалось получить ID текущего пользователя");
+
+            const request = {
+                userWhoSent: currentUserId,
+                userWhoRecieved: user.id,
+                status: 0,
+                friendsSince: timestamp.toISOString()
+            };
+
+            await sendFriendRequest(request);
+
+            setNotification({
+                message: `Запрос дружбы для ${nickname} отправлен!`,
+                isError: false
+            });
+
+            onFriendAdded?.();
         } catch (error) {
-            throw new Error((error as NetworkError).message || 'Ошибка сети');
+            setNotification({
+                message: (error as Error).message || "Не удалось отправить запрос",
+                isError: true
+            });
+        } finally {
+            setIsLoading(false);
+            setTimeout(() => setNotification(null), 3500);
         }
-    }
+    };
+
+    const handleAccept = async (friend: any) => {
+        try {
+            setIsLoading(true);
+            await updateFriendStatus(friend.friendShipId, 1); // 1 = accepted
+            setSelectedRequestId(null);
+            onFriendAdded?.();
+        } catch (error) {
+            console.error("Ошибка при принятии заявки:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleDecline = async (friend: Friend) => {
+        try {
+            setIsLoading(true);
+            await updateFriendStatus(friend.friendShipId, 2); // 2 = declined
+            setSelectedRequestId(null);
+            onFriendAdded?.();
+        } catch (error) {
+            console.error("Ошибка при отклонении заявки:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    const handleCancel = async (friend: Friend) => {
+        try {
+            setIsLoading(true);
+            await deleteFriendship(friend.friendShipId);
+            onFriendAdded?.();
+            setSelectedFriend(null);
+        } catch (error) {
+            console.error("Ошибка при отмене заявки:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const filteredFriends = (() => {
+        let result = friends.filter(friend => {
+            if (filter === 'online') return friend.isOnline && friend.status === 1;
+            if (filter === 'myrequests') return friend.status === 0 && friend.userWhoReceived === friend.id;
+            if (filter === 'requestsfromme') return friend.status === 0 && friend.userWhoSent === friend.id;
+            if (filter === 'all') return friend.status === 1;
+            if (filter === 'banned') return friend.status === 2;
+            return true;
+        });
+
+        if (filter === 'all') {
+            result = result.sort((a, b) => {
+                return (b.isOnline ? 1 : 0) - (a.isOnline ? 1 : 0);
+            });
+        }
+
+        return result;
+    })();
+
+    useEffect(() => {
+        setSelectedFriend(null);
+        setSelectedRequestId(null);
+    }, [filter]);
 
     return (
         <div className="friends">
+            {notification && (
+                <div className={`notification ${notification.isError ? 'error' : ''}`}>
+                    <div className="notification-content">
+                        <span className="notification-icon">
+                            {notification.isError ? '⚠️' : '✓'}
+                        </span>
+                        {notification.message}
+                    </div>
+                    <div className="notification-progress" />
+                </div>
+            )}
+
             <div className="friends-nav">
                 <label>Друзья</label>
-                <button className="button-friends-status">
-                    В сети
-                </button>
-                <button className="button-friends-status">
-                    Все
-                </button>
-                <button className="button-friends-status">
-                    Заявки в друзья
-                </button>
+                <button className={`button-friends-status ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>Все</button>
+                <button className={`button-friends-status ${filter === 'online' ? 'active' : ''}`} onClick={() => setFilter('online')}>В сети</button>
+                <button className={`button-friends-status ${filter === 'banned' ? 'active' : ''}`} onClick={() => setFilter('banned')}>Отклоненные</button>
+                <button className={`button-friends-status ${filter === 'myrequests' ? 'active' : ''}`} onClick={() => setFilter('myrequests')}>Мои заявки</button>
+                <button className={`button-friends-status ${filter === 'requestsfromme' ? 'active' : ''}`} onClick={() => setFilter('requestsfromme')}>Заявки мне</button>
+
                 <div className="input-container">
-                    <div className="input-box">
-                        <input id="add-friend" className="friends-search" placeholder="Введите ник друга"></input>
+                    <div className="input-box with-icon">
+                        <img className="search-icon" src="/search3.png" alt="Поиск" />
+                        <input
+                            ref={addFriendInputRef}
+                            id="add-friend"
+                            className="friends-search"
+                            placeholder="Введите ник друга"
+                            onKeyDown={(e) => e.key === 'Enter' && addFriend()}
+                        />
                     </div>
-                </div>                
-                <button className="button-friends-status add"
-                    onClick={addFriend}>
-                    Добавить в друзья
+                </div>
+
+                <button
+                    className={`button-friends-status add ${isLoading ? 'loading' : ''}`}
+                    onClick={addFriend}
+                    disabled={isLoading}
+                >
+                    {isLoading ? (
+                        <>
+                            <span className="button-loader" />
+                            Отправка...
+                        </>
+                    ) : 'Добавить в друзья'}
                 </button>
             </div>
 
             <div className="friends-list">
                 <div className="input-container">
                     <div className="input-box">
-                        <input className="friends-search" placeholder="Поиск"></input>
-                        <img className="search-icon" src="search-icon" alt=""></img>
+                        <input className="friends-search" placeholder="Поиск" />
+                        <img className="search-icon" src="/search3.png" alt="Поиск" />
                     </div>
                 </div>
-                
-                <div className="friends-container">
-                    {friends.map(friend => (
-                        <div key={friend.id} className="friend-item">
-                            <div className="friend-info-container">
-                                <div className="friend-avatar-container">
-                                    <img className="friend-avatar" src={friend.avatar}></img>
-                                </div>
-                                <div className="friend-text-info">
-                                    <label className="nickname">{friend.nickname}</label>
-                                    <label className="online-status">{friend.isOnline ? "В сети" : "Не в сети"}</label>
-                                </div>  
-                            </div>
-                        </div>
-                    ))}
-                </div>
 
+                <div className="friends-container">
+                    {filteredFriends.length === 0 ? (
+                        <div className="empty-state">
+                            <img src="/no-friends.png" alt="Нет друзей" />
+                            <p>У вас пока нет друзей. Добавьте кого-нибудь!</p>
+                        </div>
+                    ) : (
+                        filteredFriends.map(friend => {
+                            const isIncomingRequest = friend.status === 0 && friend.userWhoReceived === currentUserId;
+                            const isMyRequest = friend.status === 0 && friend.userWhoSent === currentUserId;
+                            const isSelected = selectedRequestId === friend.id;
+                            const isFriendSelected = selectedFriend?.id === friend.id;
+
+                            return (
+                                <div key={friend.id} className="friend-item" style={{ position: 'relative', zIndex: isFriendSelected ? 100 : 1 }}
+                                    onClick={() => {
+                                        setSelectedRequestId(prev => prev === friend.id ? null : friend.id);
+                                        setSelectedFriend(prev => prev?.id === friend.id ? null : friend);
+                                    }}
+                                >
+                                    <div className="friend-avatar-container">
+                                        <img
+                                            className="friend-avatar"
+                                            src={friend.avatar || '/logo.png'}
+                                            alt={`Аватар ${friend.nickname}`}
+                                            onError={(e) => {
+                                                (e.target as HTMLImageElement).src = '/logo.png';
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="friend-info-container">
+                                        <div className="friend-text-info">
+                                            <span className="nickname">{friend.nickname}</span>
+                                            <span className={`online-status ${friend.isOnline ? '' : 'offline'}`}>{friend.isOnline ? "В сети" : "Не в сети"}</span>
+                                        </div>
+
+                                        {isIncomingRequest && isSelected && (
+                                            <div className="friend-request-modal">
+                                                <p>{friend.nickname} хочет добавить вас в друзья</p>
+                                                <div className="friend-request-actions">
+                                                    <button
+                                                        className="accept-button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleAccept(friend);
+                                                        }}
+                                                        disabled={isLoading}
+                                                    >
+                                                        ✅ Принять
+                                                    </button>
+                                                    <button
+                                                        className="decline-button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleDecline(friend);
+                                                        }}
+                                                        disabled={isLoading}
+                                                    >
+                                                        ❌ Отклонить
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {isFriendSelected && (
+                                            <div className="friend-details-popover" style={{ zIndex: 200 }} onClick={e => e.stopPropagation()}>
+                                                <FriendDetails
+                                                    friend={friend}
+                                                    onAccept={handleAccept}
+                                                    onCancel={handleCancel}
+                                                />
+                                                {filter === 'myrequests' && isMyRequest && (
+                                                    <>
+                                                        <p style={{ marginTop: 12, marginBottom: 0 }}>Вы отправили заявку {friend.nickname}</p>
+                                                        <div className="friend-request-actions">
+                                                            <button
+                                                                className="decline-button"
+                                                                onClick={async (e) => {
+                                                                    e.stopPropagation();
+                                                                    setIsLoading(true);
+                                                                    try {
+                                                                        await deleteFriendship(friend.friendShipId);
+                                                                        setSelectedFriend(null);
+                                                                        setSelectedRequestId(null);
+                                                                        onFriendAdded?.();
+                                                                    } catch (err) {
+                                                                        // handle error
+                                                                    } finally {
+                                                                        setIsLoading(false);
+                                                                    }
+                                                                }}
+                                                                disabled={isLoading}
+                                                            >
+                                                                ❌ Отклонить
+                                                            </button>
+                                                        </div>
+                                                    </>
+                                                )}
+                                                <button className="close-popover" onClick={e => { e.stopPropagation(); setSelectedFriend(null); }}>×</button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })
+                    )}
+                </div>
             </div>
         </div>
     );
-}
+};
 
 export default FriendsComponent;

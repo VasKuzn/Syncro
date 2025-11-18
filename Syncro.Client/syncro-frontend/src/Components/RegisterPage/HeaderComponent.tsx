@@ -1,4 +1,3 @@
-
 const HeaderComponent = () => {
     return (
         <header className="header-container">
