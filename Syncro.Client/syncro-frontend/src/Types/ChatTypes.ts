@@ -51,9 +51,11 @@ export interface CallWindowProps {
 export interface VideoCallProps {
     onEndCall: () => void;
     localUserName: string;
-    remoteUserName: string;
     localAvatarUrl: string;
+    remoteUserName: string;
     remoteAvatarUrl: string;
+    localStream?: MediaStream | null;
+    remoteStream?: MediaStream | null;
 }
 
 export interface MessageProps extends PersonalMessageData {
