@@ -1,10 +1,10 @@
 using Amazon.S3;
-using Amazon.Extensions.NETCore.Setup;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Syncro.Infrastructure.Selectel;
 using Syncro.Application.SelectelStorage;
 using Syncro.Application.Interfaces.Repositories;
+using Syncro.Infrastructure.CouchBaseStorage;
 
 public static class ServiceRegistration
 {
@@ -50,6 +50,7 @@ public static class ServiceRegistration
         services.AddCoreServicesExtension(configuration);
         services.AddDataBaseServices(configuration);
         services.AddS3Services(configuration);
+        services.AddCouchBaseServices(configuration);
     }
 
     public static void AddS3Services(this IServiceCollection services, IConfiguration configuration)
@@ -57,6 +58,10 @@ public static class ServiceRegistration
         services.AddDefaultAWSOptions(configuration.GetAWSOptions());
         services.AddAWSService<IAmazonS3>();
         services.AddSingleton<ISelectelStorageService, SelectelStorageService>();
+    }
+    public static void AddCouchBaseServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddSingleton<ICouchBaseMessagesService, CouchBaseMessagesService>();
     }
     public static void AddDataBaseServices(this IServiceCollection services, IConfiguration configuration)
     {

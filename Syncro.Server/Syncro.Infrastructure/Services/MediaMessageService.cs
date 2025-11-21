@@ -7,10 +7,10 @@ namespace Syncro.Infrastructure.Services
     public class MediaMessageService : IMediaMessageService
     {
         private readonly ISelectelStorageService _storageService;
-        private readonly IMessageService _messageService;
+        private readonly ICouchBaseMessagesService _messageService;
         private readonly string? _cdnUrl;
 
-        public MediaMessageService(ISelectelStorageService storageService, IMessageService messageService, IConfiguration configuration)
+        public MediaMessageService(ISelectelStorageService storageService, ICouchBaseMessagesService messageService, IConfiguration configuration)
         {
             _storageService = storageService;
             _messageService = messageService;

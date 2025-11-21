@@ -210,6 +210,7 @@ const ChatPage = () => {
       messageContent: text,
       messageDateSent: new Date(),
       accountId: currentUserId,
+      accountNickname: currentUser?.nickname || null,
       personalConferenceId: personalConference,
       groupConferenceId: null,
       sectorId: null,

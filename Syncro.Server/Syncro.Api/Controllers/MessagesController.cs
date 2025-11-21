@@ -4,10 +4,10 @@ namespace Syncro.Api.Controllers
     [Route("api/messages")]
     public class MessagesController : ControllerBase
     {
-        private readonly IMessageService _messageService;
+        private readonly ICouchBaseMessagesService _messageService;
         private readonly IHubContext<PersonalMessagesHub> _messagesHub;
 
-        public MessagesController(IMessageService messageService, IHubContext<PersonalMessagesHub> messagesHub)
+        public MessagesController(ICouchBaseMessagesService messageService, IHubContext<PersonalMessagesHub> messagesHub)
         {
             _messageService = messageService;
             _messagesHub = messagesHub;
