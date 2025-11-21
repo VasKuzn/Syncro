@@ -12,7 +12,6 @@ public static class ServiceRegistration
     {
         services.AddScoped<IMediaMessageService, MediaMessageService>();
         services.AddScoped<IAccountService, AccountService>();
-        services.AddScoped<IMessageService, MessageService>();
         services.AddScoped<IConferenceService<PersonalConferenceModel>, PersonalConferenceService>();
         services.AddScoped<IGroupConferenceService<GroupConferenceModel>, GroupConferenceService>();
         services.AddScoped<IGroupConferenceMemberService, GroupConferenceMemberService>();
@@ -29,7 +28,6 @@ public static class ServiceRegistration
     public static void AddCoreRepositoriesExtension(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<IAccountRepository, AccountRepository>();
-        services.AddScoped<IMessageRepository, MessageRepository>();
         services.AddScoped<IConferenceRepository<PersonalConferenceModel>, PersonalConferenceRepository>();
         services.AddScoped<IGroupConferenceRepository<GroupConferenceModel>, GroupConferenceRepository>();
         services.AddScoped<IGroupConferenceMemberRepository, GroupConferenceMemberRepository>();
