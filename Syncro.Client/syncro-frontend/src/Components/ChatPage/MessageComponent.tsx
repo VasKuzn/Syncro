@@ -104,6 +104,11 @@ const Message = ({
                     </div>
                     {isMedia ? (
                         <>
+                            {messageContent && (
+                                <div style={{ marginBottom: '6px' }}>
+                                    {messageContent}
+                                </div>
+                            )}
                             <MediaRenderer url={mediaUrl!} category={category} fileName={fileName} />
                             {category === 'image' && <div style={{ fontSize: 14, color: 'inherit', marginTop: 4 }}></div>}
                         </>

@@ -828,3 +828,82 @@ video::-webkit-media-controls-panel {
   justify-content: center;
   transition: all 0.3s ease;
 }
+
+/* Стили для превью файлов */
+.file-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #1E293B;
+  border: 1px solid #2D3748;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Стили для превью изображений */
+.file-preview.image-preview {
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.preview-image {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #4A5568;
+  flex-shrink: 0;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+  gap: 8px;
+}
+
+.file-name {
+  font-weight: 500;
+  color: #E2E8F0;
+  font-size: 14px;
+}
+
+.remove-file-btn {
+  background: #DC2626;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.remove-file-btn:hover {
+  background: #B91C1C;
+}
+
+.file-preview {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

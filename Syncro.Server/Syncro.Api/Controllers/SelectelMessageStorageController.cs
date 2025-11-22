@@ -23,8 +23,9 @@ namespace Syncro.Api.Controllers
             try
             {
                 var accountNickname = Request.Form["accountNickname"].FirstOrDefault() ?? string.Empty;
+                var messageContent = Request.Form["messageContent"].FirstOrDefault() ?? string.Empty;
                 var createdMessage = await _mediaMessageService.UploadMessageMediaAsync(
-                    personalConferenceId, accountId, messageId, accountNickname, file);
+                    personalConferenceId, accountId, messageId, accountNickname, messageContent, file);
 
                 if (createdMessage.personalConferenceId != null)
                 {

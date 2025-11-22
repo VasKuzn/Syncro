@@ -198,10 +198,10 @@ const ChatPage = () => {
   };
 
   const handleSend = async (text: string, media?: {
+    file: File;
     mediaUrl: string;
     mediaType: string;
     fileName: string;
-    file?: File;
   }) => {
     if (!currentUserId || !personalConference) return;
 
@@ -245,28 +245,6 @@ const ChatPage = () => {
     }
   };
 
-  const handleMediaUpload = async (file: File) => {
-    if (!currentUserId || !personalConference) return;
-
-    try {
-      setIsUploading(true);
-      const messageId = crypto.randomUUID();
-
-      const response = await uploadMediaMessage(messageId, {
-        file,
-        messageContent: '',
-        accountId: currentUserId,
-        accountNickname: currentUser?.nickname || null,
-        personalConferenceId: personalConference
-      });
-
-      setTimeout(scrollToBottom, 100);
-    } catch (error) {
-      console.error('Failed to upload media:', error);
-    } finally {
-      setIsUploading(false);
-    }
-  };
 
   return (
     <MainComponent
@@ -322,7 +300,6 @@ const ChatPage = () => {
 
           <MessageInput
             onSend={handleSend}
-            onMediaUpload={handleMediaUpload}
             isUploading={isUploading}
           />
         </>
