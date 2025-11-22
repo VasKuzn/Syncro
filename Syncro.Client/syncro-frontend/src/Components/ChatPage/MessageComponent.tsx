@@ -105,7 +105,7 @@ const Message = ({
                     {isMedia ? (
                         <>
                             <MediaRenderer url={mediaUrl!} category={category} fileName={fileName} />
-                            {category === 'image' && <div style={{ fontSize: 14, color: 'inherit', marginTop: 4 }}>{fileName}</div>}
+                            {category === 'image' && <div style={{ fontSize: 14, color: 'inherit', marginTop: 4 }}></div>}
                         </>
                     ) : (
                         <p className="message">{messageContent}</p>

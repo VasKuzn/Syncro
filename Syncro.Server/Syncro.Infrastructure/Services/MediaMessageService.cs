@@ -17,7 +17,7 @@ namespace Syncro.Infrastructure.Services
             _cdnUrl = configuration["S3Storage:CdnUrl"];
         }
 
-        public async Task<MessageModel> UploadMessageMediaAsync(Guid personalConferenceId, Guid accountId, Guid messageId, IFormFile file)
+        public async Task<MessageModel> UploadMessageMediaAsync(Guid personalConferenceId, Guid accountId, Guid messageId, string accountNickname, IFormFile file)
         {
             var result = await _storageService.UploadMessageFileAsync(file, messageId, accountId, personalConferenceId);
 
@@ -29,6 +29,7 @@ namespace Syncro.Infrastructure.Services
                 messageContent = string.Empty,
                 messageDateSent = DateTime.UtcNow,
                 accountId = accountId,
+                accountNickname = accountNickname,
                 personalConferenceId = personalConferenceId,
                 groupConferenceId = null,
                 sectorId = null,

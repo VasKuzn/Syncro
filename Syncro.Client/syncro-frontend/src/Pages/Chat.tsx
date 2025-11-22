@@ -231,6 +231,7 @@ const ChatPage = () => {
           file: media.file,
           messageContent: text,
           accountId: currentUserId,
+          accountNickname: currentUser?.nickname || null,
           personalConferenceId: personalConference
         });
       } else {
@@ -255,6 +256,7 @@ const ChatPage = () => {
         file,
         messageContent: '',
         accountId: currentUserId,
+        accountNickname: currentUser?.nickname || null,
         personalConferenceId: personalConference
       });
 
