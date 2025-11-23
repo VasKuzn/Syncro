@@ -35,4 +35,4 @@ Controllers, Program.cs, middleware, mapping (AutoMapper) и DI (регистр�
 
 lobster -> 🦞
 
-holy crab
+holy crab hehe
