@@ -34,3 +34,5 @@ Controllers, Program.cs, middleware, mapping (AutoMapper) и DI (регистр�
 ## God bless this project🙌🙌⛪⛪☦️✝️ 
 
 lobster -> 🦞
+
+holy crab
