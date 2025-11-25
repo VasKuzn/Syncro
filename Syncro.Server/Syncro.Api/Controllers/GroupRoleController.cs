@@ -26,9 +26,13 @@ namespace Syncro.Api.Controllers
                     new { conferenceRoleId = createdRole.Id },
                     createdRole);
             }
+            catch (ArgumentException ex)
+            {
+                return StatusCode(400, $"Bad request error: {ex.Message}");
+            }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 
@@ -52,7 +56,11 @@ namespace Syncro.Api.Controllers
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(ex.Message);
+                return StatusCode(404, $"Group role not found error: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 
@@ -71,15 +79,15 @@ namespace Syncro.Api.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(400, $"Bad request error: {ex.Message}");
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(ex.Message);
+                return StatusCode(404, $"Group role not found error: {ex.Message}");
             }
-            catch
+            catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 
@@ -91,11 +99,11 @@ namespace Syncro.Api.Controllers
             try
             {
                 var result = await _groupRoleService.DeleteGroupRoleAsync(conferenceRoleId);
-                return result ? NoContent() : NotFound();
+                return result ? NoContent() : StatusCode(404, $"Group role not found error: ID {conferenceRoleId}");
             }
-            catch
+            catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
     }

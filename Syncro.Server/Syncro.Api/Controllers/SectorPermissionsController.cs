@@ -26,7 +26,7 @@ namespace Syncro.Api.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(400, $"Bad request error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -73,7 +73,10 @@ namespace Syncro.Api.Controllers
             try
             {
                 var result = await _permissionsService.RevokePermissionAsync(permissionId);
-                if (!result) return NotFound();
+                if (!result)
+                {
+                    return StatusCode(404, $"Permission not found error: ID {permissionId}");
+                }
                 return NoContent();
             }
             catch (Exception ex)
