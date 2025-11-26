@@ -9,6 +9,8 @@ import { fetchCurrentUser, getUserInfo } from '../Services/MainFormService';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { UserInfo } from '../Types/UserInfo';
+import { AnimatePresence, motion } from 'framer-motion';
+
 
 const Settings = () => {
     const navigate = useNavigate();
@@ -49,16 +51,26 @@ const Settings = () => {
         }
 
         try {
-            const userData: UserInfo = {
-                nickname: formState.nickname,
-                firstname: formState.firstname,
-                lastname: formState.lastname,
-                email: formState.email,
-                phonenumber: formState.phonenumber,
-                country: formState.country,
-                password: formState.password,
-                avatar: ""
-            };
+            // const userData: UserInfo = {
+            //     nickname: formState.nickname,
+            //     firstname: formState.firstname,
+            //     lastname: formState.lastname,
+            //     email: formState.email,
+            //     phonenumber: formState.phonenumber,
+            //     country: formState.country,
+            //     password: formState.password,
+            //     avatar: ""
+            // };
+
+            const userData = new FormData()
+            userData.append("nickname", formState.nickname)
+            userData.append("firstname", formState.firstname)
+            userData.append("lastname", formState.lastname)
+            userData.append("email", formState.email)
+            userData.append("phonenumber", formState.phonenumber)
+            //userData.append("country", formState.country)
+            userData.append("password", formState.password)
+            userData.append("avatar", formState.avatar)
 
             await updateUserInfo(currentUserId, userData)
 
@@ -77,28 +89,37 @@ const Settings = () => {
     };
 
     return (
-        <div className='settings-page'>
-            <SidebarComponent />
-            <SettingsComponent 
-                nickname={formState.nickname} 
-                email={formState.email} 
-                password={formState.password} 
-                firstname={formState.firstname} 
-                lastname={formState.lastname} 
-                phonenumber={formState.phonenumber} 
-                avatar={formState.avatar} 
-                country={formState.country} 
-                nicknameField={nicknameField} 
-                firstnameField={firstnameField} 
-                lastnameField={lastnameField} 
-                emailField={emailField} 
-                phoneField={phoneField} 
-                countryField={countryField} 
-                passwordField={passwordField} 
-                onSubmit={e => handleSubmit(e)}
-                onChange={e => handleChange(e)}
-            />
-        </div>
+        <AnimatePresence>
+            <motion.div
+                className="settings-page"
+                key="page"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5, ease: "easeInOut" }}
+            >
+                <SidebarComponent />
+                <SettingsComponent
+                    nickname={formState.nickname}
+                    email={formState.email}
+                    password={formState.password}
+                    firstname={formState.firstname}
+                    lastname={formState.lastname}
+                    phonenumber={formState.phonenumber}
+                    avatar={formState.avatar}
+                    country={formState.country}
+                    nicknameField={nicknameField}
+                    firstnameField={firstnameField}
+                    lastnameField={lastnameField}
+                    emailField={emailField}
+                    phoneField={phoneField}
+                    countryField={countryField}
+                    passwordField={passwordField}
+                    onSubmit={e => handleSubmit(e)}
+                    onChange={e => handleChange(e)}
+                />
+            </motion.div>
+        </AnimatePresence>
     );
 }
 

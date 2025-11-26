@@ -1,17 +1,15 @@
 import { NetworkError } from "../Types/LoginTypes";
-import { UserInfo } from "../Types/UserInfo";
 
-export const updateUserInfo = async (userId: string | null, userData: UserInfo) => {
+export const updateUserInfo = async (userId: string | null, userData: FormData) => {
     try {
-        console.log(userId, userData)
+        console.log(userData)
         const response = await fetch(`http://localhost:5232/api/accounts/full_account_info/${userId}`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'multipart/form-data',
             },
-            body: JSON.stringify(userData)
+            body: userData
         });
-        console.log(JSON.stringify(userData))
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.message || "Ошибка при сохранении данных")
