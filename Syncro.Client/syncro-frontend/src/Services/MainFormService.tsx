@@ -153,7 +153,6 @@ export const getPersonalConference = async (userId: string | null, friendId: str
             isFriend: true,
             startingDate: new Date().toISOString(),
             lastActivity: new Date().toISOString(),
-            callType: 0
         };
 
         const createResponse = await fetch('http://localhost:5232/api/personalconference', {

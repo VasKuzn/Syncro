@@ -39,7 +39,6 @@ export interface PersonalConference {
     isFriend: boolean,
     startingDate: Date,
     lastActivity: Date,
-    callType: number
 }
 export interface CallWindowProps {
     isIncoming: boolean;
