@@ -1,3 +1,5 @@
+using Syncro.Application.TransferModels;
+
 namespace Syncro.Api.Controllers
 {
     [ApiController]
@@ -9,7 +11,7 @@ namespace Syncro.Api.Controllers
 
         public AccountController(IAccountService accountService, IPersonalAccountInfoService infoService)
         {
-            _accountService = accountService;          
+            _accountService = accountService;
             _infoService = infoService;
         }
 
@@ -101,9 +103,8 @@ namespace Syncro.Api.Controllers
         {
             try
             {
-                PersonalAccountInfoModel personalAccountInfo = new PersonalAccountInfoModel();
                 var createdAccount = await _accountService.CreateAccountAsync(account);
-                var createdPersonalAccountInfo = await _infoService.CreatePersonalAccountInfoAsync(personalAccountInfo, createdAccount.Id);
+                var createdPersonalAccountInfo = await _infoService.CreatePersonalAccountInfoAsync(account.Id);
                 return CreatedAtAction(nameof(GetAccountById), new { id = createdAccount.Id }, createdAccount);
             }
             catch (ArgumentException ex)
@@ -215,7 +216,7 @@ namespace Syncro.Api.Controllers
 
         // GET: получение personal account info по id
         [HttpGet("personal_info/{id}")]
-        public async Task<ActionResult<AccountModel>> GetPersonalAccountInfoById(Guid id)
+        public async Task<ActionResult<PersonalAccountInfoModel>> GetPersonalAccountInfoById(Guid id)
         {
             try
             {
@@ -225,6 +226,20 @@ namespace Syncro.Api.Controllers
             catch (ArgumentException ex)
             {
                 return StatusCode(404, $"Account not found error: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+        // POST: api/accounts/personal_info/{id} - создание персональной информации при ее отсутствии(для тех у кого раньше не было, для разрабов в основе) 
+        [HttpPost("personal_info/{id}")]
+        public async Task<ActionResult<PersonalAccountInfoModel>> CreatePersonalAccountInfoAsync(Guid id)
+        {
+            try
+            {
+                var result = await _infoService.CreatePersonalAccountInfoAsync(id);
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -267,6 +282,70 @@ namespace Syncro.Api.Controllers
                     return StatusCode(404, $"Account not found error: ID {id}");
                 }
                 return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        /* combined account+personalaccount for frontend  */
+
+        //GET: api/accounts/full_account_info/{id} - вся инфа для обновления для фронтенда
+        [HttpGet("full_account_info/{id}")]
+        public async Task<ActionResult<AccountWithPersonalInfoModel>> GetAccountWithPersonalInfoAsync(Guid id)
+        {
+            try
+            {
+                var accountInfo = await _accountService.GetAccountByIdAsync(id);
+                if (accountInfo is null)
+                {
+                    return NotFound($"Account with id {id} not found");
+                }
+                var personalInfo = await _infoService.GetPersonalAccountInfoByIdAsync(id);
+                var fullAccountInfo = new AccountWithPersonalInfoModel
+                {
+                    nickname = accountInfo.nickname,
+                    email = accountInfo.email,
+                    password = accountInfo.password,
+                    firstname = accountInfo.firstname,
+                    lastname = accountInfo.lastname,
+                    phonenumber = accountInfo.phonenumber,
+                    avatar = accountInfo.avatar,
+                    country = personalInfo.country,
+                };
+                return Ok(fullAccountInfo);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpPut("full_account_info/{id}")]
+        public async Task<IActionResult> UpdateAccountWithPersonalInfoAsync(
+    Guid id,
+    [FromForm] AccountWithPersonalInfoModel model)
+        {
+            try
+            {
+                var countryUpdateResult = await _infoService.UpdatePersonalAccountCountryAsync(id, model.country);
+
+                var updatedAccount = new AccountModelDTO
+                {
+                    nickname = model.nickname,
+                    email = model.email,
+                    password = model.password,
+                    firstname = model.firstname,
+                    lastname = model.lastname,
+                    phonenumber = model.phonenumber,
+                    avatar = model.avatar,
+                    AvatarFile = model.AvatarFile
+                };
+
+                var accountUpdateResult = await _accountService.UpdateAccountAsync(id, updatedAccount);
+
+                return Ok("Account and personal info updated!");
             }
             catch (Exception ex)
             {

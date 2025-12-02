@@ -2,12 +2,12 @@ namespace Syncro.Api.Controllers
 {
     [ApiController]
     [Route("api/storage")]
-    public class SelectelStorageController : ControllerBase
+    public class SelectelMessageStorageController : ControllerBase
     {
         private readonly IMediaMessageService _mediaMessageService;
         private readonly IHubContext<PersonalMessagesHub> _messagesHub;
 
-        public SelectelStorageController(IMediaMessageService mediaMessageService, IHubContext<PersonalMessagesHub> messagesHub)
+        public SelectelMessageStorageController(IMediaMessageService mediaMessageService, IHubContext<PersonalMessagesHub> messagesHub)
         {
             _mediaMessageService = mediaMessageService;
             _messagesHub = messagesHub;

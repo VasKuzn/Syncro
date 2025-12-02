@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Http;
 
-namespace Syncro.Application.ModelsDTO
+namespace Syncro.Application.TransferModels
 {
-    public class AccountModelDTO
+    public class AccountWithPersonalInfoModel
     {
         public required string nickname { get; set; }
         public string? email { get; set; }
@@ -11,8 +11,8 @@ namespace Syncro.Application.ModelsDTO
         public string? lastname { get; set; }
         public string? phonenumber { get; set; }
         public string? avatar { get; set; }
+        public int? country { get; set; }
 
-        public IFormFile? AvatarFile { get; set; } // Поле для возможного файла
+        public IFormFile? AvatarFile { get; set; } // Для нового файла
     }
-
 }

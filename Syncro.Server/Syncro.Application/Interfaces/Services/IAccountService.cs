@@ -13,5 +13,7 @@ namespace Syncro.Application.Services
         public Task<Result<string>> Login(string email, string password);
         public Task<AccountModel> GetAccountByEmailAsync(string email);
         public Task<AccountModel> GetAccountByNicknameAsync(string nickname);
+        public Task<string> GetAccountAvatarUrlAsync(Guid accountId);
+        public Task<AccountModel> DeleteAccountAvatarAsync(Guid accountId);
     }
 }

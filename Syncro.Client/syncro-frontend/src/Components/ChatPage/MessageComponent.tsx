@@ -1,4 +1,4 @@
-import { PersonalMessageData } from '../../Types/ChatTypes';
+import { MessageProps, PersonalMessageData } from '../../Types/ChatTypes';
 import { getFileIconByType } from './FileIcon';
 import ErrorBoundary from '../Common/ErrorBoundary';
 
@@ -77,8 +77,10 @@ const Message = ({
     accountNickname,
     mediaUrl,
     mediaType,
-    fileName
-}: PersonalMessageData) => {
+    fileName,
+    isOwnMessage,
+    avatarUrl
+}: MessageProps) => {
     const date = new Date(messageDateSent);
     const formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const isMedia = !!mediaUrl;
@@ -86,8 +88,15 @@ const Message = ({
 
     return (
         <ErrorBoundary>
-            <div className="messageItem">
-                <div className="photo" />
+            <div className={`messageItem ${isOwnMessage ? 'own-message' : 'friend-message'}`}>
+                <div className="photo">
+                    <img
+                        src={avatarUrl}
+                        alt={`${accountNickname} avatar`}
+                        onError={(e) => {
+                            e.currentTarget.src = './logo.png';
+                        }} />
+                </div>
                 <div className="content">
                     <div className="header">
                         <span className="name">{accountNickname}</span>
