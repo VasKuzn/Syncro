@@ -179,11 +179,11 @@ namespace Syncro.Api.Controllers
                     });
                     return Ok(new { Message = "Logged in successfully" });
                 }
-                return Unauthorized(new { Error = result.Error });
+                return StatusCode(404, $"User unauthorized error: {result.Error}");
             }
             catch (Exception)
             {
-                return StatusCode(404, new { Error = "Аккаунт с таким email не найден" });
+                return StatusCode(404, $"Аккаунт с таким email не найден");
             }
 
         }

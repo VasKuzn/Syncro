@@ -8,7 +8,7 @@ namespace Syncro.Infrastructure.Services
     {
         private readonly IAccountRepository _accountRepository;
         private readonly IJwtProvider _jwtProvider;
-        private readonly ILogger _logger;
+        //private readonly ILogger _logger;
 
         public AccountService(IAccountRepository accountRepository, IJwtProvider jwtProvider)
         {

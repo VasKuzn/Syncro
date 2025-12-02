@@ -99,7 +99,11 @@ namespace Syncro.Api.Controllers
             try
             {
                 var result = await _groupRoleService.DeleteGroupRoleAsync(conferenceRoleId);
-                return result ? NoContent() : StatusCode(404, $"Group role not found error: ID {conferenceRoleId}");
+                if (!result)
+                {
+                    StatusCode(404, $"Group role not found error: ID {conferenceRoleId}");
+                }
+                return NoContent();
             }
             catch (Exception ex)
             {

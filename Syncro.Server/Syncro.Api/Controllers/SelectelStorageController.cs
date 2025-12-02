@@ -57,7 +57,7 @@ namespace Syncro.Api.Controllers
             }
             catch (FileNotFoundException ex)
             {
-                return StatusCode(404, $"Medis not found error: {ex.Message}");
+                return StatusCode(404, $"Media not found error: {ex.Message}");
             }
             catch (Exception ex)
             {
