@@ -6,7 +6,6 @@ import { FriendProps } from "../../Types/FriendType";
 const MainComponent = ({ friends }: FriendProps) => {
     return (
         <div className="main-page">
-            <HeaderComponent></HeaderComponent>
             <BodyComponent
                 friends={friends}>
             </BodyComponent>

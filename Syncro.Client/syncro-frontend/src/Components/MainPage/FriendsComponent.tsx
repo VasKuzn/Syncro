@@ -2,6 +2,7 @@ import { Friend, FriendFilterTypes, FriendProps } from "../../Types/FriendType";
 import { useState, useRef, useEffect } from "react";
 import { getUserByNickname, fetchCurrentUser, sendFriendRequest, updateFriendStatus, deleteFriendship } from "../../Services/MainFormService";
 import { FriendDetails } from "./FriendDetails";
+import { emptyFilterMessages } from "../../Constants/FriendFilterMessages";
 
 const FriendsComponent = ({ friends, onFriendAdded }: FriendProps) => {
     const [isLoading, setIsLoading] = useState(false);
@@ -10,14 +11,6 @@ const FriendsComponent = ({ friends, onFriendAdded }: FriendProps) => {
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
     const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
     const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
-    
-    const emptyFilterMessages: Record<FriendFilterTypes, string> = {
-        all: "У вас пока нет друзей. Добавьте кого-нибудь!",
-        online: "Друзья не в сети. Пора пойти трогать траву...",
-        myrequests: "Отправленных заявок нет.",
-        banned: "Отклонённых заявок нет.",
-        requestsfromme: "Заявок в друзья нет. Пора заявить о себе!",
-    }
 
     const addFriendInputRef = useRef<HTMLInputElement>(null);
 
