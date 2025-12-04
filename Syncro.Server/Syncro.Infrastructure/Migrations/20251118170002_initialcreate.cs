@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Syncro.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class initialcreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -22,7 +22,7 @@ namespace Syncro.Infrastructure.Migrations
                     firstname = table.Column<string>(type: "text", nullable: true),
                     lastname = table.Column<string>(type: "text", nullable: true),
                     phonenumber = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
-                    isOnline = table.Column<bool>(type: "boolean", nullable: false)
+                    avatar = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -74,10 +74,9 @@ namespace Syncro.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    isHidden = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     dateOfAccountCreation = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     dateOfLastOnline = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                    dateOfLastChange = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                    country = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {

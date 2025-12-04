@@ -61,4 +61,6 @@ export interface VideoCallProps {
 export interface MessageProps extends PersonalMessageData {
     isOwnMessage: boolean;
     avatarUrl: string;
+    previousMessageAuthor?: string | null;
+    previousMessageDate?: Date | null;
 }

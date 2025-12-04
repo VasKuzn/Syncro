@@ -414,6 +414,82 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.friend-avatar.big {
+    width: 80px;
+    height: 80px;
+    padding: 4px;
+    display: flex;
+}
+
+.friend-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.friend-main-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.friend-info {
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+}
+
+.info-row {
+    margin-bottom: 6px;
+    font-size: 0.95rem;
+}
+
+.info-label {
+    color: #9ca3af;
+    margin-right: 4px;
+}
+
+.profile-link {
+    margin-top: 10px;
+    font-size: 0.95rem;
+    color: #60a5fa;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.profile-link:hover {
+    color: #93c5fd;
+    text-decoration: underline;
+}
+
+.actions {
+    margin-top: 16px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    flex: 1;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: background 0.2s;
+}
+
+.action-btn.primary {
+    background: #3b82f6;
+    color: white;
+}
+
+.action-btn.primary:hover {
+    background: #2563eb;
+}
+
 .online-status {
     font-size: 0.9em;
     color: #4ade80;
