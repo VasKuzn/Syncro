@@ -22,7 +22,7 @@ namespace Syncro.Api.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(400, $"Bad request error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -47,7 +47,7 @@ namespace Syncro.Api.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(400, $"Bad request error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -65,11 +65,11 @@ namespace Syncro.Api.Controllers
                 var assignment = assignments.FirstOrDefault(x => x.roleId == roleId);
 
                 if (assignment == null)
-                    return NotFound("Role assignment not found");
+                    return StatusCode(404, $"Role assigment not found error: ID {roleId}");
 
                 var result = await _service.RemoveRoleFromMemberAsync(assignment.Id);
                 if (!result)
-                    return NotFound("Role assignment not found");
+                    return StatusCode(404, $"Role assigment not found error: ID {roleId}");
 
                 return NoContent();
             }
@@ -87,7 +87,7 @@ namespace Syncro.Api.Controllers
             {
                 var result = await _service.RemoveAllRolesFromMemberAsync(serverId, accountId);
                 if (!result)
-                    return NotFound("No roles found for this member");
+                    return StatusCode(404, $"Role not found error: member ID {accountId}");
 
                 return NoContent();
             }

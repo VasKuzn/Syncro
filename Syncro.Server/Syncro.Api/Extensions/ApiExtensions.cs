@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Syncro.Api.ErrorHandlers;
 using Syncro.Application.JWT;
 using Syncro.Infrastructure.JWT;
 
@@ -63,6 +64,11 @@ namespace Syncro.Api.Extensions
         {
             services.Configure<JWToptions>(configuration.GetSection("JWTOptions"));
             services.AddApiAuthentication(configuration);
+        }
+        public static void AddErrorHandlers(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddProblemDetails();
+            services.AddExceptionHandler<DefaultErrorHandler>();
         }
         public static void AddCorsPolicy(this IServiceCollection services, IConfiguration configuration)
         {
