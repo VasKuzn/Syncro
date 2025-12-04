@@ -118,15 +118,15 @@ const Message = ({
                         {!hideProfileInfo && <span className="name">{accountNickname}</span>}
                     </div>
                     {isMedia ? (
-                        <div className="message media">
+                        <>
+                            {messageContent && (
+                                <div style={{ marginBottom: '6px' }}>
+                                    {messageContent}
+                                </div>
+                            )}
                             <MediaRenderer url={mediaUrl!} category={category} fileName={fileName} />
-
-                        {category === 'image' && (
-                            <div className="fileName">{fileName}</div>
-                        )}
-
-                        <time className="time">{formattedTime}</time>
-                        </div>
+                            {category === 'image' && <div style={{ fontSize: 14, color: 'inherit', marginTop: 4 }}></div>}
+                        </>
                     ) : (
                         <p className="message">{messageContent}
                             <time className="time">{formattedTime}</time>

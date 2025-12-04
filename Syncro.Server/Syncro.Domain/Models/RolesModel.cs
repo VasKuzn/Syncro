@@ -7,7 +7,6 @@ namespace Syncro.Domain.Models
         public required string roleName { get; set; }
         public Permissions rolePermissions { get; set; }
         public required string color { get; set; }
-        public bool isDisplayedSeparetely { get; set; }
         public long position { get; set; }
     }
 }

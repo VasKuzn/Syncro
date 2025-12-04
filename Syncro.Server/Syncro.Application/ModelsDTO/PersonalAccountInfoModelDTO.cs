@@ -1,4 +1,3 @@
-
 namespace Syncro.Application.ModelsDTO
 {
     public class PersonalAccountInfoModelDTO

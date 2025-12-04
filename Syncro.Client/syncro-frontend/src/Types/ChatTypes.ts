@@ -25,11 +25,11 @@ export interface PersonalChatProps {
 }
 export interface MessageInputProps {
     onSend: (text: string, media?: {
-        mediaUrl: string;
-        mediaType: string;
+        file: File;
         fileName: string;
+        mediaType: string;
+        mediaUrl: string;
     }) => void;
-    onMediaUpload: (file: File) => void;
     isUploading: boolean;
 }
 export interface PersonalConference {
@@ -39,7 +39,6 @@ export interface PersonalConference {
     isFriend: boolean,
     startingDate: Date,
     lastActivity: Date,
-    callType: number
 }
 export interface CallWindowProps {
     isIncoming: boolean;
