@@ -8,6 +8,7 @@ import FooterComponent from '../Components/LoginPage/FooterComponent';
 import { useNavigate } from 'react-router-dom';
 import { loginUser } from '../Services/AuthService';
 import { useAuthForm } from '../Hooks/UseAuthForm';
+import { AnimatePresence, motion } from 'framer-motion';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -44,32 +45,41 @@ const Login = () => {
     };
 
     return (
-        <div className="centered-container">
-            <LoginComponent
-                emailOrPhone={formState.emailOrPhone}
-                password={formState.password}
-                passwordVisible={formState.passwordVisible}
-                keepSignedIn={formState.keepSignedIn}
-                isLoading={formState.isLoading}
-                maxLength={formState.maxLength}
-                onEmailOrPhoneChange={(e) =>
-                    setFormState(prev => ({ ...prev, emailOrPhone: e.target.value }))
-                }
-                onPasswordChange={(e) =>
-                    setFormState(prev => ({ ...prev, password: e.target.value }))
-                }
-                onKeepSignedInChange={(e) =>
-                    setFormState(prev => ({ ...prev, keepSignedIn: e.target.checked }))
-                }
-                onTogglePasswordVisibility={() =>
-                    setFormState(prev => ({ ...prev, passwordVisible: !prev.passwordVisible }))
-                }
-                onSubmit={handleSubmit}
-                emailRef={emailField}
-                passwordRef={passwordField}
-            />
-            <FooterComponent />
-        </div>
+        <AnimatePresence>
+            <motion.div
+                className="centered-container"
+                key="page"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5, ease: "easeInOut" }}
+            >
+                <LoginComponent
+                    emailOrPhone={formState.emailOrPhone}
+                    password={formState.password}
+                    passwordVisible={formState.passwordVisible}
+                    keepSignedIn={formState.keepSignedIn}
+                    isLoading={formState.isLoading}
+                    maxLength={formState.maxLength}
+                    onEmailOrPhoneChange={(e) =>
+                        setFormState(prev => ({ ...prev, emailOrPhone: e.target.value }))
+                    }
+                    onPasswordChange={(e) =>
+                        setFormState(prev => ({ ...prev, password: e.target.value }))
+                    }
+                    onKeepSignedInChange={(e) =>
+                        setFormState(prev => ({ ...prev, keepSignedIn: e.target.checked }))
+                    }
+                    onTogglePasswordVisibility={() =>
+                        setFormState(prev => ({ ...prev, passwordVisible: !prev.passwordVisible }))
+                    }
+                    onSubmit={handleSubmit}
+                    emailRef={emailField}
+                    passwordRef={passwordField}
+                />
+                <FooterComponent />
+            </motion.div>
+        </AnimatePresence>
     );
 };
 

@@ -37,3 +37,5 @@ export interface AccountActivity {
     IsOnline: boolean;
     Timestamp: string
 }
+
+export type FriendFilterTypes = 'all' | 'online' | 'myrequests' | 'banned' | 'requestsfromme'

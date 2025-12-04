@@ -1,12 +1,13 @@
-import { Friend, FriendProps } from "../../Types/FriendType";
+import { Friend, FriendFilterTypes, FriendProps } from "../../Types/FriendType";
 import { useState, useRef, useEffect } from "react";
 import { getUserByNickname, fetchCurrentUser, sendFriendRequest, updateFriendStatus, deleteFriendship } from "../../Services/MainFormService";
 import { FriendDetails } from "./FriendDetails";
+import { emptyFilterMessages } from "../../Constants/FriendFilterMessages";
 
 const FriendsComponent = ({ friends, onFriendAdded }: FriendProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const [notification, setNotification] = useState<{ message: string, isError: boolean } | null>(null);
-    const [filter, setFilter] = useState<'all' | 'online' | 'myrequests' | 'banned' | 'requestsfromme'>('all');
+    const [filter, setFilter] = useState<FriendFilterTypes>('all');
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
     const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
     const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
@@ -107,7 +108,9 @@ const FriendsComponent = ({ friends, onFriendAdded }: FriendProps) => {
 
     const filteredFriends = (() => {
         let result = friends.filter(friend => {
-            if (filter === 'online') return friend.isOnline && friend.status === 1;
+            if (filter === 'online') {
+                return friend.isOnline && friend.status === 1;
+            }
             if (filter === 'myrequests') return friend.status === 0 && friend.userWhoReceived === friend.id;
             if (filter === 'requestsfromme') return friend.status === 0 && friend.userWhoSent === friend.id;
             if (filter === 'all') return friend.status === 1;
@@ -123,6 +126,8 @@ const FriendsComponent = ({ friends, onFriendAdded }: FriendProps) => {
 
         return result;
     })();
+
+    const currentEmptyFilterMessage = emptyFilterMessages[filter]
 
     useEffect(() => {
         setSelectedFriend(null);
@@ -190,7 +195,7 @@ const FriendsComponent = ({ friends, onFriendAdded }: FriendProps) => {
                     {filteredFriends.length === 0 ? (
                         <div className="empty-state">
                             <img src="/no-friends.png" alt="Нет друзей" />
-                            <p>У вас пока нет друзей. Добавьте кого-нибудь!</p>
+                            <p>{currentEmptyFilterMessage}</p>
                         </div>
                     ) : (
                         filteredFriends.map(friend => {

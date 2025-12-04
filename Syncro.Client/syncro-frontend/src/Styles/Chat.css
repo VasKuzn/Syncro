@@ -3,7 +3,8 @@ body {
   padding: 0;
   font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   color: #ffffff;
-  overflow: hidden;
+  overflow: hidden;  
+  background-color: #151838;
 }
 
 .main-page {
