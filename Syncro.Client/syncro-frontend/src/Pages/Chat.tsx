@@ -12,6 +12,7 @@ import { useLocation } from 'react-router-dom';
 import { createMessage, getMessages, uploadMediaMessage, getPersonalConferenceById, getNicknameById } from '../Services/ChatService';
 import usePersonalMessagesHub from '../Hooks/UsePersonalMessages';
 import UseRtcConnection from '../Hooks/UseRtcConnection';
+import { AnimatePresence, motion } from 'framer-motion';
 
 const ChatPage = () => {
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -74,11 +75,11 @@ const ChatPage = () => {
         return [...prev, message];
       }
       return prev;
-  });
+    });
 
-  if (isUserAtBottom()) {
-    setTimeout(scrollToBottom, 100);
-  }
+    if (isUserAtBottom()) {
+      setTimeout(scrollToBottom, 100);
+    }
   }, [scrollToBottom]);
 
   usePersonalMessagesHub(personalConference, handleNewMessage);
@@ -270,60 +271,115 @@ const ChatPage = () => {
     <MainComponent
       chatContent={
         <>
-          {!inCall && (
-            <div className="call-button-container">
-              <button
-                className="call-button"
-                onClick={handleStartCall}
-                disabled={!rtcConnection.isConnected || !currentFriend}
+          <AnimatePresence>
+            {!inCall && (
+              <motion.div
+                className="call-button-container"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
               >
-                {rtcConnection.isConnected ? "📞 Вызов" : "⏳ Подключение..."}
-              </button>
-            </div>
-          )}
+                <motion.button
+                  className="call-button"
+                  onClick={handleStartCall}
+                  disabled={!rtcConnection.isConnected || !currentFriend}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {rtcConnection.isConnected ? "📞 Вызов" : "⏳ Подключение..."}
+                </motion.button>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          {showCallModal && incomingCall && (
-            <CallWindow
-              isIncoming={true}
-              userName={currentFriend?.nickname || 'Друг'}
-              avatarUrl={currentFriend?.avatar || './logo.png'}
-              onAccept={handleAcceptCall}
-              onReject={handleRejectCall}
-            />
-          )}
+          <AnimatePresence>
+            {showCallModal && incomingCall && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+              >
+                <CallWindow
+                  isIncoming={true}
+                  userName={currentFriend?.nickname || 'Друг'}
+                  avatarUrl={currentFriend?.avatar || './logo.png'}
+                  onAccept={handleAcceptCall}
+                  onReject={handleRejectCall}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          {inCall && currentFriend && currentUser && (
-            <VideoCall
-              remoteUserName={currentFriend.nickname}
-              remoteAvatarUrl={currentFriend.avatar || './logo.png'}
-              localUserName={currentUser.nickname}
-              localAvatarUrl={currentUser.avatar || './logo.png'}
-              onEndCall={handleEndCall}
-              localStream={localStreamRef.current}
-              remoteStream={remoteStreamRef.current}
-            />
-          )}
+          <AnimatePresence>
+            {inCall && currentFriend && currentUser && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+              >
+                <VideoCall
+                  remoteUserName={currentFriend.nickname}
+                  remoteAvatarUrl={currentFriend.avatar || './logo.png'}
+                  localUserName={currentUser.nickname}
+                  localAvatarUrl={currentUser.avatar || './logo.png'}
+                  onEndCall={handleEndCall}
+                  localStream={localStreamRef.current}
+                  remoteStream={remoteStreamRef.current}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          <div className="messages" ref={chatRef}>
-            {messages.map((msg, i) => (
-              <Message
-                key={msg.id}
-                {...msg}
-                isOwnMessage={msg.accountId === currentUserId}
-                avatarUrl={msg.accountId === currentUserId ?
-                  (currentUser?.avatar || './logo.png') :
-                  (currentFriend?.avatar || './logo.png')}
-                previousMessageAuthor={i > 0 ? messages[i - 1].accountNickname : null}
-                previousMessageDate={i > 0 ? messages[i - 1].messageDateSent : null}
-              />
-            ))}
+          <motion.div
+            className="messages"
+            ref={chatRef}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4 }}
+          >
+            <AnimatePresence mode="popLayout">
+              {messages.map((msg, i) => (
+                <motion.div
+                  key={msg.id}
+                  layout
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 25,
+                    opacity: { duration: 0.2 }
+                  }}
+                >
+                  <Message
+                    {...msg}
+                    isOwnMessage={msg.accountId === currentUserId}
+                    avatarUrl={msg.accountId === currentUserId ?
+                      (currentUser?.avatar || './logo.png') :
+                      (currentFriend?.avatar || './logo.png')}
+                    previousMessageAuthor={i > 0 ? messages[i - 1].accountNickname : null}
+                    previousMessageDate={i > 0 ? messages[i - 1].messageDateSent : null}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
             <div ref={messagesEndRef} />
-          </div>
+          </motion.div>
 
-          <MessageInput
-            onSend={handleSend}
-            isUploading={isUploading}
-          />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.3 }}
+          >
+            <MessageInput
+              onSend={handleSend}
+              isUploading={isUploading}
+            />
+          </motion.div>
         </>
       }
       friends={friends}

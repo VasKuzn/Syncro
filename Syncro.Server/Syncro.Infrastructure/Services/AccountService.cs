@@ -9,7 +9,8 @@ namespace Syncro.Infrastructure.Services
     {
         private readonly IAccountRepository _accountRepository;
         private readonly IJwtProvider _jwtProvider;
-        private readonly ILogger _logger;
+        private readonly ISelectelStorageService _selectelStorageService;
+        private readonly string? _cdnUrl;
 
         public AccountService(IAccountRepository accountRepository, IJwtProvider jwtProvider, ISelectelStorageService selectelStorageService, IConfiguration configuration)
         {
