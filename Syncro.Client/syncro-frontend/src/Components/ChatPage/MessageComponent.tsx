@@ -79,16 +79,31 @@ const Message = ({
     mediaType,
     fileName,
     isOwnMessage,
-    avatarUrl
+    avatarUrl,
+    previousMessageAuthor,
+    previousMessageDate
 }: MessageProps) => {
     const date = new Date(messageDateSent);
+    const previousDate = previousMessageDate ? new Date(previousMessageDate) : null;
+
+    let hideProfileInfo = false;
+
+    if (previousMessageAuthor === accountNickname && previousDate) {
+        const diffMs = date.getTime() - previousDate.getTime();
+        const diffMinutes = diffMs / 1000 / 60;
+        if (diffMinutes < 1) {
+            hideProfileInfo = true;
+        }
+    }
+
     const formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const isMedia = !!mediaUrl;
     const category = detectMediaCategory(mediaType, fileName);
 
     return (
         <ErrorBoundary>
-            <div className={`messageItem ${isOwnMessage ? 'own-message' : 'friend-message'}`}>
+            <div className={`messageItem ${isOwnMessage ? 'own-message' : 'friend-message'} ${hideProfileInfo ? 'no-profile' : ''}`}>
+            {!hideProfileInfo && (
                 <div className="photo">
                     <img
                         src={avatarUrl}
@@ -97,10 +112,10 @@ const Message = ({
                             e.currentTarget.src = './logo.png';
                         }} />
                 </div>
+            )}
                 <div className="content">
                     <div className="header">
-                        <span className="name">{accountNickname}</span>
-                        <time className="time">{formattedTime}</time>
+                        {!hideProfileInfo && <span className="name">{accountNickname}</span>}
                     </div>
                     {isMedia ? (
                         <>
@@ -113,7 +128,9 @@ const Message = ({
                             {category === 'image' && <div style={{ fontSize: 14, color: 'inherit', marginTop: 4 }}></div>}
                         </>
                     ) : (
-                        <p className="message">{messageContent}</p>
+                        <p className="message">{messageContent}
+                            <time className="time">{formattedTime}</time>
+                        </p>
                     )}
                 </div>
             </div>

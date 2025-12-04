@@ -80,8 +80,8 @@ const GroupChatsComponent = () => {
     }, [fetchCurrentUser, refreshGroupsData, initSignalR]);
 
     const avatarUrl = currentUser?.avatar || "/logo.png";
-    if (loading) return <div>Loading groups...</div>;
-    if (error) return <div>Error: {error}</div>;
+    if (loading) return <div></div>;
+    if (error) return <div></div>;
 
     return (
         <div className="group-chats-container">

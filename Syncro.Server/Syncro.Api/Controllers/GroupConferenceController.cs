@@ -58,7 +58,7 @@ namespace Syncro.Api.Controllers
             }
             catch (ArgumentException ex)
             {
-                return NotFound(ex.Message);
+                return StatusCode(404, $"Group Conference not found error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -79,7 +79,7 @@ namespace Syncro.Api.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+               return StatusCode(400, $"Bad request error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -104,7 +104,7 @@ namespace Syncro.Api.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(400, $"Bad request error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -122,7 +122,7 @@ namespace Syncro.Api.Controllers
                 var result = await _groupConferenceService.DeleteConferenceAsync(id);
                 if (!result)
                 {
-                    return NotFound($"Group conference with id {id} not found");
+                    return StatusCode(404, $"Group Conference not found error: ID {id}");
                 }
                 await NotifyConferenceMembersUpdate(id);
                 return NoContent();

@@ -29,6 +29,7 @@ export interface FriendRequest {
 
 export interface FriendDetailsProps {
     friend: Friend | null;
+    friends: Friend[];
     onAccept?: (friend: Friend) => void;
     onCancel?: (friend: Friend) => void;
 }
@@ -37,3 +38,5 @@ export interface AccountActivity {
     IsOnline: boolean;
     Timestamp: string
 }
+
+export type FriendFilterTypes = 'all' | 'online' | 'myrequests' | 'banned' | 'requestsfromme'

@@ -41,7 +41,7 @@ namespace Syncro.Api.Controllers
             }
             catch (ArgumentException ex)
             {
-                return NotFound(ex.Message);
+                return StatusCode(404, $"Account not found error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -59,7 +59,7 @@ namespace Syncro.Api.Controllers
             }
             catch (ArgumentException ex)
             {
-                return NotFound(ex.Message);
+                return StatusCode(404, $"Account not found error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -77,7 +77,7 @@ namespace Syncro.Api.Controllers
             }
             catch (ArgumentException ex)
             {
-                return NotFound(ex.Message);
+                return StatusCode(404, $"Account not found error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -90,7 +90,10 @@ namespace Syncro.Api.Controllers
         public async Task<ActionResult<string>> GetNickname(Guid userId)
         {
             var account = await _accountService.GetAccountByIdAsync(userId);
-            if (account == null) return NotFound();
+            if (account == null)
+            {
+                return StatusCode(404, $"Account not found error: ID {userId}");
+            } 
             return Ok(account.nickname);
         }
         //
@@ -106,7 +109,7 @@ namespace Syncro.Api.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(400, $"Bad request error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -125,11 +128,11 @@ namespace Syncro.Api.Controllers
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(ex.Message);
+                return StatusCode(404, $"Account not found error: {ex.Message}");
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(400, $"Bad request error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -146,7 +149,7 @@ namespace Syncro.Api.Controllers
                 var result = await _accountService.DeleteAccountAsync(id);
                 if (!result)
                 {
-                    return NotFound($"Account with id {id} not found");
+                    return StatusCode(404, $"Account not found error: ID {id}");
                 }
                 return NoContent();
             }
@@ -161,7 +164,7 @@ namespace Syncro.Api.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return StatusCode(400, $"Bad request error: {ModelState}");
             }
             try
             {
@@ -177,11 +180,11 @@ namespace Syncro.Api.Controllers
                     });
                     return Ok(new { Message = "Logged in successfully" });
                 }
-                return Unauthorized(new { Error = result.Error });
+                return StatusCode(404, $"User unauthorized error: {result.Error}");
             }
             catch (Exception)
             {
-                return StatusCode(404, new { Error = "Аккаунт с таким email не найден" });
+                return StatusCode(404, $"Аккаунт с таким email не найден");
             }
 
         }
@@ -222,7 +225,7 @@ namespace Syncro.Api.Controllers
             }
             catch (ArgumentException ex)
             {
-                return NotFound(ex.Message);
+                return StatusCode(404, $"Account not found error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -255,11 +258,11 @@ namespace Syncro.Api.Controllers
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(ex.Message);
+                return StatusCode(404, $"Account not found error: {ex.Message}");
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(400, $"Bad request error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -276,7 +279,7 @@ namespace Syncro.Api.Controllers
                 var result = await _infoService.DeletePersonalAccountInfoAsync(id);
                 if (!result)
                 {
-                    return NotFound($"Account with id {id} not found");
+                    return StatusCode(404, $"Account not found error: ID {id}");
                 }
                 return NoContent();
             }

@@ -12,8 +12,8 @@ using Syncro.Infrastructure.Data.DataBaseContext;
 namespace Syncro.Infrastructure.Migrations
 {
     [DbContext(typeof(DataBaseContext))]
-    [Migration("20251103211402_AddAccountConfigurationChanges")]
-    partial class AddAccountConfigurationChanges
+    [Migration("20251118170002_initialcreate")]
+    partial class initialcreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

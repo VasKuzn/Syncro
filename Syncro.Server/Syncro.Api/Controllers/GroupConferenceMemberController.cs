@@ -40,7 +40,7 @@ namespace Syncro.Api.Controllers
             }
             catch (ArgumentException ex)
             {
-                return NotFound(ex.Message);
+                return StatusCode(404, $"Group Conference Member not found error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -59,7 +59,7 @@ namespace Syncro.Api.Controllers
             }
             catch (ArgumentException ex)
             {
-                return NotFound(ex.Message);
+                return StatusCode(404, $"Group Conference Member not found error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -78,7 +78,7 @@ namespace Syncro.Api.Controllers
             }
             catch (ArgumentException ex)
             {
-                return NotFound(ex.Message);
+                return StatusCode(404, $"Group Conference Member not found error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -100,7 +100,7 @@ namespace Syncro.Api.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(400, $"Bad request error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -122,11 +122,11 @@ namespace Syncro.Api.Controllers
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(ex.Message);
+                return StatusCode(404, $"Group Conference Member not found error: {ex.Message}");
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(400, $"Bad request error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -143,7 +143,7 @@ namespace Syncro.Api.Controllers
                 var member = await _groupConferenceMemberService.GetMemberByIdAsync(id);
                 if (!result)
                 {
-                    return NotFound($"Account with id {id} not found");
+                    return StatusCode(404, $"Group Conference Member not found error: ID {id}");
                 }
                 await NotifyGroupsUpdate(member.accountId.ToString());
                 return NoContent();

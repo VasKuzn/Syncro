@@ -4,6 +4,7 @@ body {
   font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   color: #ffffff;
   overflow: hidden;
+  background-color: #151838;
 }
 
 .settings-page {
@@ -24,10 +25,23 @@ body {
   border-bottom: 1px solid #2D3748;
 }
 
+.settings-form-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  width: 100vh;
+  gap: 20px;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
 .settings-sidebar {
   display: flex;
   flex-direction: column;
-  flex: 0 0 35%;
+  flex: 0 0 20%;
   justify-content: center;
   align-items: flex-end;
   background-color: #07081C;
@@ -72,8 +86,10 @@ body {
     width: 300px;
 }
 
-.setting-input {
-    font-size: large;
+.setting-input,
+.setting-input[type=password]
+{
+    font-size: 20px;
     display: flex;
     flex: 1;
     border: none;
@@ -90,7 +106,7 @@ body {
 .setting-button {
     display: flex;
     align-items: center;
-    font-size: large;
+    font-size: 20px;
     padding: 5px 10px;
     border: none;
     border-radius: 10px;
@@ -104,5 +120,11 @@ body {
 }
 
 .setting-label {
-  font-size: larger;
+  font-size: x-large;
+  margin-bottom: 10px;
+}
+
+.settings-profile-header {
+  font-size: xx-large;
+  margin-bottom: 30px;
 }

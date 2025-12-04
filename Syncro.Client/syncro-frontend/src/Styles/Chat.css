@@ -3,7 +3,8 @@ body {
   padding: 0;
   font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   color: #ffffff;
-  overflow: hidden;
+  overflow: hidden;  
+  background-color: #151838;
 }
 
 .main-page {
@@ -200,7 +201,22 @@ body {
   border-radius: 8px;
   transition: background-color 0.2s ease;
   cursor: pointer;
+  word-break: break-word;
 }
+
+.messageItem.no-profile {
+  margin-top: -16px;
+  margin-left: 52px;
+}
+
+.own-message .name {
+  color: #6fbeff;
+}
+
+.friend-message .name {
+  color: #c77dff;
+}
+
 
 .messageItem:hover {
   background-color: rgba(255, 255, 255, 0.05);
@@ -244,8 +260,17 @@ body {
 }
 
 .time {
+  position: absolute;
+  right: 0;
+  bottom: 0;
   font-size: 0.75rem;
   color: #718096;
+  white-space: nowrap;
+}
+
+.message.media {
+  display: inline-block;
+  padding-right: 40px;
 }
 
 .message {
@@ -253,6 +278,20 @@ body {
   font-size: 0.95rem;
   color: #E2E8F0;
   line-height: 1.4;
+  display: inline-block;
+  align-items: flex-end;
+  gap: 6px;
+  max-width: 100%;
+  flex-wrap: wrap;
+  word-break: break-word;
+  white-space: pre-wrap;
+  position: relative; 
+  padding-right: 40px;
+}
+
+.text {
+  white-space: pre-wrap; 
+  word-break: break-word;
 }
 
 .message-input-container {
