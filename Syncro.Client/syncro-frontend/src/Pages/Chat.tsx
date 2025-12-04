@@ -21,6 +21,7 @@ const ChatPage = () => {
   const [isUploading, setIsUploading] = useState(false);
   const location = useLocation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatRef = useRef<HTMLDivElement | null>(null);
 
   const [showCallModal, setShowCallModal] = useState(false);
   const [inCall, setInCall] = useState(false);
@@ -61,14 +62,23 @@ const ChatPage = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
+  const isUserAtBottom = useCallback(() => {
+    const pos = chatRef.current;
+    if (!pos) return true;
+    return pos.scrollHeight - pos.scrollTop - pos.clientHeight < 300;
+  }, []);
+
   const handleNewMessage = useCallback((message: PersonalMessageData) => {
     setMessages(prev => {
       if (!prev.some(m => m.id === message.id)) {
         return [...prev, message];
       }
       return prev;
-    });
+  });
+
+  if (isUserAtBottom()) {
     setTimeout(scrollToBottom, 100);
+  }
   }, [scrollToBottom]);
 
   usePersonalMessagesHub(personalConference, handleNewMessage);
@@ -89,17 +99,27 @@ const ChatPage = () => {
     }
   }, [location.state]);
 
+  const scrollToBottomInstant = useCallback(() => {
+    const chat = chatRef.current;
+    if (!chat) return;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        chat.scrollTop = chat.scrollHeight;
+      });
+    });
+  }, []);
+
   const loadMessages = useCallback(async () => {
     if (!personalConference) return;
 
     try {
       const loadedMessages = await getMessages(personalConference);
       setMessages(loadedMessages);
-      setTimeout(scrollToBottom, 100);
+      scrollToBottomInstant();
     } catch (error) {
       console.error('Failed to load messages:', error);
     }
-  }, [personalConference, scrollToBottom]);
+  }, [personalConference]);
 
   useEffect(() => {
     loadMessages();
@@ -303,8 +323,8 @@ const ChatPage = () => {
             />
           )}
 
-          <div className="messages">
-            {messages.map((msg) => (
+          <div className="messages" ref={chatRef}>
+            {messages.map((msg, i) => (
               <Message
                 key={msg.id}
                 {...msg}
@@ -312,6 +332,8 @@ const ChatPage = () => {
                 avatarUrl={msg.accountId === currentUserId ?
                   (currentUser?.avatar || './logo.png') :
                   (currentFriend?.avatar || './logo.png')}
+                previousMessageAuthor={i > 0 ? messages[i - 1].accountNickname : null}
+                previousMessageDate={i > 0 ? messages[i - 1].messageDateSent : null}
               />
             ))}
             <div ref={messagesEndRef} />

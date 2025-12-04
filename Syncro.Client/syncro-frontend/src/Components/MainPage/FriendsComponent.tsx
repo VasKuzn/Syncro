@@ -254,6 +254,7 @@ const FriendsComponent = ({ friends, onFriendAdded }: FriendProps) => {
                                             <div className="friend-details-popover" style={{ zIndex: 200 }} onClick={e => e.stopPropagation()}>
                                                 <FriendDetails
                                                     friend={friend}
+                                                    friends={friends}
                                                     onAccept={handleAccept}
                                                     onCancel={handleCancel}
                                                 />

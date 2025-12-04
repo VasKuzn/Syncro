@@ -29,6 +29,7 @@ export interface FriendRequest {
 
 export interface FriendDetailsProps {
     friend: Friend | null;
+    friends: Friend[];
     onAccept?: (friend: Friend) => void;
     onCancel?: (friend: Friend) => void;
 }
