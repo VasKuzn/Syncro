@@ -4,6 +4,7 @@ import { getUserByNickname, fetchCurrentUser, sendFriendRequest, updateFriendSta
 import { FriendDetails } from "./FriendDetails";
 import { emptyFilterMessages } from "../../Constants/FriendFilterMessages";
 import { AnimatePresence, motion } from 'framer-motion';
+import loadingIcon from '../../assets/usersicon.svg';
 
 const FriendsComponent = ({ friends, onFriendAdded }: FriendProps) => {
     const [isLoading, setIsLoading] = useState(false);
@@ -189,7 +190,7 @@ const FriendsComponent = ({ friends, onFriendAdded }: FriendProps) => {
 
                 <div className="input-container">
                     <div className="input-box with-icon">
-                        <img className="search-icon" src="/search3.png" alt="Поиск" />
+                        <img className="search-icon-friend" src={loadingIcon} alt="Поиск" />
                         <input
                             ref={addFriendInputRef}
                             id="add-friend"
@@ -218,7 +219,7 @@ const FriendsComponent = ({ friends, onFriendAdded }: FriendProps) => {
                 <div className="input-container">
                     <div className="input-box">
                         <input className="friends-search" placeholder="Поиск" />
-                        <img className="search-icon" src="/search3.png" alt="Поиск" />
+                        <img className="search-icon" src="/search.png" alt="Поиск" />
                     </div>
                 </div>
 
