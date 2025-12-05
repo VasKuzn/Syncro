@@ -1,5 +1,8 @@
 import { useState, useRef } from "react";
 import { MessageInputProps } from "../../Types/ChatTypes";
+import attachIcon from '../../assets/clipicon.svg';
+import sendIcon from '../../assets/send-message.svg';
+import loadingIcon from '../../assets/loadingicon.svg';
 
 const MessageInput = ({ onSend, isUploading }: MessageInputProps) => {
   const [value, setValue] = useState("");
@@ -95,7 +98,15 @@ const MessageInput = ({ onSend, isUploading }: MessageInputProps) => {
         onClick={handleSend}
         disabled={(!value.trim() && !selectedFile) || isUploading}
       >
-        {isUploading ? "Sending..." : "Send"}
+        {isUploading ? (
+          <>
+            <img className="loading-state-img" src={loadingIcon} alt="Sending" width="30" height="30" />
+          </>
+        ) : (
+          <>
+            <img className="send-state-img" src={sendIcon} alt="Send" width="30" height="30" />
+          </>
+        )}
       </button>
 
       <button
@@ -105,9 +116,9 @@ const MessageInput = ({ onSend, isUploading }: MessageInputProps) => {
         disabled={isUploading}
       >
         {isUploading ? (
-          <span className="upload-spinner">Uploading...</span>
+          <span className="upload-spinner"></span>
         ) : (
-          <img src="/sk.png" alt="Attach media" />
+          <img src={attachIcon} alt="Attach media" />
         )}
       </button>
     </div>

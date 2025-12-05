@@ -13,6 +13,8 @@ import { createMessage, getMessages, uploadMediaMessage, getPersonalConferenceBy
 import usePersonalMessagesHub from '../Hooks/UsePersonalMessages';
 import UseRtcConnection from '../Hooks/UseRtcConnection';
 import { AnimatePresence, motion } from 'framer-motion';
+import callIcon from '../assets/callicon.svg';
+import loadingIcon from '../assets/loadingicon.svg';
 
 const ChatPage = () => {
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -287,7 +289,15 @@ const ChatPage = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  {rtcConnection.isConnected ? "📞 Вызов" : "⏳ Подключение..."}
+                  {rtcConnection.isConnected ? (
+                    <>
+                      <img className='call-state-img' src={callIcon} alt="Вызов" width="16" height="16" />Начать звонок
+                    </>
+                  ) : (
+                    <>
+                      <img className='loading-state-img' src={loadingIcon} alt="Подключение" width="16" height="16" /> Подключение...
+                    </>
+                  )}
                 </motion.button>
               </motion.div>
             )}
