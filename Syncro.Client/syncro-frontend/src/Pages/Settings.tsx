@@ -14,7 +14,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 
 const Settings = () => {
     const navigate = useNavigate();
-    const [currentUserId, setCurrentUserId] = useState<string | null>(null); 
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
     const {
         formState,
         setFormState,

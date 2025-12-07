@@ -49,9 +49,9 @@ body {
 }
 
 .settings-pages-container {
-    display: block;
-    padding: 50px 20px;
-    height: 100vh;
+  display: block;
+  padding: 50px 20px;
+  height: 100vh;
 }
 
 .settings-sidebar-button {
@@ -66,7 +66,7 @@ body {
 }
 
 .settings-sidebar-button:hover {
-  background-color: rgba(0, 123, 255, 0.1); 
+  background-color: rgba(0, 123, 255, 0.1);
   box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
   transform: translateY(-1px);
 }
@@ -78,23 +78,22 @@ body {
 }
 
 .setting-input-box {
-    display: flex;
-    padding: 5px 5px;
-    margin: 5px 0;
-    background-color: #07081C;
-    border-radius: 10px;
-    width: 300px;
+  display: flex;
+  padding: 5px 5px;
+  margin: 5px 0;
+  background-color: #07081C;
+  border-radius: 10px;
+  width: 300px;
 }
 
 .setting-input,
-.setting-input[type=password]
-{
-    font-size: 20px;
-    display: flex;
-    flex: 1;
-    border: none;
-    background-color: transparent;
-    color: #ffffff;
+.setting-input[type=password] {
+  font-size: 20px;
+  display: flex;
+  flex: 1;
+  border: none;
+  background-color: transparent;
+  color: #ffffff;
 }
 
 .setting {
@@ -104,15 +103,15 @@ body {
 }
 
 .setting-button {
-    display: flex;
-    align-items: center;
-    font-size: 20px;
-    padding: 5px 10px;
-    border: none;
-    border-radius: 10px;
-    background-color: #3B82F6;
-    color: #ffffff;
-    width: fit-content;
+  display: flex;
+  align-items: center;
+  font-size: 20px;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 10px;
+  background-color: #3B82F6;
+  color: #ffffff;
+  width: fit-content;
 }
 
 .settings-header {
@@ -127,4 +126,63 @@ body {
 .settings-profile-header {
   font-size: xx-large;
   margin-bottom: 30px;
+}
+
+/*Стили для смены аватара - добавила Кристина*/
+
+.avatar-container {
+  position: relative;
+  display: inline-block;
+  width: fit-content;
+  display: flex;
+
+}
+
+.avatar-tooltip {
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  white-space: nowrap;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.avatar-tooltip::after {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent rgba(0, 0, 0, 0.8) transparent;
+}
+
+.avatar-container:hover .avatar-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.settings-avatar {
+  display: block;
+  border-radius: 10%;
+  object-fit: cover;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+}
+
+.settings-avatar:hover {
+  filter: brightness(0.7);
+  transform: scale(1.02);
 }

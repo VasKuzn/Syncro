@@ -1,6 +1,6 @@
 import React from 'react';
 import { SettingsComponentProps } from "../../Types/SettingsProps";
- 
+
 const SettingsComponent: React.FC<SettingsComponentProps> = ({
     nickname,
     email,
@@ -42,9 +42,17 @@ const SettingsComponent: React.FC<SettingsComponentProps> = ({
 
                         <div className="setting">
                             <div className="setting-label">Аватар</div>
-                            <img src={avatar || "logo.png"} width="250" height="250" />
+                            <div className="avatar-container">
+                                <img
+                                    className="settings-avatar"
+                                    src={avatar || "logo.png"}
+                                    width="250"
+                                    height="250"
+                                    alt="Аватар"
+                                />
+                                <div className="avatar-tooltip">Изменить аватар</div>
+                            </div>
                         </div>
-
                         <button className="setting-button" type="submit">Сохранить изменения</button>
                     </div>
 
@@ -84,7 +92,7 @@ const SettingsComponent: React.FC<SettingsComponentProps> = ({
                                     name="country"
                                     className="setting-input"
                                     placeholder="Выберите страну"
-                                    value={country}                            
+                                    value={country}
                                     onChange={onChange}
                                     ref={countryField}
                                 />
