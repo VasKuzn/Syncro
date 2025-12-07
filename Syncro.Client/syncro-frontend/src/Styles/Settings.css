@@ -186,3 +186,101 @@ body {
   filter: brightness(0.7);
   transform: scale(1.02);
 }
+
+/* Стили для модального окна смены аватара */
+.avatar-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.avatar-modal {
+  background-color: #151838;
+  border-radius: 15px;
+  padding: 30px;
+  width: 400px;
+  border: 1px solid #2D3748;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.avatar-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #2D3748;
+}
+
+.avatar-modal-header h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #ffffff;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.modal-close-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.avatar-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.avatar-modal-btn {
+  padding: 15px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.avatar-modal-btn.file-btn {
+  background-color: #3B82F6;
+  color: white;
+}
+
+.avatar-modal-btn.file-btn:hover {
+  background-color: #2563EB;
+  transform: translateY(-2px);
+}
+
+.avatar-modal-btn.ai-btn {
+  background-color: #8B5CF6;
+  color: white;
+}
+
+.avatar-modal-btn.ai-btn:hover {
+  background-color: #7C3AED;
+  transform: translateY(-2px);
+}
+
+.avatar-modal-btn:active {
+  transform: translateY(0);
+}

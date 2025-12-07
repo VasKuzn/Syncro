@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { SettingsComponentProps } from "../../Types/SettingsProps";
+import SettingsAddAvatarComponent from './SettingsAddAvatarComponent';
 
 const SettingsComponent: React.FC<SettingsComponentProps> = ({
     nickname,
@@ -19,6 +20,32 @@ const SettingsComponent: React.FC<SettingsComponentProps> = ({
     onSubmit,
     onChange
 }) => {
+    const [showAvatarModal, setShowAvatarModal] = useState(false);
+
+    const handleAvatarClick = () => {
+        setShowAvatarModal(true);
+    };
+
+    const handleCloseModal = () => {
+        setShowAvatarModal(false);
+    };
+
+    const handleFileSelect = (file: File) => {
+        // Пока просто закроем модалку
+        // В следующих этапах добавим логику обработки файла
+        console.log('Выбран файл:', file.name);
+        setShowAvatarModal(false);
+
+        // Здесь можно добавить превью выбранного файла
+        // или сразу отправить на сервер
+    };
+
+    const handleAIGenerate = () => {
+        console.log('Запуск AI генерации аватара');
+        setShowAvatarModal(false);
+        // Здесь будет логика AI генерации
+    };
+
     return (
         <div className="settings-profile">
             <div className="settings-profile-header">Настройки учётной записи</div>
@@ -49,6 +76,7 @@ const SettingsComponent: React.FC<SettingsComponentProps> = ({
                                     width="250"
                                     height="250"
                                     alt="Аватар"
+                                    onClick={handleAvatarClick}
                                 />
                                 <div className="avatar-tooltip">Изменить аватар</div>
                             </div>
@@ -145,8 +173,17 @@ const SettingsComponent: React.FC<SettingsComponentProps> = ({
                     </div>
                 </div>
             </form>
+
+            {/* Модальное окно для смены аватара */}
+            {showAvatarModal && (
+                <SettingsAddAvatarComponent
+                    onFileSelect={handleFileSelect}
+                    onAIGenerate={handleAIGenerate}
+                    onClose={handleCloseModal}
+                />
+            )}
         </div>
     );
 }
 
-export default SettingsComponent
+export default SettingsComponent;
