@@ -9,6 +9,7 @@
     <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="4.0.3.4" />
     <PackageReference Include="AWSSDK.S3" Version="4.0.7.7" />
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageReference Include="CouchbaseNetClient" Version="3.8.1" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.9">

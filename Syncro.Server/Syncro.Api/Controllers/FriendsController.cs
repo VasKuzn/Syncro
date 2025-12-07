@@ -44,7 +44,7 @@ namespace Syncro.Api.Controllers
 
                 if (friend == null)
                 {
-                    return NotFound($"Friend with id {id} not found");
+                    return StatusCode(404, $"Friend not found error: ID {id}");
                 }
 
                 return Ok(friend);
@@ -64,7 +64,7 @@ namespace Syncro.Api.Controllers
 
                 if (friend == null)
                 {
-                    return NotFound($"Friend with id {id} not found");
+                    return StatusCode(404, $"Friend not found error: ID {id}");
                 }
 
                 return Ok(friend);
@@ -84,7 +84,7 @@ namespace Syncro.Api.Controllers
             {
                 if (friends.userWhoSent == friends.userWhoRecieved)
                 {
-                    return BadRequest("Cannot create friendship with yourself");
+                   return StatusCode(400, $"Bad request error: You cann't be friend with yourself");
                 }
 
                 var createdFriend = await _friendsService.CreateFriendsAsync(friends);
@@ -103,7 +103,7 @@ namespace Syncro.Api.Controllers
             }
             catch (ArgumentException ex)
             {
-                return Conflict(ex.Message);
+                return StatusCode(409, $"Conflict error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -121,13 +121,13 @@ namespace Syncro.Api.Controllers
                 var friends = await _friendsService.GetFriendsByIdAsync(id);
                 if (friends == null)
                 {
-                    return NotFound();
+                    return StatusCode(404, $"Friends not found error");
                 }
                 var result = await _friendsService.DeleteFriendsAsync(id);
 
                 if (!result)
                 {
-                    return NotFound($"Friend with id {id} not found");
+                    return StatusCode(404, $"Friend not found error: ID {id}");
                 }
                 await NotifyFriendsUpdate(friends.userWhoSent.ToString());
                 await NotifyFriendsUpdate(friends.userWhoRecieved.ToString());
@@ -153,7 +153,7 @@ namespace Syncro.Api.Controllers
 
                 if (updatedFriend == null)
                 {
-                    return NotFound($"Friend with id {id} not found");
+                    return StatusCode(404, $"Friend not found error: ID {id}");
                 }
                 await NotifyFriendsUpdate(updatedFriend.userWhoSent.ToString());
                 await NotifyFriendsUpdate(updatedFriend.userWhoRecieved.ToString());

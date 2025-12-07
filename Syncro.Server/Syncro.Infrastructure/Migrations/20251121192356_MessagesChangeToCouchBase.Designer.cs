@@ -12,8 +12,8 @@ using Syncro.Infrastructure.Data.DataBaseContext;
 namespace Syncro.Infrastructure.Migrations
 {
     [DbContext(typeof(DataBaseContext))]
-    [Migration("20251020202600_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20251121192356_MessagesChangeToCouchBase")]
+    partial class MessagesChangeToCouchBase
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -32,15 +32,15 @@ namespace Syncro.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasDefaultValueSql("gen_random_uuid()");
 
+                    b.Property<string>("avatar")
+                        .HasColumnType("text");
+
                     b.Property<string>("email")
                         .HasMaxLength(250)
                         .HasColumnType("character varying(250)");
 
                     b.Property<string>("firstname")
                         .HasColumnType("text");
-
-                    b.Property<bool>("isOnline")
-                        .HasColumnType("boolean");
 
                     b.Property<string>("lastname")
                         .HasColumnType("text");
@@ -174,82 +174,6 @@ namespace Syncro.Infrastructure.Migrations
                     b.ToTable("GroupConferences", (string)null);
                 });
 
-            modelBuilder.Entity("Syncro.Domain.Models.MessageModel", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.Property<string>("FileName")
-                        .HasColumnType("text");
-
-                    b.Property<int?>("MediaType")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("MediaUrl")
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("accountId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("accountNickname")
-                        .HasColumnType("text");
-
-                    b.Property<Guid?>("groupConferenceId")
-                        .HasColumnType("uuid");
-
-                    b.Property<bool>("isEdited")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<bool>("isPinned")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<bool>("isRead")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<string>("messageContent")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<DateTime>("messageDateSent")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<Guid?>("personalConferenceId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("previousMessageContent")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<Guid?>("referenceMessageId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("sectorId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("accountId");
-
-                    b.HasIndex("groupConferenceId");
-
-                    b.HasIndex("personalConferenceId");
-
-                    b.HasIndex("sectorId");
-
-                    b.ToTable("Messages", (string)null);
-                });
-
             modelBuilder.Entity("Syncro.Domain.Models.PersonalAccountInfoModel", b =>
                 {
                     b.Property<Guid>("Id")
@@ -257,12 +181,10 @@ namespace Syncro.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasDefaultValueSql("gen_random_uuid()");
 
-                    b.Property<DateTime>("dateOfAccountCreation")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                    b.Property<int?>("country")
+                        .HasColumnType("integer");
 
-                    b.Property<DateTime>("dateOfLastChange")
+                    b.Property<DateTime>("dateOfAccountCreation")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
@@ -271,11 +193,6 @@ namespace Syncro.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<bool>("isHidden")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
 
                     b.HasKey("Id");
 
@@ -579,30 +496,6 @@ namespace Syncro.Infrastructure.Migrations
                         .HasForeignKey("roleId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Syncro.Domain.Models.MessageModel", b =>
-                {
-                    b.HasOne("Syncro.Domain.Models.AccountModel", null)
-                        .WithMany()
-                        .HasForeignKey("accountId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Syncro.Domain.Models.GroupConferenceModel", null)
-                        .WithMany()
-                        .HasForeignKey("groupConferenceId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Syncro.Domain.Models.PersonalConferenceModel", null)
-                        .WithMany()
-                        .HasForeignKey("personalConferenceId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Syncro.Domain.Models.SectorModel", null)
-                        .WithMany()
-                        .HasForeignKey("sectorId")
-                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("Syncro.Domain.Models.PersonalAccountInfoModel", b =>

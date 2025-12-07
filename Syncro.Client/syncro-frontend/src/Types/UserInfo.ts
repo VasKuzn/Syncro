@@ -1,4 +1,5 @@
 export interface UserInfo {
+    [key: string]: string | number | undefined;
     nickname: string;
     email: string;
     password: string;

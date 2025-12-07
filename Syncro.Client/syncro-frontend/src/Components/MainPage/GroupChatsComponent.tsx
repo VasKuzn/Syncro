@@ -80,14 +80,14 @@ const GroupChatsComponent = () => {
     }, [fetchCurrentUser, refreshGroupsData, initSignalR]);
 
     const avatarUrl = currentUser?.avatar || "/logo.png";
-    if (loading) return <div>Loading groups...</div>;
-    if (error) return <div>Error: {error}</div>;
+    if (loading) return <div></div>;
+    if (error) return <div></div>;
 
     return (
         <div className="group-chats-container">
             <div className="group-chats">
                 <div className="main-logo">
-                    <img src="/logo.png" alt="Syncro logo" width="50" height="50" onClick={e => navigate("/main")} />
+                    <img src="/logo-icon-transparent.png" alt="Syncro logo" width="35" height="35" onClick={e => navigate("/main")} />
                 </div>
                 <div className="chat-separator"></div>
                 <div className="group-chat-list">

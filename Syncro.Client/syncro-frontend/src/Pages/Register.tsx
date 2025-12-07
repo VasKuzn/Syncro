@@ -8,6 +8,7 @@ import SuccessNotification from '../Components/RegisterPage/SuccessNotificationC
 
 import { useRegisterForm } from '../Hooks/UseRegisterForm';
 import { registerUser } from '../Services/RegistrationService';
+import { AnimatePresence, motion } from 'framer-motion';
 
 const Register = () => {
     const navigate = useNavigate();
@@ -51,32 +52,41 @@ const Register = () => {
     };
 
     return (
-        <div className="centered-container">
+        <AnimatePresence>
+            <motion.div
+                className="centered-container"
+                key="page"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5, ease: "easeInOut" }}
+            >
             {formState.showSuccess && <SuccessNotification onClose={handleCloseNotification} />}
 
-            <RegisterComponent
-                nickname={formState.nickname}
-                email={formState.email}
-                phone={formState.phone}
-                password={formState.password}
-                passwordVisible={formState.passwordVisible}
-                isLoading={formState.isLoading}
-                onNicknameChange={e => setFormState(prev => ({ ...prev, nickname: e.target.value }))}
-                onEmailChange={e => setFormState(prev => ({ ...prev, email: e.target.value }))}
-                onPhoneChange={e => setFormState(prev => ({ ...prev, phone: e.target.value }))}
-                onPasswordChange={e => setFormState(prev => ({ ...prev, password: e.target.value }))}
-                onTogglePasswordVisibility={() =>
-                    setFormState(prev => ({ ...prev, passwordVisible: !prev.passwordVisible }))
-                }
-                onSubmit={handleSubmit}
-                nicknameRef={nicknameField}
-                emailRef={emailField}
-                phoneRef={phoneField}
-                passwordRef={passwordField}
-            />
+                <RegisterComponent
+                    nickname={formState.nickname}
+                    email={formState.email}
+                    phone={formState.phone}
+                    password={formState.password}
+                    passwordVisible={formState.passwordVisible}
+                    isLoading={formState.isLoading}
+                    onNicknameChange={e => setFormState(prev => ({ ...prev, nickname: e.target.value }))}
+                    onEmailChange={e => setFormState(prev => ({ ...prev, email: e.target.value }))}
+                    onPhoneChange={e => setFormState(prev => ({ ...prev, phone: e.target.value }))}
+                    onPasswordChange={e => setFormState(prev => ({ ...prev, password: e.target.value }))}
+                    onTogglePasswordVisibility={() =>
+                        setFormState(prev => ({ ...prev, passwordVisible: !prev.passwordVisible }))
+                    }
+                    onSubmit={handleSubmit}
+                    nicknameRef={nicknameField}
+                    emailRef={emailField}
+                    phoneRef={phoneField}
+                    passwordRef={passwordField}
+                />
 
-            <FooterComponent />
-        </div>
+                <FooterComponent />
+            </motion.div>
+        </AnimatePresence>
     );
 };
 

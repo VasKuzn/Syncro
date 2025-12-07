@@ -10,6 +10,8 @@ builder.Services.AddInfrastructureServices(configuration);
 //PRESENTATION LAYER все web сервисы - контроллеры, signalr, authentication... 
 builder.Services.AddWebServices(configuration);
 
+// обработчики исключений
+builder.Services.AddErrorHandlers(configuration);
 
 var app = builder.Build();
 

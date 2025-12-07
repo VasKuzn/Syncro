@@ -47,7 +47,6 @@ namespace Syncro.Infrastructure.Services
             existingRole.roleName = roleDto.roleName;
             existingRole.rolePermissions = roleDto.rolePermissions;
             existingRole.color = roleDto.color;
-            existingRole.isDisplayedSeparetely = roleDto.isDisplayedSeparetely;
 
             return await _rolesRepository.UpdateRoleAsync(existingRole);
         }

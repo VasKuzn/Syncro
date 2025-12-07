@@ -201,7 +201,7 @@ namespace Syncro.Infrastructure.Selectel
         private void ValidateFile(IFormFile file)
         {
             //потом поставить ограничение на гигабайта 2-4
-            var maxFileSize = 25 * 1024 * 1024; // 25MB
+            var maxFileSize = 512 * 1024 * 1024; // 25MB
             if (file.Length > maxFileSize)
             {
                 throw new ArgumentException($"File size exceeds the limit of {maxFileSize / (1024 * 1024)}MB");

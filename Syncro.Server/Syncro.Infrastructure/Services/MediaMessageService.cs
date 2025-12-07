@@ -7,17 +7,17 @@ namespace Syncro.Infrastructure.Services
     public class MediaMessageService : IMediaMessageService
     {
         private readonly ISelectelStorageService _storageService;
-        private readonly IMessageService _messageService;
+        private readonly ICouchBaseMessagesService _messageService;
         private readonly string? _cdnUrl;
 
-        public MediaMessageService(ISelectelStorageService storageService, IMessageService messageService, IConfiguration configuration)
+        public MediaMessageService(ISelectelStorageService storageService, ICouchBaseMessagesService messageService, IConfiguration configuration)
         {
             _storageService = storageService;
             _messageService = messageService;
             _cdnUrl = configuration["S3Storage:CdnUrl"];
         }
 
-        public async Task<MessageModel> UploadMessageMediaAsync(Guid personalConferenceId, Guid accountId, Guid messageId, IFormFile file)
+        public async Task<MessageModel> UploadMessageMediaAsync(Guid personalConferenceId, Guid accountId, Guid messageId, string accountNickname, string messageContent, IFormFile file)
         {
             var result = await _storageService.UploadMessageFileAsync(file, messageId, accountId, personalConferenceId);
 
@@ -26,9 +26,10 @@ namespace Syncro.Infrastructure.Services
             var message = new MessageModel
             {
                 Id = messageId,
-                messageContent = string.Empty,
+                messageContent = messageContent,
                 messageDateSent = DateTime.UtcNow,
                 accountId = accountId,
+                accountNickname = accountNickname,
                 personalConferenceId = personalConferenceId,
                 groupConferenceId = null,
                 sectorId = null,
