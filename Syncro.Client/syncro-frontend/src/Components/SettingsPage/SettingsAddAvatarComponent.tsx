@@ -4,14 +4,17 @@ interface SettingsAddAvatarComponentProps {
     onFileSelect: (file: File) => void;
     onAIGenerate: () => void;
     onClose: () => void;
+    fileInputRef?: React.RefObject<HTMLInputElement | null>; // Изменяем тип
 }
 
 const SettingsAddAvatarComponent: React.FC<SettingsAddAvatarComponentProps> = ({
     onFileSelect,
     onAIGenerate,
-    onClose
+    onClose,
+    fileInputRef
 }) => {
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    const internalRef = useRef<HTMLInputElement>(null);
+    const currentRef = fileInputRef || internalRef;
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -21,7 +24,7 @@ const SettingsAddAvatarComponent: React.FC<SettingsAddAvatarComponentProps> = ({
     };
 
     const handleSelectFileClick = () => {
-        fileInputRef.current?.click();
+        currentRef.current?.click();
     };
 
     return (
@@ -35,7 +38,7 @@ const SettingsAddAvatarComponent: React.FC<SettingsAddAvatarComponentProps> = ({
                 <div className="avatar-modal-content">
                     <input
                         type="file"
-                        ref={fileInputRef}
+                        ref={currentRef}
                         onChange={handleFileChange}
                         accept="image/*"
                         style={{ display: 'none' }}

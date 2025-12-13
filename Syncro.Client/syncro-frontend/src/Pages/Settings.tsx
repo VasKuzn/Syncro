@@ -1,16 +1,13 @@
+// Settings.tsx
 import '../Styles/Settings.css';
-
 import SidebarComponent from '../Components/SettingsPage/SidebarComponent';
 import SettingsComponent from '../Components/SettingsPage/SettingsComponent';
-
 import { useSettingsForm } from '../Hooks/UseSettingsForm';
 import { updateUserInfo } from '../Services/SettingsService';
 import { fetchCurrentUser, getUserInfo } from '../Services/MainFormService';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { UserInfo } from '../Types/UserInfo';
 import { AnimatePresence, motion } from 'framer-motion';
-
 
 const Settings = () => {
     const navigate = useNavigate();
@@ -18,6 +15,8 @@ const Settings = () => {
     const {
         formState,
         setFormState,
+        avatarFile,
+        updateAvatar,
         nicknameField,
         firstnameField,
         lastnameField,
@@ -37,7 +36,6 @@ const Settings = () => {
                     ...user,
                 }))
             }
-
             setCurrentUserId(await fetchCurrentUser());
         };
         loadCurrentUser();
@@ -51,29 +49,21 @@ const Settings = () => {
         }
 
         try {
-            // const userData: UserInfo = {
-            //     nickname: formState.nickname,
-            //     firstname: formState.firstname,
-            //     lastname: formState.lastname,
-            //     email: formState.email,
-            //     phonenumber: formState.phonenumber,
-            //     country: formState.country,
-            //     password: formState.password,
-            //     avatar: ""
-            // };
-
             const userData = new FormData()
             userData.append("nickname", formState.nickname)
             userData.append("firstname", formState.firstname)
             userData.append("lastname", formState.lastname)
             userData.append("email", formState.email)
             userData.append("phonenumber", formState.phonenumber)
-            //userData.append("country", formState.country)
             userData.append("password", formState.password)
-            userData.append("avatar", formState.avatar)
+
+            if (avatarFile) {
+                userData.append("AvatarFile", avatarFile, avatarFile.name);
+            }/* else if (formState.avatar && !formState.avatar.startsWith('blob:')) {
+                userData.append("avatar", formState.avatar);
+            }*/
 
             await updateUserInfo(currentUserId, userData)
-
             navigate(-1)
         } catch (error) {
             console.log(error)
@@ -87,6 +77,18 @@ const Settings = () => {
             [name]: value
         }))
     };
+
+    const handleAvatarUpdate = (file: File) => {
+        const previewUrl = URL.createObjectURL(file);
+        updateAvatar(file, previewUrl);
+    };
+    useEffect(() => {
+        return () => {
+            if (formState.avatar && formState.avatar.startsWith('blob:')) {
+                URL.revokeObjectURL(formState.avatar);
+            }
+        };
+    }, [formState.avatar]);
 
     return (
         <AnimatePresence mode="wait">
@@ -117,6 +119,8 @@ const Settings = () => {
                     passwordField={passwordField}
                     onSubmit={e => handleSubmit(e)}
                     onChange={e => handleChange(e)}
+                    onAvatarUpdate={handleAvatarUpdate}
+                    currentAvatarFile={avatarFile}
                 />
             </motion.div>
         </AnimatePresence>

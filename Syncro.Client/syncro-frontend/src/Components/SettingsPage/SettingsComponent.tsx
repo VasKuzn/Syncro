@@ -1,8 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { SettingsComponentProps } from "../../Types/SettingsProps";
 import SettingsAddAvatarComponent from './SettingsAddAvatarComponent';
+import AIGenerationModal from './AIGenerationModal';
 
-const SettingsComponent: React.FC<SettingsComponentProps> = ({
+interface EnhancedSettingsComponentProps extends SettingsComponentProps {
+    onAvatarUpdate: (file: File) => void;
+    currentAvatarFile?: File | null;
+}
+
+const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
     nickname,
     email,
     firstname,
@@ -18,9 +24,13 @@ const SettingsComponent: React.FC<SettingsComponentProps> = ({
     countryField,
     passwordField,
     onSubmit,
-    onChange
+    onChange,
+    onAvatarUpdate,
+    currentAvatarFile
 }) => {
     const [showAvatarModal, setShowAvatarModal] = useState(false);
+    const [showAIModal, setShowAIModal] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleAvatarClick = () => {
         setShowAvatarModal(true);
@@ -31,19 +41,35 @@ const SettingsComponent: React.FC<SettingsComponentProps> = ({
     };
 
     const handleFileSelect = (file: File) => {
-        // Пока просто закроем модалку
-        // В следующих этапах добавим логику обработки файла
-        console.log('Выбран файл:', file.name);
-        setShowAvatarModal(false);
+        // Создаем URL для предпросмотра
+        const previewUrl = URL.createObjectURL(file);
 
-        // Здесь можно добавить превью выбранного файла
-        // или сразу отправить на сервер
+        // Обновляем аватар в родительском компоненте
+        onAvatarUpdate(file);
+
+        setShowAvatarModal(false);
     };
 
     const handleAIGenerate = () => {
-        console.log('Запуск AI генерации аватара');
         setShowAvatarModal(false);
-        // Здесь будет логика AI генерации
+        setShowAIModal(true);
+    };
+
+    const handleAIGenerated = (file: File) => {
+        // Создаем URL для предпросмотра
+        const previewUrl = URL.createObjectURL(file);
+
+        // Обновляем аватар в родительском компоненте
+        onAvatarUpdate(file);
+
+        setShowAIModal(false);
+    };
+
+    const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            handleFileSelect(file);
+        }
     };
 
     return (
@@ -63,6 +89,7 @@ const SettingsComponent: React.FC<SettingsComponentProps> = ({
                                     value={nickname}
                                     onChange={onChange}
                                     ref={nicknameField}
+                                    required
                                 />
                             </div>
                         </div>
@@ -77,10 +104,14 @@ const SettingsComponent: React.FC<SettingsComponentProps> = ({
                                     height="250"
                                     alt="Аватар"
                                     onClick={handleAvatarClick}
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).src = "logo.png";
+                                    }}
                                 />
                                 <div className="avatar-tooltip">Изменить аватар</div>
                             </div>
                         </div>
+
                         <button className="setting-button" type="submit">Сохранить изменения</button>
                     </div>
 
@@ -123,6 +154,7 @@ const SettingsComponent: React.FC<SettingsComponentProps> = ({
                                     value={country}
                                     onChange={onChange}
                                     ref={countryField}
+                                    type="number"
                                 />
                             </div>
                         </div>
@@ -139,6 +171,8 @@ const SettingsComponent: React.FC<SettingsComponentProps> = ({
                                     value={email}
                                     onChange={onChange}
                                     ref={emailField}
+                                    type="email"
+                                    required
                                 />
                             </div>
                         </div>
@@ -153,6 +187,7 @@ const SettingsComponent: React.FC<SettingsComponentProps> = ({
                                     value={phonenumber}
                                     onChange={onChange}
                                     ref={phoneField}
+                                    required
                                 />
                             </div>
                         </div>
@@ -167,6 +202,7 @@ const SettingsComponent: React.FC<SettingsComponentProps> = ({
                                     placeholder="Введите пароль"
                                     onChange={onChange}
                                     ref={passwordField}
+                                    required
                                 />
                             </div>
                         </div>
@@ -174,16 +210,30 @@ const SettingsComponent: React.FC<SettingsComponentProps> = ({
                 </div>
             </form>
 
-            {/* Модальное окно для смены аватара */}
+            <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileInputChange}
+                accept="image/*"
+                style={{ display: 'none' }}
+            />
+
             {showAvatarModal && (
                 <SettingsAddAvatarComponent
                     onFileSelect={handleFileSelect}
                     onAIGenerate={handleAIGenerate}
                     onClose={handleCloseModal}
+                    fileInputRef={fileInputRef}
+                />
+            )}
+            {showAIModal && (
+                <AIGenerationModal
+                    onGenerate={handleAIGenerated}
+                    onClose={() => setShowAIModal(false)}
                 />
             )}
         </div>
     );
-}
+};
 
 export default SettingsComponent;
