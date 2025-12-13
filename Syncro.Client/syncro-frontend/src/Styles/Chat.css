@@ -993,3 +993,33 @@ video::-webkit-media-controls-panel {
     transform: rotate(360deg);
   }
 }
+
+.emoji-picker-container {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  margin-bottom: 10px;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Контейнер-обертка для поля ввода */
+.message-input-wrapper {
+  position: relative;
+  margin: 0 16px;
+}
