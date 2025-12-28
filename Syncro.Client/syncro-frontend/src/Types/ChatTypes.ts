@@ -17,8 +17,20 @@ export interface PersonalMessageData {
     mediaUrl?: string | null,
     mediaType?: string | number | null,
     fileName?: string | null
-
 }
+
+export interface ShortPersonalMessageData {
+    id: string;
+    accountNickname?: string | null,
+    messageDateSent: Date,
+}
+
+export interface PersonalMessageProps {
+    mediaUrl?: string | null,
+    mediaType?: string | number | null,
+    fileName?: string | null
+}
+
 export interface PersonalChatProps {
     chatContent?: React.ReactNode;
     friends?: Friend[];

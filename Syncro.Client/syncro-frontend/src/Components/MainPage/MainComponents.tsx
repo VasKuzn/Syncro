@@ -1,14 +1,14 @@
-import HeaderComponent from "./HeaderComponent";
 import BodyComponent from "./BodyComponent";
-import { FriendProps } from "../../Types/FriendType";
+import { MainProps } from "../../Types/MainProps";
 
-
-const MainComponent = ({ friends }: FriendProps) => {
+const MainComponent = ({ friends, nickname, avatar, isOnline}: MainProps) => {
     return (
         <div className="main-page">
             <BodyComponent
-                friends={friends}>
-            </BodyComponent>
+                friends={friends}
+                nickname={nickname}
+                avatar={avatar}
+                isOnline={isOnline}/>
         </div>
     );
 };

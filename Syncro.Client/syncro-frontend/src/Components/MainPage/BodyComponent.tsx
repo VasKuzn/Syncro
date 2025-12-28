@@ -1,12 +1,17 @@
-import { FriendProps } from "../../Types/FriendType";
+import { MainProps } from "../../Types/MainProps";
 import FriendsComponent from "./FriendsComponent";
 import SidebarComponent from "./SidebarComponent";
 
 
-const BodyComponent = ({ friends }: FriendProps) => {
+const BodyComponent = ({ friends, nickname, avatar, isOnline}: MainProps) => {
     return (
         <div className="body-container">
-            <SidebarComponent friends={friends} />
+            <SidebarComponent 
+                friends={friends}
+                nickname={nickname}
+                avatar={avatar}
+                isOnline={isOnline}
+             />
             <FriendsComponent friends={friends} />
         </div>
     );

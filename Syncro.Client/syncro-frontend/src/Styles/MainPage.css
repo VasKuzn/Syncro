@@ -61,6 +61,77 @@ body {
     width: 72px;
 }
 
+.profile-panel {
+  position: absolute;
+  bottom: 10px;
+  left: 2%;
+  right: 2%;
+  margin: 0 auto;
+  height: 80px;
+  background-color: #1a2438ab;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: left;
+  color: white;
+  z-index: 2;
+}
+
+.profile-info-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 0px 20px;
+    gap: 7px;
+    width: 83%;
+}
+
+.profile-avatar-container {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.profile-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    align-content: center;
+    border: 2px solid #3B82F6;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.profile-text-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #00000000;
+    cursor: pointer;
+    height: 40px;
+    width: 40px;
+    border-radius: 35%;
+    border: none;
+    /* border: 2px solid #07081C; */
+}
+
+.settings-image {
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+.profile-button:hover {
+    background: #27344f;
+}
+
 .group-chats {
     justify-items: center;
     flex: 1;
@@ -265,7 +336,6 @@ body {
     overflow: hidden;
     flex-shrink: 0;
 }
-
 
 .friend-info-container {
     display: flex;

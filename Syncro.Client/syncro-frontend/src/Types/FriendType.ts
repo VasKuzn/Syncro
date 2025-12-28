@@ -15,6 +15,13 @@ export interface Friend {
     //обновить avatar: string, подумать над isOnline и AccountActivity
 }
 
+export interface ShortFriend {
+    id: string;
+    nickname: string;
+    avatar: string;
+    friendShipId: string;
+}
+
 export interface FriendProps {
     friends: Friend[];
     onFriendAdded?: () => void;

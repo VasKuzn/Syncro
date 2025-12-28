@@ -99,16 +99,6 @@ const GroupChatsComponent = () => {
                 </div>
                 <div className="group-chat-item add">+</div>
             </div>
-            <div className="profile-button">
-                <img
-                    src={avatarUrl}
-                    alt="User avatar"
-                    onClick={e => navigate("/settings")}
-                    onError={(e) => {
-                        e.currentTarget.src = "/logo.png";
-                    }}
-                />
-            </div>
         </div>
     );
 };

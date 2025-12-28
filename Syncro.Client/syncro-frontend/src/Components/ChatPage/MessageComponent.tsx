@@ -1,4 +1,4 @@
-import { MessageProps, PersonalMessageData } from '../../Types/ChatTypes';
+import { MessageProps } from '../../Types/ChatTypes';
 import { getFileIconByType } from './FileIcon';
 import ErrorBoundary from '../Common/ErrorBoundary';
 
