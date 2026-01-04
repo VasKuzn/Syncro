@@ -1,5 +1,3 @@
-using Syncro.Domain.Enums;
-
 namespace Syncro.Application.ModelsDTO
 {
     public class SectorModelDTO

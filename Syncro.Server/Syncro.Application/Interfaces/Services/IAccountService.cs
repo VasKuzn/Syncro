@@ -15,5 +15,6 @@ namespace Syncro.Application.Services
         public Task<AccountModel> GetAccountByNicknameAsync(string nickname);
         public Task<string> GetAccountAvatarUrlAsync(Guid accountId);
         public Task<AccountModel> DeleteAccountAvatarAsync(Guid accountId);
+        public Task<AccountModel> ResetPassword(Guid accountId, string password);
     }
 }

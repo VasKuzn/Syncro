@@ -143,5 +143,14 @@ namespace Syncro.Infrastructure.Services
             var token = _jwtProvider.GenerateToken(user);
             return Result<string>.Success(token);
         }
+
+        public async Task<AccountModel> ResetPassword(Guid accountId, string password)
+        {
+            var existingAccount = await _accountRepository.GetAccountByIdAsync(accountId);
+            
+            existingAccount.password = password;
+
+            return await _accountRepository.UpdateAccountAsync(existingAccount);
+        }
     }
 }
