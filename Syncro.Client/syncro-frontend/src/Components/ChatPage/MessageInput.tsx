@@ -4,14 +4,14 @@ import attachIcon from '../../assets/clipicon.svg';
 import sendIcon from '../../assets/send-message.svg';
 import loadingIcon from '../../assets/loadingicon.svg';
 
-const MessageInput = ({ onSend, isUploading }: MessageInputProps) => {
+const MessageInput = ({ onSend, isUploading, disabled = false }: MessageInputProps) => {
   const [value, setValue] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSend = () => {
-    if (value.trim() || selectedFile) {
+    if ((value.trim() || selectedFile) && !disabled) {
       onSend(value, selectedFile ? {
         file: selectedFile,
         fileName: selectedFile.name,
@@ -25,13 +25,13 @@ const MessageInput = ({ onSend, isUploading }: MessageInputProps) => {
   };
 
   const handleSkClick = () => {
-    if (!isUploading) {
+    if (!isUploading && !disabled) {
       fileInputRef.current?.click();
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0] && !isUploading) {
+    if (e.target.files && e.target.files[0] && !isUploading && !disabled) {
       const file = e.target.files[0];
       setSelectedFile(file);
 
@@ -50,12 +50,20 @@ const MessageInput = ({ onSend, isUploading }: MessageInputProps) => {
   };
 
   const removeFile = () => {
-    setSelectedFile(null);
-    setFilePreview(null);
+    if (!disabled) {
+      setSelectedFile(null);
+      setFilePreview(null);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !disabled) {
+      handleSend();
+    }
   };
 
   return (
-    <div className="message-input-container">
+    <div className={`message-input-container ${disabled ? 'disabled' : ''}`}>
       {selectedFile && (
         <div className={`file-preview ${filePreview ? 'image-preview' : ''}`}>
           {filePreview ? (
@@ -63,13 +71,25 @@ const MessageInput = ({ onSend, isUploading }: MessageInputProps) => {
               <img src={filePreview} alt="Preview" className="preview-image" />
               <div className="file-info">
                 <span className="file-name">{selectedFile.name}</span>
-                <button onClick={removeFile} className="remove-file-btn">×</button>
+                <button
+                  onClick={removeFile}
+                  className="remove-file-btn"
+                  disabled={disabled}
+                >
+                  ×
+                </button>
               </div>
             </>
           ) : (
             <>
               <span className="file-name">{selectedFile.name}</span>
-              <button onClick={removeFile} className="remove-file-btn">×</button>
+              <button
+                onClick={removeFile}
+                className="remove-file-btn"
+                disabled={disabled}
+              >
+                ×
+              </button>
             </>
           )}
         </div>
@@ -80,8 +100,8 @@ const MessageInput = ({ onSend, isUploading }: MessageInputProps) => {
         placeholder="Type a message..."
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && handleSend()}
-        disabled={isUploading}
+        onKeyDown={handleKeyDown}
+        disabled={isUploading || disabled}
       />
 
       <input
@@ -90,13 +110,13 @@ const MessageInput = ({ onSend, isUploading }: MessageInputProps) => {
         onChange={handleFileChange}
         style={{ display: "none" }}
         accept="image/*,video/*,audio/*"
-        disabled={isUploading}
+        disabled={isUploading || disabled}
       />
 
       <button
         className="send-button"
         onClick={handleSend}
-        disabled={(!value.trim() && !selectedFile) || isUploading}
+        disabled={(!value.trim() && !selectedFile) || isUploading || disabled}
       >
         {isUploading ? (
           <>
@@ -113,7 +133,7 @@ const MessageInput = ({ onSend, isUploading }: MessageInputProps) => {
         className="sk-class"
         onClick={handleSkClick}
         type="button"
-        disabled={isUploading}
+        disabled={isUploading || disabled}
       >
         {isUploading ? (
           <span className="upload-spinner"></span>

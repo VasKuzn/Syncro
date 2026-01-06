@@ -18,6 +18,11 @@ export interface PersonalMessageData {
     mediaType?: string | number | null,
     fileName?: string | null
 
+    isEncrypted?: boolean;
+    encryptionMetadata?: string | object;
+    encryptionVersion?: number;
+    encryptedContent?: string;
+
 }
 export interface PersonalChatProps {
     chatContent?: React.ReactNode;
@@ -31,7 +36,9 @@ export interface MessageInputProps {
         mediaUrl: string;
     }) => void;
     isUploading: boolean;
+    disabled?: boolean;
 }
+
 export interface PersonalConference {
     id: string,
     user1: string,

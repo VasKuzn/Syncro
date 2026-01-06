@@ -1,4 +1,5 @@
 using System.Reflection;
+using Syncro.Infrastructure.Encryption.Models;
 
 namespace Syncro.Infrastructure.Data.DataBaseContext
 {
@@ -17,6 +18,10 @@ namespace Syncro.Infrastructure.Data.DataBaseContext
         public DbSet<ServerMemberRoles> serverMemberRoles { get; set; }
         public DbSet<ServerMemberModel> serverMembers { get; set; }
         public DbSet<ConferenceRolesModel> conferenceRoles { get; set; }
+
+        public DbSet<UserEncryptionKey> UserEncryptionKeys { get; set; }
+        public DbSet<EncryptionSession> EncryptionSessions { get; set; }
+        public DbSet<GroupEncryptionKey> GroupEncryptionKeys { get; set; }
 
         public DataBaseContext(DbContextOptions options) : base(options)
         {

@@ -4,6 +4,10 @@ using Couchbase.Query;
 using Newtonsoft.Json.Linq;
 using Couchbase.KeyValue;
 using Microsoft.Extensions.Configuration;
+using System.Text.Json;
+using Syncro.Infrastructure.Encryption.Interfaces;
+using Syncro.Domain.Models;
+using Syncro.Infrastructure.Services;
 
 namespace Syncro.Infrastructure.CouchBaseStorage
 {
@@ -13,12 +17,19 @@ namespace Syncro.Infrastructure.CouchBaseStorage
         private readonly IBucket _bucket;
         private readonly IScope _scope;
         private readonly ICouchbaseCollection _collection;
+        private readonly IEncryptionService _encryptionService;
+        private readonly IConferenceService<PersonalConferenceModel> _personalConferenceService;
+        private readonly IAccountService _accountService;
 
         private readonly string _bucketName;
         private readonly string _scopeName;
         private readonly string _collectionName;
 
-        public CouchBaseMessagesService(IConfiguration configuration)
+        public CouchBaseMessagesService(
+            IConfiguration configuration,
+            IEncryptionService encryptionService,
+            IConferenceService<PersonalConferenceModel> personalConferenceService,
+            IAccountService accountService)
         {
             var endpoint = configuration["Couchbase:Endpoint"];
             var username = configuration["Couchbase:Username"];
@@ -26,6 +37,9 @@ namespace Syncro.Infrastructure.CouchBaseStorage
             _bucketName = configuration["Couchbase:BucketName"];
             _scopeName = configuration["Couchbase:ScopeName"];
             _collectionName = configuration["Couchbase:CollectionName"];
+            _encryptionService = encryptionService;
+            _personalConferenceService = personalConferenceService;
+            _accountService = accountService;
 
             if (string.IsNullOrEmpty(endpoint) || string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
@@ -57,6 +71,25 @@ namespace Syncro.Infrastructure.CouchBaseStorage
         }
 
         private string GetMessageKey(Guid messageId) => $"message_{messageId}";
+
+        // Метод для получения ID получателя через PersonalConferenceService
+        private async Task<Guid> GetRecipientIdAsync(Guid personalConferenceId, Guid senderId)
+        {
+            try
+            {
+                var conference = await _personalConferenceService.GetConferenceByIdAsync(personalConferenceId);
+
+                if (conference == null)
+                    throw new InvalidOperationException($"Conference {personalConferenceId} not found");
+
+                return conference.user1 == senderId ? conference.user2 : conference.user1;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting recipient ID: {ex}");
+                throw;
+            }
+        }
 
         public async Task<List<MessageModel>> GetAllMessagesAsync()
         {
@@ -90,11 +123,11 @@ namespace Syncro.Infrastructure.CouchBaseStorage
             try
             {
                 var query = $@"
-                    SELECT m.* 
-                    FROM `{_bucketName}`.`{_scopeName}`.`{_collectionName}` m 
-                    WHERE m.type = 'message' 
-                    AND m.personalConferenceId = $personalConferenceId 
-                    ORDER BY m.messageDateSent ASC";
+            SELECT m.* 
+            FROM `{_bucketName}`.`{_scopeName}`.`{_collectionName}` m 
+            WHERE m.type = 'message' 
+            AND m.personalConferenceId = $personalConferenceId 
+            ORDER BY m.messageDateSent ASC";
 
                 var parameters = new QueryOptions()
                     .Parameter("personalConferenceId", personalConferenceId);
@@ -113,6 +146,41 @@ namespace Syncro.Infrastructure.CouchBaseStorage
             {
                 Console.WriteLine($"Error getting messages by personal conference: {ex}");
                 throw;
+            }
+        }
+
+        private async Task DecryptMessageContentAsync(MessageModel message)
+        {
+            try
+            {
+                if (!message.IsEncrypted || string.IsNullOrEmpty(message.messageContent) ||
+                    string.IsNullOrEmpty(message.EncryptionMetadata))
+                {
+                    return;
+                }
+
+                if (message.accountId.HasValue)
+                {
+                    var decryptionResult = await _encryptionService.DecryptMessageAsync(
+                        message.messageContent,
+                        message.EncryptionMetadata,
+                        message.accountId.Value
+                    );
+
+                    if (decryptionResult.Success)
+                    {
+                        message.messageContent = decryptionResult.Plaintext;
+                    }
+                    else
+                    {
+                        message.messageContent = $"[Encrypted - Decryption failed: {decryptionResult.Error}]";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error decrypting message: {ex}");
+                message.messageContent = "[Encrypted message - decryption error]";
             }
         }
 
@@ -159,28 +227,122 @@ namespace Syncro.Infrastructure.CouchBaseStorage
                     message.messageDateSent = DateTime.UtcNow;
                 }
 
-                var document = new JObject
+                if (message.IsEncrypted)
                 {
-                    ["type"] = "message",
-                    ["id"] = message.Id,
-                    ["messageContent"] = message.messageContent,
-                    ["messageDateSent"] = message.messageDateSent,
-                    ["accountId"] = message.accountId,
-                    ["accountNickname"] = message.accountNickname,
-                    ["personalConferenceId"] = message.personalConferenceId,
-                    ["groupConferenceId"] = message.groupConferenceId,
-                    ["sectorId"] = message.sectorId,
-                    ["isEdited"] = message.isEdited,
-                    ["previousMessageContent"] = message.previousMessageContent,
-                    ["isPinned"] = message.isPinned,
-                    ["isRead"] = message.isRead,
-                    ["referenceMessageId"] = message.referenceMessageId,
-                    ["MediaUrl"] = message.MediaUrl,
-                    ["MediaType"] = message.MediaType?.ToString(),
-                    ["FileName"] = message.FileName
-                };
+                    byte[] encryptedContent;
+                    string metadataJson;
 
-                await _collection.InsertAsync(GetMessageKey(message.Id), document);
+                    if (message.personalConferenceId.HasValue)
+                    {
+                        var recipientId = await GetRecipientIdAsync(message.personalConferenceId.Value, message.accountId.Value);
+
+                        var hasSession = await _encryptionService.HasSessionAsync(message.accountId.Value, recipientId);
+                        if (!hasSession)
+                        {
+                            try
+                            {
+                                var recipientPublicKey = await _encryptionService.GetPublicKeyAsync(recipientId);
+                                await _encryptionService.InitializeSessionAsync(message.accountId.Value, recipientId, recipientPublicKey);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Warning: Failed to auto-initialize session: {ex.Message}");
+                                throw new InvalidOperationException("Encryption session not initialized. Call /api/encryption/sessions/initialize first.");
+                            }
+                        }
+
+                        var encryptionResult = await _encryptionService.EncryptMessageAsync(
+                            message.messageContent,
+                            message.accountId.Value,
+                            recipientId
+                        );
+
+                        encryptedContent = encryptionResult.EncryptedData;
+                        metadataJson = JsonSerializer.Serialize(encryptionResult.Metadata);
+                    }
+                    else if (message.groupConferenceId.HasValue)
+                    {
+                        var encryptionResult = await _encryptionService.EncryptMessageAsync(
+                            message.messageContent,
+                            message.accountId.Value,
+                            Guid.Empty,
+                            message.groupConferenceId.Value
+                        );
+
+                        encryptedContent = encryptionResult.EncryptedData;
+                        metadataJson = JsonSerializer.Serialize(encryptionResult.Metadata);
+                    }
+                    else
+                    {
+                        message.IsEncrypted = false;
+                        encryptedContent = System.Text.Encoding.UTF8.GetBytes(message.messageContent);
+                        metadataJson = null;
+                    }
+
+                    var originalContent = message.messageContent;
+
+                    message.EncryptedContent = encryptedContent;
+                    message.EncryptionMetadata = metadataJson;
+                    message.messageContent = Convert.ToBase64String(encryptedContent);
+
+                    var document = new JObject
+                    {
+                        ["type"] = "message",
+                        ["id"] = message.Id,
+                        ["messageContent"] = message.messageContent,
+                        ["messageDateSent"] = message.messageDateSent,
+                        ["accountId"] = message.accountId,
+                        ["accountNickname"] = message.accountNickname,
+                        ["personalConferenceId"] = message.personalConferenceId,
+                        ["groupConferenceId"] = message.groupConferenceId,
+                        ["sectorId"] = message.sectorId,
+                        ["isEdited"] = message.isEdited,
+                        ["previousMessageContent"] = message.previousMessageContent,
+                        ["isPinned"] = message.isPinned,
+                        ["isRead"] = message.isRead,
+                        ["referenceMessageId"] = message.referenceMessageId,
+                        ["MediaUrl"] = message.MediaUrl,
+                        ["MediaType"] = message.MediaType?.ToString(),
+                        ["FileName"] = message.FileName,
+
+                        ["IsEncrypted"] = message.IsEncrypted,
+                        ["EncryptionMetadata"] = message.EncryptionMetadata,
+                        ["EncryptionVersion"] = message.EncryptionVersion
+                    };
+
+                    await _collection.InsertAsync(GetMessageKey(message.Id), document);
+
+                    message.messageContent = originalContent;
+                    message.EncryptedContent = null;
+                }
+                else
+                {
+                    var document = new JObject
+                    {
+                        ["type"] = "message",
+                        ["id"] = message.Id,
+                        ["messageContent"] = message.messageContent,
+                        ["messageDateSent"] = message.messageDateSent,
+                        ["accountId"] = message.accountId,
+                        ["accountNickname"] = message.accountNickname,
+                        ["personalConferenceId"] = message.personalConferenceId,
+                        ["groupConferenceId"] = message.groupConferenceId,
+                        ["sectorId"] = message.sectorId,
+                        ["isEdited"] = message.isEdited,
+                        ["previousMessageContent"] = message.previousMessageContent,
+                        ["isPinned"] = message.isPinned,
+                        ["isRead"] = message.isRead,
+                        ["referenceMessageId"] = message.referenceMessageId,
+                        ["MediaUrl"] = message.MediaUrl,
+                        ["MediaType"] = message.MediaType?.ToString(),
+                        ["FileName"] = message.FileName,
+                        ["IsEncrypted"] = message.IsEncrypted,
+                        ["EncryptionVersion"] = message.EncryptionVersion
+                    };
+
+                    await _collection.InsertAsync(GetMessageKey(message.Id), document);
+                }
+
                 return message;
             }
             catch (Exception ex)
@@ -305,6 +467,13 @@ namespace Syncro.Infrastructure.CouchBaseStorage
                     ["MediaType"] = message.MediaType?.ToString(),
                     ["FileName"] = message.FileName
                 };
+
+                if (message.IsEncrypted)
+                {
+                    document["IsEncrypted"] = message.IsEncrypted;
+                    document["EncryptionMetadata"] = message.EncryptionMetadata;
+                    document["EncryptionVersion"] = message.EncryptionVersion;
+                }
 
                 await _collection.ReplaceAsync(GetMessageKey(message.Id), document);
                 return message;

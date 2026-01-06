@@ -19,5 +19,10 @@ namespace Syncro.Domain.Models
         public string? MediaUrl { get; set; } // URL медиафайла в S3
         public MessageType? MediaType { get; set; } // Тип медиа (изображение, видео и т.д.)
         public string? FileName { get; set; } // имя файла
+
+        public bool IsEncrypted { get; set; } = true; // По умолчанию все сообщения шифруются
+        public byte[]? EncryptedContent { get; set; } // Зашифрованный контент
+        public string? EncryptionMetadata { get; set; } // Метаданные шифрования (IV, chainId и т.д.)
+        public int EncryptionVersion { get; set; } = 1; // Версия шифрования
     }
 }
