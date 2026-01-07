@@ -15,7 +15,7 @@ import UseRtcConnection from '../Hooks/UseRtcConnection';
 import { AnimatePresence, motion } from 'framer-motion';
 import callIcon from '../assets/callicon.svg';
 import loadingIcon from '../assets/loadingicon.svg';
-import searchIcon from '/public/search3.png';
+import searchIcon from '../assets/search3.png';
 import arrowDownIcon from '../assets/arrow-down.png';
 
 const ChatPage = () => {
