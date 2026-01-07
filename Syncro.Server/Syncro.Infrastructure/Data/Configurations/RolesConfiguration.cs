@@ -14,7 +14,6 @@ namespace Syncro.Infrastructure.Data.Configurations
             builder.Property(x => x.roleName).IsRequired().HasMaxLength(100);
             builder.Property(x => x.rolePermissions).IsRequired().HasColumnType("bigint").HasConversion(v => (long)v, v => (Permissions)v);
             builder.Property(x => x.color).IsRequired().HasMaxLength(100);
-            builder.Property(x => x.isDisplayedSeparetely).IsRequired().HasDefaultValue(false);
             builder.Property(x => x.position).IsRequired().HasDefaultValue(0);
 
             builder.HasOne<ServerModel>()

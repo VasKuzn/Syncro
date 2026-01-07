@@ -3,7 +3,8 @@ body {
     padding: 0;
     align-items: baseline;
     animation: none;
-    color: #ffffff;
+    color: #151838;
+    background-color: #151838;
 }
 
 .main-page {
@@ -20,6 +21,7 @@ body {
     height: 3%;
     justify-content: center;
     align-items: center;
+    border: none;
 }
 
 .body-container {
@@ -27,6 +29,7 @@ body {
     height: 100%;
     width: 100%;
     flex-direction: row;
+    border: none;
 }
 
 .sidebar-container {
@@ -37,6 +40,7 @@ body {
     background-color: #07081C;
     flex-shrink: 0;
     min-width: 372px;
+    border: none;
 }
 
 .friends {
@@ -44,7 +48,8 @@ body {
     flex-direction: column;
     position: relative;
     background-color: #151838;
-    outline: 1px solid #D5D6DA;
+    outline: none;
+    border: none;
     width: 100%;
 }
 
@@ -67,28 +72,19 @@ body {
 .personal-chats {
     justify-items: center;
     width: 300px;
-    outline: 1px solid #D5D6DA;
-    border-radius: 10px 0 0 0;
+    outline: none;
+    border: none;
     flex-shrink: 0;
-    overflow: hidden;
+    box-shadow: 6px 0 1vw 0.01vw #07081C;
+    z-index: 1;
 }
 
 .chat-separator {
     border-radius: 1px;
-    background-color: #D5D6DA;
+    background-color: #9c9da009;
     height: 2px;
     width: 32px;
-    margin: 10px 0;
-}
-
-.search-pm {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    height: 5%;
-    padding: 0 10px;
-    outline: 1px solid #D5D6DA;
-    border-radius: 10px 0 0 0;
+    margin: 7px;
 }
 
 .button-search-pm {
@@ -96,7 +92,7 @@ body {
     display: flex;
     justify-content: center;
     font-size: large;
-    height: 60%;
+    height: 100%;
     width: 100%;
     border: none;
     border-radius: 15px;
@@ -111,8 +107,13 @@ body {
     width: 100%;
     height: 5%;
     flex-direction: row;
-    padding: 8px 8px 8px 23px;
-    outline: 1px solid #D5D6DA;
+    padding: 8px 8px 8px 30px;
+    outline: none;
+    border: none;
+}
+
+.friends-nav .input-container {
+    padding: 10px;
 }
 
 .button-friends-status {
@@ -141,10 +142,14 @@ body {
 .main-logo {
     height: 50px;
     width: 50px;
+    margin-top: 10px;
     background-color: #3B82F6;
     border: 1px solid #1A2438;
     border-radius: 10px;
     cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .group-chat-list {
@@ -193,7 +198,7 @@ body {
 .input-container {
     display: flex;
     flex-grow: 1 1 auto;
-    padding: 10px 30px;
+    padding: 5px 20px 10px 5px;
 }
 
 .input-box {
@@ -214,8 +219,17 @@ body {
 
 .search-icon {
     align-content: center;
+    height: 35px;
+    width: 35px;
+    filter: invert(60%) sepia(85%) saturate(771%) hue-rotate(138deg) brightness(87%) contrast(95%);
+}
+
+.search-icon-friend {
+    align-content: center;
     height: 25px;
     width: 25px;
+    margin-right: 7px;
+    filter: invert(60%) sepia(85%) saturate(771%) hue-rotate(138deg) brightness(87%) contrast(95%);
 }
 
 .friend-item {
@@ -224,7 +238,7 @@ body {
     height: 60px;
     padding: 0 12px;
     opacity: 1;
-    margin: 4px 0;
+    margin: 5px 20px 0 5px;
     background-color: #1E293B;
     align-items: center;
     gap: 12px;
@@ -240,7 +254,7 @@ body {
 .friend-item:hover {
     background: #23244a;
     box-shadow: 0 2px 8px #3b82f6;
-    transform: scale(0.97);
+    transform: scale(1.01);
     z-index: 2;
 }
 
@@ -257,6 +271,7 @@ body {
     display: flex;
     flex-direction: row;
     align-items: center;
+    padding: 5px 8px;
     gap: 7px;
     cursor: pointer;
 }
@@ -299,6 +314,15 @@ body {
     flex-direction: column;
     width: 100%;
     padding: 10px;
+    overflow: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.pc-list::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
 }
 
 .pc-item {
@@ -402,6 +426,82 @@ body {
     align-content: center;
     border: 2px solid #3B82F6;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.friend-avatar.big {
+    width: 80px;
+    height: 80px;
+    padding: 4px;
+    display: flex;
+}
+
+.friend-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.friend-main-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.friend-info {
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+}
+
+.info-row {
+    margin-bottom: 6px;
+    font-size: 0.95rem;
+}
+
+.info-label {
+    color: #9ca3af;
+    margin-right: 4px;
+}
+
+.profile-link {
+    margin-top: 10px;
+    font-size: 0.95rem;
+    color: #60a5fa;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.profile-link:hover {
+    color: #93c5fd;
+    text-decoration: underline;
+}
+
+.actions {
+    margin-top: 16px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    flex: 1;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: background 0.2s;
+}
+
+.action-btn.primary {
+    background: #3b82f6;
+    color: white;
+}
+
+.action-btn.primary:hover {
+    background: #2563eb;
 }
 
 .online-status {

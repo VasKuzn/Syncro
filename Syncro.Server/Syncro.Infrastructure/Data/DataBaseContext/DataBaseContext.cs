@@ -8,7 +8,6 @@ namespace Syncro.Infrastructure.Data.DataBaseContext
         public DbSet<FriendsModel> friends { get; set; }
         public DbSet<GroupConferenceModel> groupConferences { get; set; }
         public DbSet<GroupConferenceMemberModel> groupConferenceMembers { get; set; }
-        public DbSet<MessageModel> messages { get; set; }
         public DbSet<PersonalAccountInfoModel> personalAccountInfo { get; set; }
         public DbSet<PersonalConferenceModel> personalConferences { get; set; }
         public DbSet<RolesModel> roles { get; set; }

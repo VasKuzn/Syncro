@@ -35,7 +35,7 @@ namespace Syncro.Api.Controllers
             }
             catch (ArgumentException ex)
             {
-                return NotFound(ex.Message);
+                return StatusCode(404, $"Sector not found error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -59,7 +59,7 @@ namespace Syncro.Api.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(400, $"Bad request error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -75,7 +75,7 @@ namespace Syncro.Api.Controllers
                 var result = await _sectorService.DeleteSectorAsync(sectorId);
                 if (!result)
                 {
-                    return NotFound($"Sector with id {sectorId} not found");
+                    return StatusCode(404, $"Sector not found error: ID {sectorId}");
                 }
                 return NoContent();
             }
@@ -98,11 +98,11 @@ namespace Syncro.Api.Controllers
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(ex.Message);
+                return StatusCode(404, $"Sector not found error: {ex.Message}");
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(400, $"Bad request error: {ex.Message}");
             }
             catch (Exception ex)
             {

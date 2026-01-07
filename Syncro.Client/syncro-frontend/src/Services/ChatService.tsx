@@ -53,6 +53,7 @@ export const uploadMediaMessage = async (
         file: File;
         messageContent: string;
         accountId: string;
+        accountNickname: string | null;
         personalConferenceId: string;
     }
 ) => {
@@ -61,6 +62,7 @@ export const uploadMediaMessage = async (
     formData.append('messageId', messageId);
     formData.append('messageContent', data.messageContent);
     formData.append('accountId', data.accountId);
+    formData.append('accountNickname', data.accountNickname ?? '');
     formData.append('personalConferenceId', data.personalConferenceId);
 
     const response = await fetch(`http://localhost:5232/api/storage/${data.personalConferenceId}/${data.accountId}/${messageId}/media`, {

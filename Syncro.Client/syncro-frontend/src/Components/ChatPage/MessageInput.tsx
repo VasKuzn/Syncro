@@ -1,14 +1,26 @@
 import { useState, useRef } from "react";
 import { MessageInputProps } from "../../Types/ChatTypes";
+import attachIcon from '../../assets/clipicon.svg';
+import sendIcon from '../../assets/send-message.svg';
+import loadingIcon from '../../assets/loadingicon.svg';
 
-const MessageInput = ({ onSend, onMediaUpload, isUploading }: MessageInputProps) => {
+const MessageInput = ({ onSend, isUploading }: MessageInputProps) => {
   const [value, setValue] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSend = () => {
-    if (value.trim()) {
-      onSend(value);
+    if (value.trim() || selectedFile) {
+      onSend(value, selectedFile ? {
+        file: selectedFile,
+        fileName: selectedFile.name,
+        mediaType: selectedFile.type,
+        mediaUrl: filePreview || ""
+      } : undefined);
       setValue("");
+      setSelectedFile(null);
+      setFilePreview(null);
     }
   };
 
@@ -20,13 +32,49 @@ const MessageInput = ({ onSend, onMediaUpload, isUploading }: MessageInputProps)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0] && !isUploading) {
-      onMediaUpload(e.target.files[0]);
+      const file = e.target.files[0];
+      setSelectedFile(file);
+
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setFilePreview(e.target?.result as string);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        setFilePreview(null);
+      }
+
       e.target.value = "";
     }
   };
 
+  const removeFile = () => {
+    setSelectedFile(null);
+    setFilePreview(null);
+  };
+
   return (
     <div className="message-input-container">
+      {selectedFile && (
+        <div className={`file-preview ${filePreview ? 'image-preview' : ''}`}>
+          {filePreview ? (
+            <>
+              <img src={filePreview} alt="Preview" className="preview-image" />
+              <div className="file-info">
+                <span className="file-name">{selectedFile.name}</span>
+                <button onClick={removeFile} className="remove-file-btn">×</button>
+              </div>
+            </>
+          ) : (
+            <>
+              <span className="file-name">{selectedFile.name}</span>
+              <button onClick={removeFile} className="remove-file-btn">×</button>
+            </>
+          )}
+        </div>
+      )}
+
       <input
         className="message-input-field"
         placeholder="Type a message..."
@@ -48,9 +96,17 @@ const MessageInput = ({ onSend, onMediaUpload, isUploading }: MessageInputProps)
       <button
         className="send-button"
         onClick={handleSend}
-        disabled={!value.trim() || isUploading}
+        disabled={(!value.trim() && !selectedFile) || isUploading}
       >
-        {isUploading ? "Sending..." : "Send"}
+        {isUploading ? (
+          <>
+            <img className="loading-state-img" src={loadingIcon} alt="Sending" width="30" height="30" />
+          </>
+        ) : (
+          <>
+            <img className="send-state-img" src={sendIcon} alt="Send" width="30" height="30" />
+          </>
+        )}
       </button>
 
       <button
@@ -60,9 +116,9 @@ const MessageInput = ({ onSend, onMediaUpload, isUploading }: MessageInputProps)
         disabled={isUploading}
       >
         {isUploading ? (
-          <span className="upload-spinner">Uploading...</span>
+          <span className="upload-spinner"></span>
         ) : (
-          <img src="/sk.png" alt="Attach media" />
+          <img src={attachIcon} alt="Attach media" />
         )}
       </button>
     </div>

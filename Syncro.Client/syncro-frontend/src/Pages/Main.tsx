@@ -4,6 +4,7 @@ import MainComponent from "../Components/MainPage/MainComponents";
 import "../Styles/MainPage.css";
 import { Friend, AccountActivity } from "../Types/FriendType";
 import { fetchCurrentUser, getFriends, loadFriendInfo } from "../Services/MainFormService"
+import { AnimatePresence, motion } from "framer-motion";
 
 const Main = () => {
     const [friends, setFriends] = useState<Friend[]>([]);
@@ -106,9 +107,18 @@ const Main = () => {
     }, [fetchCurrentUser, refreshFriendsData, initSignalR]);
 
     return (
-        <div className="main-page">
+        <AnimatePresence mode="wait">
+            <motion.div
+                className="main-page"
+                key="page"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1, ease: "easeInOut" }}
+            >
             <MainComponent friends={friends} />
-        </div>
+            </motion.div>
+        </AnimatePresence>
     );
 };
 

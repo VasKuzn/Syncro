@@ -22,8 +22,10 @@ namespace Syncro.Api.Controllers
         {
             try
             {
+                var accountNickname = Request.Form["accountNickname"].FirstOrDefault() ?? string.Empty;
+                var messageContent = Request.Form["messageContent"].FirstOrDefault() ?? string.Empty;
                 var createdMessage = await _mediaMessageService.UploadMessageMediaAsync(
-                    personalConferenceId, accountId, messageId, file);
+                    personalConferenceId, accountId, messageId, accountNickname, messageContent, file);
 
                 if (createdMessage.personalConferenceId != null)
                 {
@@ -36,11 +38,11 @@ namespace Syncro.Api.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(400, $"Bad request error: {ex.Message}");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "An error occurred while uploading media");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 
@@ -55,13 +57,13 @@ namespace Syncro.Api.Controllers
                 var url = await _mediaMessageService.GetMessageMediaUrlAsync(messageId);
                 return Redirect(url);
             }
-            catch (FileNotFoundException)
+            catch (FileNotFoundException ex)
             {
-                return NotFound();
+                return StatusCode(404, $"Media not found error: {ex.Message}");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "An error occurred while retrieving media");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
     }

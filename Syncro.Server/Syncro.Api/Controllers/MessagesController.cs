@@ -4,10 +4,10 @@ namespace Syncro.Api.Controllers
     [Route("api/messages")]
     public class MessagesController : ControllerBase
     {
-        private readonly IMessageService _messageService;
+        private readonly ICouchBaseMessagesService _messageService;
         private readonly IHubContext<PersonalMessagesHub> _messagesHub;
 
-        public MessagesController(IMessageService messageService, IHubContext<PersonalMessagesHub> messagesHub)
+        public MessagesController(ICouchBaseMessagesService messageService, IHubContext<PersonalMessagesHub> messagesHub)
         {
             _messageService = messageService;
             _messagesHub = messagesHub;
@@ -53,7 +53,7 @@ namespace Syncro.Api.Controllers
             }
             catch (ArgumentException ex)
             {
-                return NotFound(ex.Message);
+                return StatusCode(404, $"Message not found error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -78,7 +78,7 @@ namespace Syncro.Api.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(400, $"Bad request error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -97,11 +97,11 @@ namespace Syncro.Api.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(400, $"Bad request error: {ex.Message}");
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(ex.Message);
+                return StatusCode(404, $"Message not found error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -122,7 +122,7 @@ namespace Syncro.Api.Controllers
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(ex.Message);
+                return StatusCode(404, $"Message not found error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -144,7 +144,7 @@ namespace Syncro.Api.Controllers
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(ex.Message);
+                return StatusCode(404, $"Message not found error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -167,11 +167,11 @@ namespace Syncro.Api.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(400, $"Bad request error: {ex.Message}");
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(ex.Message);
+                return StatusCode(404, $"Message not found error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -190,7 +190,7 @@ namespace Syncro.Api.Controllers
                 var result = await _messageService.DeleteMessageAsync(id);
                 if (!result)
                 {
-                    return NotFound($"Message with id {id} not found");
+                    return StatusCode(404, $"Message not found error: ID {id}");
                 }
                 return NoContent();
             }
