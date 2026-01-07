@@ -46,3 +46,8 @@ export type FormState = {
 export interface SuccessNotificationProps {
     onClose: () => void;
 }
+
+export interface ErrorNotificationProps {
+    message: string;
+    onClose: () => void;
+}

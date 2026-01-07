@@ -9,6 +9,7 @@ import SuccessNotification from '../Components/RegisterPage/SuccessNotificationC
 import { useRegisterForm } from '../Hooks/UseRegisterForm';
 import { registerUser } from '../Services/RegistrationService';
 import { AnimatePresence, motion } from 'framer-motion';
+import ErrorNotification from '../Components/RegisterPage/ErrorNotification';
 
 const Register = () => {
     const navigate = useNavigate();
@@ -28,7 +29,7 @@ const Register = () => {
 
         if (!validateForm()) return;
 
-        setFormState(prev => ({ ...prev, isLoading: true }));
+        setFormState(prev => ({ ...prev, isLoading: true, showError: false, errorMessage: '' }));
 
         try {
             await registerUser(
@@ -41,6 +42,11 @@ const Register = () => {
             setFormState(prev => ({ ...prev, showSuccess: true }));
         } catch (error) {
             console.error('Ошибка регистрации:', error);
+            setFormState(prev => ({
+                ...prev,
+                showError: true,
+                errorMessage: 'Произошла ошибка при регистрации'
+            }));
         } finally {
             setFormState(prev => ({ ...prev, isLoading: false }));
         }
@@ -49,6 +55,10 @@ const Register = () => {
     const handleCloseNotification = () => {
         setFormState(prev => ({ ...prev, showSuccess: false }));
         navigate('/login');
+    };
+
+    const handleCloseErrorNotification = () => {
+        setFormState(prev => ({ ...prev, showError: false, errorMessage: '' }));
     };
 
     return (
@@ -61,7 +71,14 @@ const Register = () => {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.5, ease: "easeInOut" }}
             >
-            {formState.showSuccess && <SuccessNotification onClose={handleCloseNotification} />}
+                {formState.showSuccess && <SuccessNotification onClose={handleCloseNotification} />}
+
+                {formState.showError && formState.errorMessage && (
+                    <ErrorNotification
+                        message={formState.errorMessage}
+                        onClose={handleCloseErrorNotification}
+                    />
+                )}
 
                 <RegisterComponent
                     nickname={formState.nickname}
