@@ -75,15 +75,20 @@ const FriendsComponent = ({ friends, onFriendAdded }: FriendProps) => {
 
             await sendFriendRequest(request);
 
+            if (addFriendInputRef.current) {
+                addFriendInputRef.current.value = '';
+            }
+
             setNotification({
                 message: `Запрос дружбы для ${nickname} отправлен!`,
                 isError: false
             });
 
             onFriendAdded?.();
-        } catch (error) {
+        }
+        catch (error) {
             setNotification({
-                message: (error as Error).message || "Не удалось отправить запрос",
+                message: `Запрос дружбы для ${nickname} отправить не удалось`,
                 isError: true
             });
         } finally {
