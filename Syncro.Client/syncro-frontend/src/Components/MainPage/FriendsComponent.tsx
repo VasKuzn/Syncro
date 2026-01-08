@@ -261,34 +261,6 @@ const FriendsComponent = ({ friends, onFriendAdded }: FriendProps) => {
                                             <span className={`online-status ${friend.isOnline ? '' : 'offline'}`}>{friend.isOnline ? "В сети" : "Не в сети"}</span>
                                         </div>
 
-                                        {isIncomingRequest && isSelected && (
-                                            <div className="friend-request-modal">
-                                                <p>{friend.nickname} хочет добавить вас в друзья</p>
-                                                <div className="friend-request-actions">
-                                                    <button
-                                                        className="accept-button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleAccept(friend);
-                                                        }}
-                                                        disabled={isLoading}
-                                                    >
-                                                        ✅ Принять
-                                                    </button>
-                                                    <button
-                                                        className="decline-button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleDecline(friend);
-                                                        }}
-                                                        disabled={isLoading}
-                                                    >
-                                                        ❌ Отклонить
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        )}
-
                                         <AnimatePresence>
                                             {isFriendSelected && (
                                                 <motion.div
@@ -319,42 +291,71 @@ const FriendsComponent = ({ friends, onFriendAdded }: FriendProps) => {
                                                         />
                                                     </motion.div>
 
-                                                    <AnimatePresence>
-                                                        {filter === 'myrequests' && isMyRequest && (
-                                                            <motion.div
-                                                                initial={{ opacity: 0, height: 0 }}
-                                                                animate={{ opacity: 1, height: "auto" }}
-                                                                exit={{ opacity: 0, height: 0 }}
-                                                                transition={{ duration: 0.2 }}
-                                                            >
-                                                                <p style={{ marginTop: 12, marginBottom: 0 }}>Вы отправили заявку {friend.nickname}</p>
-                                                                <div className="friend-request-actions">
-                                                                    <motion.button
-                                                                        className="decline-button"
-                                                                        onClick={async (e) => {
-                                                                            e.stopPropagation();
-                                                                            setIsLoading(true);
-                                                                            try {
-                                                                                await deleteFriendship(friend.friendShipId);
-                                                                                setSelectedFriend(null);
-                                                                                setSelectedRequestId(null);
-                                                                                onFriendAdded?.();
-                                                                            } catch (err) {
-                                                                                // handle error
-                                                                            } finally {
-                                                                                setIsLoading(false);
-                                                                            }
-                                                                        }}
-                                                                        disabled={isLoading}
-                                                                        whileHover={{ scale: 1.05 }}
-                                                                        whileTap={{ scale: 0.95 }}
-                                                                    >
-                                                                        ❌ Отклонить
-                                                                    </motion.button>
-                                                                </div>
-                                                            </motion.div>
-                                                        )}
-                                                    </AnimatePresence>
+                                                    {(isIncomingRequest || isMyRequest) && (
+                                                        <motion.div
+                                                            initial={{ opacity: 0, height: 0 }}
+                                                            animate={{ opacity: 1, height: "auto" }}
+                                                            exit={{ opacity: 0, height: 0 }}
+                                                            transition={{ duration: 0.2 }}
+                                                            style={{ marginTop: 12 }}
+                                                        >
+                                                            {isIncomingRequest ? (
+                                                                <>
+                                                                    <p style={{ marginTop: 0, marginBottom: 12 }}>{friend.nickname} хочет добавить вас в друзья</p>
+                                                                    <div className="friend-request-actions">
+                                                                        <button
+                                                                            className="accept-button"
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                handleAccept(friend);
+                                                                            }}
+                                                                            disabled={isLoading}
+                                                                        >
+                                                                            ✅ Принять
+                                                                        </button>
+                                                                        <button
+                                                                            className="decline-button"
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                handleDecline(friend);
+                                                                            }}
+                                                                            disabled={isLoading}
+                                                                        >
+                                                                            ❌ Отклонить
+                                                                        </button>
+                                                                    </div>
+                                                                </>
+                                                            ) : isMyRequest ? (
+                                                                <>
+                                                                    <p style={{ marginTop: 0, marginBottom: 12 }}>Вы отправили заявку {friend.nickname}</p>
+                                                                    <div className="friend-request-actions">
+                                                                        <motion.button
+                                                                            className="decline-button"
+                                                                            onClick={async (e) => {
+                                                                                e.stopPropagation();
+                                                                                setIsLoading(true);
+                                                                                try {
+                                                                                    await deleteFriendship(friend.friendShipId);
+                                                                                    setSelectedFriend(null);
+                                                                                    setSelectedRequestId(null);
+                                                                                    onFriendAdded?.();
+                                                                                } catch (err) {
+                                                                                    // handle error
+                                                                                } finally {
+                                                                                    setIsLoading(false);
+                                                                                }
+                                                                            }}
+                                                                            disabled={isLoading}
+                                                                            whileHover={{ scale: 1.05 }}
+                                                                            whileTap={{ scale: 0.95 }}
+                                                                        >
+                                                                            ❌ Отменить заявку
+                                                                        </motion.button>
+                                                                    </div>
+                                                                </>
+                                                            ) : null}
+                                                        </motion.div>
+                                                    )}
 
                                                     <motion.button
                                                         className="close-popover"
