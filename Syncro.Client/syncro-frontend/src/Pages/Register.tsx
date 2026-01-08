@@ -11,6 +11,8 @@ import { registerUser } from '../Services/RegistrationService';
 import { AnimatePresence, motion } from 'framer-motion';
 import ErrorNotification from '../Components/RegisterPage/ErrorNotification';
 
+import { getRegisterErrorMessage } from '../Utils/ErrorRegistrationHelper';
+
 const Register = () => {
     const navigate = useNavigate();
 
@@ -40,12 +42,15 @@ const Register = () => {
                 null
             );
             setFormState(prev => ({ ...prev, showSuccess: true }));
-        } catch (error) {
+        } catch (error: any) {
             console.error('Ошибка регистрации:', error);
+
+            const errorMessage = getRegisterErrorMessage(error);
+
             setFormState(prev => ({
                 ...prev,
                 showError: true,
-                errorMessage: 'Произошла ошибка при регистрации'
+                errorMessage
             }));
         } finally {
             setFormState(prev => ({ ...prev, isLoading: false }));

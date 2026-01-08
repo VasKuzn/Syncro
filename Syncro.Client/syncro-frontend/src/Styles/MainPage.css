@@ -623,5 +623,4 @@ body {
 .friend-details-popover .decline-button:hover {
     background: linear-gradient(90deg, #b91c1c 60%, #f87171 100%);
     box-shadow: 0 4px 16px rgba(239, 113, 113, 0.18);
-    transform: translateY(-2px) scale(1.04);
 }
