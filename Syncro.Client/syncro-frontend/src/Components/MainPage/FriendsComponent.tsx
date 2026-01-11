@@ -6,7 +6,7 @@ import { emptyFilterMessages } from "../../Constants/FriendFilterMessages";
 import { AnimatePresence, motion } from 'framer-motion';
 import loadingIcon from '../../assets/usersicon.svg';
 
-const FriendsComponent = ({ friends, onFriendAdded }: FriendProps) => {
+const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const [notification, setNotification] = useState<{ message: string, isError: boolean } | null>(null);
     const [filter, setFilter] = useState<FriendFilterTypes>('all');
@@ -309,6 +309,7 @@ const FriendsComponent = ({ friends, onFriendAdded }: FriendProps) => {
                                                         <FriendDetails
                                                             friend={friend}
                                                             friends={friends}
+                                                            setFriends={setFriends}
                                                             onAccept={handleAccept}
                                                             onCancel={handleCancel}
                                                         />

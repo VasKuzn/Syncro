@@ -34,17 +34,22 @@ const ChatPage = () => {
   const localStreamRef = useRef<MediaStream | null>(null);
   const remoteStreamRef = useRef<MediaStream | null>(null);
 
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+
   const [currentFriend, setCurrentFriend] = useState<Friend | null>(null);
   const [currentUser, setCurrentUser] = useState<Friend | null>(null);
 
   const rtcConnection = UseRtcConnection({
     onRemoteStream: (stream: MediaStream) => {
       console.log("Remote stream received");
-      remoteStreamRef.current = stream;
+      remoteStreamRef.current = new MediaStream(stream.getTracks());
+      setRemoteStream(new MediaStream(stream.getTracks()));
     },
     onLocalStream: (stream: MediaStream) => {
       console.log("Local stream received");
       localStreamRef.current = stream;
+      setLocalStream(stream);
     },
     onIceCandidateReceived: (candidate: RTCIceCandidate) => {
       console.log("ICE candidate received:", candidate);
@@ -336,8 +341,9 @@ const ChatPage = () => {
                   localUserName={currentUser.nickname}
                   localAvatarUrl={currentUser.avatar || './logo.png'}
                   onEndCall={handleEndCall}
-                  localStream={localStreamRef.current}
-                  remoteStream={remoteStreamRef.current}
+                  localStream={localStream}
+                  remoteStream={remoteStream}
+                  replaceVideoTrack={rtcConnection.replaceVideoTrack}
                 />
               </motion.div>
             )}

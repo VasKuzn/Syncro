@@ -3,11 +3,11 @@ import FriendsComponent from "./FriendsComponent";
 import SidebarComponent from "./SidebarComponent";
 
 
-const BodyComponent = ({ friends }: FriendProps) => {
+const BodyComponent = ({ friends, setFriends }: FriendProps) => {
     return (
         <div className="body-container">
-            <SidebarComponent friends={friends} />
-            <FriendsComponent friends={friends} />
+            <SidebarComponent friends={friends} setFriends={setFriends} />
+            <FriendsComponent friends={friends} setFriends={setFriends} />
         </div>
     );
 }

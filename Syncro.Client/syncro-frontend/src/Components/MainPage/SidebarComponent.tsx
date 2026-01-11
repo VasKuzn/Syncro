@@ -2,12 +2,13 @@ import GroupChatsComponent from "./GroupChatsComponent";
 import PersonalChatsComponent from "./PersonalChatsComponent";
 import { FriendProps } from "../../Types/FriendType";
 
-const SidebarComponent = ({ friends }: FriendProps) => {
+const SidebarComponent = ({ friends, setFriends }: FriendProps) => {
     return (
         <div className="sidebar-container">
             <GroupChatsComponent></GroupChatsComponent>
             <PersonalChatsComponent
-                friends={friends}>
+                friends={friends}
+                setFriends={setFriends}>
             </PersonalChatsComponent>
         </div>
     );

@@ -55,6 +55,7 @@ export interface VideoCallProps {
     remoteAvatarUrl: string;
     localStream?: MediaStream | null;
     remoteStream?: MediaStream | null;
+    replaceVideoTrack: (track: MediaStreamTrack) => void;
 }
 
 export interface MessageProps extends PersonalMessageData {

@@ -1,8 +1,9 @@
 import { FriendDetailsProps } from "../../Types/FriendType";
 import { useNavigate } from 'react-router-dom';
-import { fetchCurrentUser, getPersonalConference } from "../../Services/MainFormService";
+import { fetchCurrentUser, getPersonalConference, markMessagesAsRead } from "../../Services/MainFormService";
+import { messageHub } from "../../Hubs/MessageHub";
 
-export const FriendDetails = ({ friend, friends, onAccept, onCancel }: FriendDetailsProps) => {
+export const FriendDetails = ({ friend, friends, setFriends, onAccept, onCancel }: FriendDetailsProps) => {
     if (!friend) return null;
     
     const navigate = useNavigate();
@@ -10,6 +11,18 @@ export const FriendDetails = ({ friend, friends, onAccept, onCancel }: FriendDet
     const goToChat = async() => {
         const currentUserId = await fetchCurrentUser();
         const personalConferenceId = await getPersonalConference(currentUserId, friend.id);
+
+        await messageHub.init();
+        await messageHub.subscribeToConference(personalConferenceId);
+
+        await markMessagesAsRead(personalConferenceId);
+
+        setFriends(prev =>
+            prev.map(f =>
+                f.id === friend.id ? { ...f, unreadCount: 0 } : f
+            )
+        );
+
         navigate("/chat", {
             state: {
                 friends: friends,
