@@ -62,4 +62,5 @@ export interface MessageProps extends PersonalMessageData {
     avatarUrl: string;
     previousMessageAuthor?: string | null;
     previousMessageDate?: Date | null;
+    searchQuery?: string;
 }

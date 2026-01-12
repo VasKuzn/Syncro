@@ -6,6 +6,5 @@ namespace Syncro.Application.ModelsDTO
         public string? sectorDescription { get; set; }
         public required CallTypesEnum sectorType { get; set; }
         public bool isPrivate { get; set; }
-        //текст чтобы пролить
     }
 }

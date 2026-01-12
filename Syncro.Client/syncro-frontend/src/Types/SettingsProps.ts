@@ -15,5 +15,5 @@ export interface SettingsComponentProps {
     countryField: React.RefObject<HTMLInputElement | null>;
     passwordField: React.RefObject<HTMLInputElement | null>;
     onSubmit: (e: React.FormEvent<HTMLFormElement>) => Promise<void> | void;
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }

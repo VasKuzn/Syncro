@@ -20,6 +20,16 @@ export const useSettingsForm = () => {
     const phoneField = useRef<HTMLInputElement>(null);
     const countryField = useRef<HTMLInputElement>(null);
     const passwordField = useRef<HTMLInputElement>(null);
+    const [avatarFile, setAvatarFile] = useState<File | null>(null);
+
+    // Функция для обновления аватара
+    const updateAvatar = (file: File, previewUrl: string) => {
+        setAvatarFile(file);
+        setFormState(prev => ({
+            ...prev,
+            avatar: previewUrl
+        }));
+    };
 
     const validateForm = (): boolean => {
         let isValid = true;
@@ -73,6 +83,8 @@ export const useSettingsForm = () => {
     return {
         formState,
         setFormState,
+        avatarFile,
+        updateAvatar,
         nicknameField,
         firstnameField,
         lastnameField,
