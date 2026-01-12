@@ -1,9 +1,9 @@
 import { Friend } from "./FriendType";
 
 export interface MainProps {
-    [key: string]: string | boolean | Friend[] | undefined;
-    friends: Friend[]
-    avatar?: string;
+    friends: Friend[];
     nickname?: string;
-    isOnline?: boolean
+    avatar?: string;
+    isOnline?: boolean;
+    setFriends?: (friends: Friend[]) => void;
 }
