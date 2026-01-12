@@ -1,14 +1,18 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { MessageInputProps } from "../../Types/ChatTypes";
 import attachIcon from '../../assets/clipicon.svg';
 import sendIcon from '../../assets/send-message.svg';
 import loadingIcon from '../../assets/loadingicon.svg';
+import emojiIcon from '../../assets/emoji-icon.png';
+import EmojiPickerButton from "./EmojiPickerButton";
 
 const MessageInput = ({ onSend, isUploading }: MessageInputProps) => {
   const [value, setValue] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
 
   const handleSend = () => {
     if (value.trim() || selectedFile) {
@@ -54,8 +58,27 @@ const MessageInput = ({ onSend, isUploading }: MessageInputProps) => {
     setFilePreview(null);
   };
 
+  const handleEmojiSelect = (emoji: string) => {
+    setValue(prev => prev + emoji);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (emojiPickerRef.current &&
+        !emojiPickerRef.current.contains(event.target as Node) &&
+        !(event.target as Element).closest('.emoji-button')) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   return (
-    <div className="message-input-container">
+    <div className="message-input-wrapper">
       {selectedFile && (
         <div className={`file-preview ${filePreview ? 'image-preview' : ''}`}>
           {filePreview ? (
@@ -75,52 +98,72 @@ const MessageInput = ({ onSend, isUploading }: MessageInputProps) => {
         </div>
       )}
 
-      <input
-        className="message-input-field"
-        placeholder="Type a message..."
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && handleSend()}
-        disabled={isUploading}
-      />
+      <div className="message-input-container">
+        <input
+          className="message-input-field"
+          placeholder="Type a message..."
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSend()}
+          disabled={isUploading}
+        />
 
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleFileChange}
-        style={{ display: "none" }}
-        accept="image/*,video/*,audio/*"
-        disabled={isUploading}
-      />
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          style={{ display: "none" }}
+          accept="image/*,video/*,audio/*"
+          disabled={isUploading}
+        />
 
-      <button
-        className="send-button"
-        onClick={handleSend}
-        disabled={(!value.trim() && !selectedFile) || isUploading}
-      >
-        {isUploading ? (
-          <>
-            <img className="loading-state-img" src={loadingIcon} alt="Sending" width="30" height="30" />
-          </>
-        ) : (
-          <>
-            <img className="send-state-img" src={sendIcon} alt="Send" width="30" height="30" />
-          </>
-        )}
-      </button>
+        <button
+          className="sk-class attach-button"
+          onClick={handleSkClick}
+          type="button"
+          disabled={isUploading}
+          title="Attach file"
+        >
+          {isUploading ? (
+            <span className="upload-spinner"></span>
+          ) : (
+            <img src={attachIcon} alt="Attach media" />
+          )}
+        </button>
 
-      <button
-        className="sk-class"
-        onClick={handleSkClick}
-        type="button"
-        disabled={isUploading}
-      >
-        {isUploading ? (
-          <span className="upload-spinner"></span>
-        ) : (
-          <img src={attachIcon} alt="Attach media" />
-        )}
-      </button>
+        <button
+          className="sk-class emoji-button"
+          onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+          type="button"
+          disabled={isUploading}
+          title="Add emoji"
+        >
+          <img src={emojiIcon} alt="Emoji" />
+        </button>
+
+        <button
+          className="send-button"
+          onClick={handleSend}
+          disabled={(!value.trim() && !selectedFile) || isUploading}
+          title="Send message"
+        >
+          {isUploading ? (
+            <>
+              <img className="loading-state-img" src={loadingIcon} alt="Sending" width="30" height="30" />
+            </>
+          ) : (
+            <>
+              <img className="send-state-img" src={sendIcon} alt="Send" width="30" height="30" />
+            </>
+          )}
+        </button>
+      </div>
+
+      {showEmojiPicker && (
+        <div ref={emojiPickerRef} className="emoji-picker-container">
+          <EmojiPickerButton onEmojiSelect={handleEmojiSelect} />
+        </div>
+      )}
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { PersonalMessageData } from '../Types/ChatTypes';
 import Message from '../Components/ChatPage/MessageComponent';
 import MessageInput from '../Components/ChatPage/MessageInput';
@@ -15,6 +15,8 @@ import UseRtcConnection from '../Hooks/UseRtcConnection';
 import { AnimatePresence, motion } from 'framer-motion';
 import callIcon from '../assets/callicon.svg';
 import loadingIcon from '../assets/loadingicon.svg';
+import searchIcon from '../assets/search3.png';
+import arrowDownIcon from '../assets/arrow-down.png';
 
 const ChatPage = () => {
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -26,6 +28,14 @@ const ChatPage = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatRef = useRef<HTMLDivElement | null>(null);
 
+  // Состояния для поиска
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<number[]>([]);
+  const [currentResultIndex, setCurrentResultIndex] = useState(-1);
+  const [showScrollDownButton, setShowScrollDownButton] = useState(false);
+
+  // Состояния для звонков
   const [showCallModal, setShowCallModal] = useState(false);
   const [inCall, setInCall] = useState(false);
   const [incomingCall, setIncomingCall] = useState(false);
@@ -39,6 +49,9 @@ const ChatPage = () => {
 
   const [currentFriend, setCurrentFriend] = useState<Friend | null>(null);
   const [currentUser, setCurrentUser] = useState<Friend | null>(null);
+
+  // Ref для элементов сообщений
+  const messageRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
   const rtcConnection = UseRtcConnection({
     onRemoteStream: (stream: MediaStream) => {
@@ -70,27 +83,112 @@ const ChatPage = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
+  const scrollToBottomInstant = useCallback(() => {
+    const chat = chatRef.current;
+    if (!chat) return;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        chat.scrollTop = chat.scrollHeight;
+      });
+    });
+  }, []);
+
   const isUserAtBottom = useCallback(() => {
     const pos = chatRef.current;
     if (!pos) return true;
     return pos.scrollHeight - pos.scrollTop - pos.clientHeight < 300;
   }, []);
 
-  const handleNewMessage = useCallback((message: PersonalMessageData) => {
-    setMessages(prev => {
-      if (!prev.some(m => m.id === message.id)) {
-        return [...prev, message];
+  // Поиск сообщений
+  const performSearch = useCallback((query: string) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      setCurrentResultIndex(-1);
+      return;
+    }
+
+    const results: number[] = [];
+    const lowerQuery = query.toLowerCase();
+
+    messages.forEach((msg, index) => {
+      if (msg.messageContent?.toLowerCase().includes(lowerQuery)) {
+        results.push(index);
       }
-      return prev;
     });
 
-    if (isUserAtBottom()) {
-      setTimeout(scrollToBottom, 100);
+    setSearchResults(results);
+    setCurrentResultIndex(results.length > 0 ? 0 : -1);
+  }, [messages]);
+
+  // Переход к следующему результату поиска
+  const goToNextResult = useCallback(() => {
+    if (searchResults.length === 0) return;
+
+    const nextIndex = (currentResultIndex + 1) % searchResults.length;
+    setCurrentResultIndex(nextIndex);
+    scrollToResult(nextIndex);
+  }, [searchResults, currentResultIndex]);
+
+  // Переход к предыдущему результату поиска
+  const goToPrevResult = useCallback(() => {
+    if (searchResults.length === 0) return;
+
+    const prevIndex = (currentResultIndex - 1 + searchResults.length) % searchResults.length;
+    setCurrentResultIndex(prevIndex);
+    scrollToResult(prevIndex);
+  }, [searchResults, currentResultIndex]);
+
+  // Прокрутка к результату поиска
+  const scrollToResult = useCallback((resultIndex: number) => {
+    if (resultIndex < 0 || resultIndex >= searchResults.length) return;
+
+    const messageIndex = searchResults[resultIndex];
+    const messageElement = messageRefs.current.get(messageIndex);
+
+    if (messageElement) {
+      messageElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+
+      // Визуальное выделение найденного сообщения
+      messageElement.classList.add('highlighted');
+      setTimeout(() => {
+        messageElement.classList.remove('highlighted');
+      }, 2000);
     }
-  }, [scrollToBottom]);
+  }, [searchResults]);
 
-  usePersonalMessagesHub(personalConference, handleNewMessage);
+  // Обработка изменения поискового запроса
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      performSearch(searchQuery);
+    }, 300);
 
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery, performSearch]);
+
+  // Автопрокрутка к текущему результату поиска
+  useEffect(() => {
+    if (currentResultIndex >= 0 && searchResults.length > 0) {
+      scrollToResult(currentResultIndex);
+    }
+  }, [currentResultIndex, scrollToResult]);
+
+  // Обработчик прокрутки для кнопки быстрой прокрутки вниз
+  const handleScroll = useCallback(() => {
+    if (!chatRef.current) return;
+
+    const chat = chatRef.current;
+    const isScrolledUp = chat.scrollHeight - chat.scrollTop - chat.clientHeight > 300;
+
+    // Показываем кнопку если:
+    // 1. Пользователь прокрутил вверх более чем на 1 экран
+    // 2. Активен поиск (чтобы можно было быстро вернуться к последним сообщениям)
+    setShowScrollDownButton(isScrolledUp || isSearchActive);
+  }, [isSearchActive]);
+
+  // Инициализация пользователя и загрузка сообщений
   useEffect(() => {
     const initializeUser = async () => {
       const userId = await fetchCurrentUser();
@@ -106,16 +204,6 @@ const ChatPage = () => {
       setPersonalConference(location.state.personalConferenceId);
     }
   }, [location.state]);
-
-  const scrollToBottomInstant = useCallback(() => {
-    const chat = chatRef.current;
-    if (!chat) return;
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        chat.scrollTop = chat.scrollHeight;
-      });
-    });
-  }, []);
 
   const loadMessages = useCallback(async () => {
     if (!personalConference) return;
@@ -133,6 +221,7 @@ const ChatPage = () => {
     loadMessages();
   }, [loadMessages]);
 
+  // Загрузка данных пользователя и друга
   useEffect(() => {
     const fetchCurrentUserData = async () => {
       if (!personalConference || !currentUserId) return;
@@ -166,6 +255,32 @@ const ChatPage = () => {
     fetchConferenceAndFriend();
   }, [personalConference, currentUserId]);
 
+  // Вешаем обработчик скролла
+  useEffect(() => {
+    const chat = chatRef.current;
+    if (chat) {
+      chat.addEventListener('scroll', handleScroll);
+      return () => chat.removeEventListener('scroll', handleScroll);
+    }
+  }, [handleScroll]);
+
+  // Обработчик нового сообщения
+  const handleNewMessage = useCallback((message: PersonalMessageData) => {
+    setMessages(prev => {
+      if (!prev.some(m => m.id === message.id)) {
+        return [...prev, message];
+      }
+      return prev;
+    });
+
+    if (isUserAtBottom() && !isSearchActive) {
+      setTimeout(scrollToBottom, 100);
+    }
+  }, [scrollToBottom, isUserAtBottom, isSearchActive]);
+
+  usePersonalMessagesHub(personalConference, handleNewMessage);
+
+  // Функции для звонков
   const handleStartCall = async () => {
     if (!currentFriend?.id || !rtcConnection.isConnected) {
       console.error("Cannot start call: friend not loaded or connection not ready");
@@ -265,7 +380,9 @@ const ChatPage = () => {
       } else {
         await createMessage(newMessage);
       }
-      setTimeout(scrollToBottom, 100);
+      if (!isSearchActive) {
+        setTimeout(scrollToBottom, 100);
+      }
     } catch (error) {
       console.error('Failed to send message:', error);
     } finally {
@@ -273,11 +390,19 @@ const ChatPage = () => {
     }
   };
 
+  // Выход из режима поиска
+  const handleExitSearch = () => {
+    setIsSearchActive(false);
+    setSearchQuery('');
+    setSearchResults([]);
+    setCurrentResultIndex(-1);
+  };
 
   return (
     <MainComponent
       chatContent={
         <>
+
           <AnimatePresence>
             {!inCall && (
               <motion.div
@@ -287,6 +412,73 @@ const ChatPage = () => {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3, ease: "easeOut" }}
               >
+                {/* Панель поиска - теперь внутри chat-header-controls */}
+                <AnimatePresence>
+                  {isSearchActive && (
+                    <motion.div
+                      className="search-panel"
+                      initial={{ opacity: 0, width: 0, x: -20 }}
+                      animate={{ opacity: 1, width: "300px", x: 0 }}
+                      exit={{ opacity: 0, width: 0, x: -20 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="search-input-container">
+                        <img src={searchIcon} alt="Поиск" className="search-icon" />
+                        <input
+                          type="text"
+                          className="search-input"
+                          placeholder="Поиск сообщений..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          autoFocus
+                        />
+                        <button className="search-close-btn" onClick={handleExitSearch}>
+                          ✕
+                        </button>
+                      </div>
+
+                      {searchQuery && (
+                        <div className="search-results-info">
+                          <span>
+                            {searchResults.length > 0
+                              ? `Найдено: ${currentResultIndex + 1} из ${searchResults.length}`
+                              : 'Совпадений не найдено'}
+                          </span>
+                          <div className="search-navigation">
+                            <button
+                              className="search-nav-btn"
+                              onClick={goToPrevResult}
+                              disabled={searchResults.length === 0}
+                            >
+                              ▲
+                            </button>
+                            <button
+                              className="search-nav-btn"
+                              onClick={goToNextResult}
+                              disabled={searchResults.length === 0}
+                            >
+                              ▼
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Кнопка поиска - слева от панели */}
+                {!isSearchActive && (
+                  <motion.button
+                    className="search-button"
+                    onClick={() => setIsSearchActive(true)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <img src={searchIcon} alt="Поиск" width="16" height="16" />
+                  </motion.button>
+                )}
+
+                {/* Кнопка звонка */}
                 <motion.button
                   className="call-button"
                   onClick={handleStartCall}
@@ -296,15 +488,35 @@ const ChatPage = () => {
                 >
                   {rtcConnection.isConnected ? (
                     <>
-                      <img className='call-state-img' src={callIcon} alt="Вызов" width="16" height="16" />Начать звонок
+                      <img className='call-state-img' src={callIcon} alt="Вызов" width="16" height="16" />
+                      Начать звонок
                     </>
                   ) : (
                     <>
-                      <img className='loading-state-img' src={loadingIcon} alt="Подключение" width="16" height="16" /> Подключение...
+                      <img className='loading-state-img' src={loadingIcon} alt="Подключение" width="16" height="16" />
+                      Подключение...
                     </>
                   )}
                 </motion.button>
               </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Кнопка быстрой прокрутки вниз */}
+          <AnimatePresence>
+            {showScrollDownButton && (
+              <motion.button
+                className="scroll-down-button"
+                onClick={scrollToBottom}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.2 }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <img src={arrowDownIcon} alt="Вниз" width="20" height="20" />
+              </motion.button>
             )}
           </AnimatePresence>
 
@@ -360,6 +572,13 @@ const ChatPage = () => {
               {messages.map((msg, i) => (
                 <motion.div
                   key={msg.id}
+                  ref={(el) => {
+                    if (el) {
+                      messageRefs.current.set(i, el);
+                    } else {
+                      messageRefs.current.delete(i);
+                    }
+                  }}
                   layout
                   initial={{ opacity: 0, y: 20, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -370,6 +589,9 @@ const ChatPage = () => {
                     damping: 25,
                     opacity: { duration: 0.2 }
                   }}
+                  className={`message-container ${searchResults.includes(i) ? 'search-result' : ''
+                    } ${i === searchResults[currentResultIndex] ? 'current-result' : ''
+                    }`}
                 >
                   <Message
                     {...msg}
@@ -379,6 +601,7 @@ const ChatPage = () => {
                       (currentFriend?.avatar || './logo.png')}
                     previousMessageAuthor={i > 0 ? messages[i - 1].accountNickname : null}
                     previousMessageDate={i > 0 ? messages[i - 1].messageDateSent : null}
+                    searchQuery={searchQuery}
                   />
                 </motion.div>
               ))}

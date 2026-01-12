@@ -93,7 +93,7 @@ namespace Syncro.Api.Controllers
             if (account == null)
             {
                 return StatusCode(404, $"Account not found error: ID {userId}");
-            } 
+            }
             return Ok(account.nickname);
         }
         //
@@ -322,10 +322,9 @@ namespace Syncro.Api.Controllers
             }
         }
 
+        //PUT: api/accounts/full_account_info/{id} - запрос для обновления всей инфы пользователя
         [HttpPut("full_account_info/{id}")]
-        public async Task<IActionResult> UpdateAccountWithPersonalInfoAsync(
-    Guid id,
-    [FromForm] AccountWithPersonalInfoModel model)
+        public async Task<IActionResult> UpdateAccountWithPersonalInfoAsync(Guid id, [FromForm] AccountWithPersonalInfoModel model)
         {
             try
             {
