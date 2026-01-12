@@ -1,14 +1,15 @@
-import HeaderComponent from "./HeaderComponent";
 import BodyComponent from "./BodyComponent";
-import { FriendProps } from "../../Types/FriendType";
+import { MainProps } from "../../Types/MainProps";
 
-
-const MainComponent = ({ friends, setFriends }: FriendProps) => {
+const MainComponent = ({ friends, nickname, avatar, isOnline, setFriends }: MainProps & { setFriends: (friends: any) => void }) => {
     return (
         <div className="main-page">
             <BodyComponent
-                friends={friends} setFriends={setFriends} >
-            </BodyComponent>
+                friends={friends}
+                nickname={nickname}
+                avatar={avatar}
+                isOnline={isOnline}
+                setFriends={setFriends}/>
         </div>
     );
 };

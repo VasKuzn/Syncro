@@ -9,3 +9,10 @@ export interface UserInfo {
     avatar: string;
     country: number;
 }
+
+export interface ShortUserInfo {
+    [key: string]: string | boolean | undefined;
+    avatar?: string;
+    nickname?: string;
+    isOnline?: boolean
+}

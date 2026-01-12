@@ -6,15 +6,16 @@ import MainComponent from '../Components/ChatPage/MainComponents';
 import VideoCall from "../Components/ChatPage/VideoCallComponent";
 import CallWindow from "../Components/ChatPage/CallWindowComponent";
 import '../Styles/Chat.css';
-import { Friend } from '../Types/FriendType';
+import { Friend, ShortFriend } from '../Types/FriendType';
 import { fetchCurrentUser } from '../Services/MainFormService';
 import { useLocation } from 'react-router-dom';
-import { createMessage, getMessages, uploadMediaMessage, getPersonalConferenceById, getNicknameById } from '../Services/ChatService';
+import { createMessage, getMessages, uploadMediaMessage, getPersonalConferenceById } from '../Services/ChatService';
 import usePersonalMessagesHub from '../Hooks/UsePersonalMessages';
 import UseRtcConnection from '../Hooks/UseRtcConnection';
 import { AnimatePresence, motion } from 'framer-motion';
 import callIcon from '../assets/callicon.svg';
 import loadingIcon from '../assets/loadingicon.svg';
+import { UserInfo } from '../Types/UserInfo';
 import searchIcon from '../assets/search3.png';
 import arrowDownIcon from '../assets/arrow-down.png';
 
@@ -44,11 +45,10 @@ const ChatPage = () => {
   const localStreamRef = useRef<MediaStream | null>(null);
   const remoteStreamRef = useRef<MediaStream | null>(null);
 
+  const [currentFriend, setCurrentFriend] = useState<ShortFriend | null>(null);
+  const [currentUser, setCurrentUser] = useState<UserInfo | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
-
-  const [currentFriend, setCurrentFriend] = useState<Friend | null>(null);
-  const [currentUser, setCurrentUser] = useState<Friend | null>(null);
 
   // Ref для элементов сообщений
   const messageRefs = useRef<Map<number, HTMLDivElement>>(new Map());

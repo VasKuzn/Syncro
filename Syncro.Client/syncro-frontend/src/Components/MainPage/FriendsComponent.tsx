@@ -1,4 +1,4 @@
-import { Friend, FriendFilterTypes, FriendProps } from "../../Types/FriendType";
+import { ShortFriend, FriendFilterTypes, FriendProps } from "../../Types/FriendType";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { getUserByNickname, fetchCurrentUser, sendFriendRequest, updateFriendStatus, deleteFriendship } from "../../Services/MainFormService";
 import { FriendDetails } from "./FriendDetails";
@@ -12,7 +12,7 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
     const [filter, setFilter] = useState<FriendFilterTypes>('all');
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
     const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
-    const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
+    const [selectedFriend, setSelectedFriend] = useState<ShortFriend | null>(null);
     const [searchQuery, setSearchQuery] = useState(''); // FR1: Состояние для поискового запроса
 
     const addFriendInputRef = useRef<HTMLInputElement>(null);
@@ -101,7 +101,7 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
             setTimeout(() => setNotification(null), 3500);
         }
     };
-    const handleFriendClick = (friend: Friend) => {
+    const handleFriendClick = (friend: ShortFriend) => {
         if (selectedFriend?.id === friend.id) {
             setSelectedFriend(null);
             setSelectedRequestId(null);
@@ -123,7 +123,7 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
         }
     };
 
-    const handleDecline = async (friend: Friend) => {
+    const handleDecline = async (friend: ShortFriend) => {
         try {
             setIsLoading(true);
             await updateFriendStatus(friend.friendShipId, 2); // 2 = declined
@@ -135,7 +135,7 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
             setIsLoading(false);
         }
     };
-    const handleCancel = async (friend: Friend) => {
+    const handleCancel = async (friend: ShortFriend) => {
         try {
             setIsLoading(true);
             await deleteFriendship(friend.friendShipId);

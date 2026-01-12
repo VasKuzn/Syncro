@@ -3,13 +3,17 @@ import * as signalR from "@microsoft/signalr";
 import MainComponent from "../Components/MainPage/MainComponents";
 import "../Styles/MainPage.css";
 import { Friend, AccountActivity } from "../Types/FriendType";
-import { fetchCurrentUser, getFriends, loadFriendInfo } from "../Services/MainFormService"
+import { fetchCurrentUser, getFriends, loadFriendInfo, getUserInfo } from "../Services/MainFormService"
 import { AnimatePresence, motion } from "framer-motion";
+import { MainProps } from "../Types/MainProps";
+import { ShortUserInfo } from "../Types/UserInfo";
 
 const Main = () => {
     const [friends, setFriends] = useState<Friend[]>([]);
     const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
     const [accountConnection, setAccountConnection] = useState<signalR.HubConnection | null>(null);
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+    const [userInfo, setCurrentUserInfo] = useState<ShortUserInfo>();
     const [messageConnection, setMessageConnection] = useState<signalR.HubConnection | null>(null);
 
     const initSignalR = useCallback(async (userId: string | null) => {
@@ -113,10 +117,17 @@ const Main = () => {
         const loadData = async () => {
             try {
                 const userId = await fetchCurrentUser();
+                setCurrentUserId(userId);
                 if (isMounted) {
                     await refreshFriendsData(userId);
                     await initSignalR(userId);
                 }
+                console.log(userId)
+                const info = await getUserInfo(userId)
+                if (info) {                        
+                    setCurrentUserInfo({avatar: info.avatar, nickname:info.nickname, isOnline: true})
+                }
+                console.log(info)
             } catch (error) {
                 console.error("Ошибка загрузки:", error);
             }
@@ -141,7 +152,13 @@ const Main = () => {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 1, ease: "easeInOut" }}
             >
-            <MainComponent friends={friends} setFriends={setFriends} />
+                <MainComponent 
+                    friends={friends}
+                    nickname={userInfo?.nickname}
+                    avatar={userInfo?.avatar}
+                    isOnline={userInfo?.isOnline}
+                    setFriends={setFriends}
+                />
             </motion.div>
         </AnimatePresence>
     );
