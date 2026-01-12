@@ -25,6 +25,7 @@ public static class ServiceRegistration
         services.AddScoped<ISectorService, SectorService>();
         services.AddScoped<ISectorPermissionsService, SectorPermissionsService>();
         services.AddScoped<IPersonalAccountInfoService, PersonalAccountInfoService>();
+        services.AddScoped<IEmailService, EmailService>();
     }
     public static void AddCoreRepositoriesExtension(this IServiceCollection services, IConfiguration configuration)
     {
