@@ -12,6 +12,7 @@ export interface Friend {
     userWhoSent: string;
     userWhoReceived: string;
     friendShipId: string;
+    unreadCount: number;
     //обновить avatar: string, подумать над isOnline и AccountActivity
 }
 
@@ -24,6 +25,7 @@ export interface ShortFriend {
 
 export interface FriendProps {
     friends: Friend[];
+    setFriends: React.Dispatch<React.SetStateAction<Friend[]>>;
     onFriendAdded?: () => void;
 }
 
@@ -37,6 +39,7 @@ export interface FriendRequest {
 export interface FriendDetailsProps {
     friend: Friend | null;
     friends: Friend[];
+    setFriends: React.Dispatch<React.SetStateAction<Friend[]>>;
     onAccept?: (friend: Friend) => void;
     onCancel?: (friend: Friend) => void;
 }

@@ -4,7 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Syncro.Infrastructure.Selectel;
 using Syncro.Application.SelectelStorage;
 using Syncro.Application.Interfaces.Repositories;
-using Syncro.Infrastructure.CouchBaseStorage;
+using Syncro.Infrastructure.CouchBaseMessageStorage;
+using Syncro.Application.Interfaces.CouchBaseStorage;
 
 public static class ServiceRegistration
 {
@@ -24,6 +25,7 @@ public static class ServiceRegistration
         services.AddScoped<ISectorService, SectorService>();
         services.AddScoped<ISectorPermissionsService, SectorPermissionsService>();
         services.AddScoped<IPersonalAccountInfoService, PersonalAccountInfoService>();
+        services.AddScoped<IEmailService, EmailService>();
     }
     public static void AddCoreRepositoriesExtension(this IServiceCollection services, IConfiguration configuration)
     {

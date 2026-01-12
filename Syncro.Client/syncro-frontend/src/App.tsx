@@ -5,6 +5,7 @@ import Landing from "./Pages/Landing";
 import Chat from "./Pages/Chat";
 import Main from "./Pages/Main";
 import Settings from "./Pages/Settings";
+import ResetPassword from "./Pages/ResetPassword";
 
 const App = () => {
   return (
@@ -16,6 +17,7 @@ const App = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/reset_password" element={<ResetPassword />} />
       </Routes>
     </Router>
   );

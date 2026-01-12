@@ -2,8 +2,7 @@ import { MainProps } from "../../Types/MainProps";
 import FriendsComponent from "./FriendsComponent";
 import SidebarComponent from "./SidebarComponent";
 
-
-const BodyComponent = ({ friends, nickname, avatar, isOnline}: MainProps) => {
+const BodyComponent = ({ friends, nickname, avatar, isOnline, setFriends }: MainProps & { setFriends: (friends: any) => void }) => {
     return (
         <div className="body-container">
             <SidebarComponent 
@@ -11,8 +10,12 @@ const BodyComponent = ({ friends, nickname, avatar, isOnline}: MainProps) => {
                 nickname={nickname}
                 avatar={avatar}
                 isOnline={isOnline}
+                setFriends={setFriends}
              />
-            <FriendsComponent friends={friends} />
+            <FriendsComponent 
+                friends={friends} 
+                setFriends={setFriends} 
+            />
         </div>
     );
 }

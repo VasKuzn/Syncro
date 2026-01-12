@@ -70,6 +70,33 @@ const MediaRenderer = ({ url, category, fileName }: { url: string; category: str
         </div>
     );
 };
+const highlightTextMatches = (text: string, query?: string) => {
+    if (!query || !text || query.trim() === '') {
+        return text; // Возвращаем текст без изменений, если запроса нет
+    }
+
+    try {
+        // Экранируем специальные символы для безопасного использования в RegExp
+        const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const parts = text.split(new RegExp(`(${escapedQuery})`, 'gi'));
+
+        return parts.map((part, index) => {
+            if (part.toLowerCase() === query.toLowerCase()) {
+                // Подсвечиваем совпадение
+                return (
+                    <mark key={index} className="message-search-highlight">
+                        {part}
+                    </mark>
+                );
+            }
+            return part;
+        });
+    } catch (error) {
+        // В случае ошибки в регулярном выражении возвращаем исходный текст
+        console.warn('Ошибка при подсветке текста:', error);
+        return text;
+    }
+};
 
 const Message = ({
     messageContent,
@@ -81,7 +108,8 @@ const Message = ({
     isOwnMessage,
     avatarUrl,
     previousMessageAuthor,
-    previousMessageDate
+    previousMessageDate,
+    searchQuery // <-- Принимаем новый пропс здесь
 }: MessageProps) => {
     const date = new Date(messageDateSent);
     const previousDate = previousMessageDate ? new Date(previousMessageDate) : null;
@@ -103,16 +131,16 @@ const Message = ({
     return (
         <ErrorBoundary>
             <div className={`messageItem ${isOwnMessage ? 'own-message' : 'friend-message'} ${hideProfileInfo ? 'no-profile' : ''}`}>
-            {!hideProfileInfo && (
-                <div className="photo">
-                    <img
-                        src={avatarUrl}
-                        alt={`${accountNickname} avatar`}
-                        onError={(e) => {
-                            e.currentTarget.src = './logo.png';
-                        }} />
-                </div>
-            )}
+                {!hideProfileInfo && (
+                    <div className="photo">
+                        <img
+                            src={avatarUrl}
+                            alt={`${accountNickname} avatar`}
+                            onError={(e) => {
+                                e.currentTarget.src = './logo.png';
+                            }} />
+                    </div>
+                )}
                 <div className="content">
                     <div className="header">
                         {!hideProfileInfo && <span className="name">{accountNickname}</span>}
@@ -121,14 +149,17 @@ const Message = ({
                         <>
                             {messageContent && (
                                 <div style={{ marginBottom: '6px' }}>
-                                    {messageContent}
+                                    {/* Подсветка текста в медиа-сообщениях */}
+                                    {searchQuery ? highlightTextMatches(messageContent, searchQuery) : messageContent}
                                 </div>
                             )}
                             <MediaRenderer url={mediaUrl!} category={category} fileName={fileName} />
                             {category === 'image' && <div style={{ fontSize: 14, color: 'inherit', marginTop: 4 }}></div>}
                         </>
                     ) : (
-                        <p className="message">{messageContent}
+                        <p className="message">
+                            {/* Подсветка текста в обычных сообщениях */}
+                            {searchQuery ? highlightTextMatches(messageContent, searchQuery) : messageContent}
                             <time className="time">{formattedTime}</time>
                         </p>
                     )}

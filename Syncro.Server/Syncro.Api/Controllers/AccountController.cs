@@ -9,20 +9,32 @@ namespace Syncro.Api.Controllers
         private readonly IAccountService _accountService;
         private readonly IPersonalAccountInfoService _infoService;
 
-        public AccountController(IAccountService accountService, IPersonalAccountInfoService infoService)
+        private readonly IEmailService _emailService;
+
+        public AccountController(IAccountService accountService, IPersonalAccountInfoService infoService, IEmailService emailService)
         {
             _accountService = accountService;
             _infoService = infoService;
+            _emailService = emailService;
         }
 
         // GET: api/accounts
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<AccountModel>>> GetAllAccounts()
+        public async Task<ActionResult<IEnumerable<AccountNoPasswordModel>>> GetAllAccounts()
         {
             try
             {
                 var accounts = await _accountService.GetAllAccountsAsync();
-                return Ok(accounts);
+
+                List<AccountNoPasswordModel> accountsNoPassword = new List<AccountNoPasswordModel>();
+
+                foreach (var account in accounts)
+                {
+                    var accountNoPassword = TranferModelsMapper.AccountNoPasswordModelMapMapper(account);
+                    accountsNoPassword.Add(accountNoPassword);
+                }
+
+                return Ok(accountsNoPassword);
             }
             catch (Exception ex)
             {
@@ -32,12 +44,13 @@ namespace Syncro.Api.Controllers
 
         // GET: api/accounts/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<AccountModel>> GetAccountById(Guid id)
+        public async Task<ActionResult<AccountNoPasswordModel>> GetAccountById(Guid id)
         {
             try
             {
                 var account = await _accountService.GetAccountByIdAsync(id);
-                return Ok(account);
+                var accountNoPassword = TranferModelsMapper.AccountNoPasswordModelMapMapper(account);
+                return Ok(accountNoPassword);
             }
             catch (ArgumentException ex)
             {
@@ -50,12 +63,13 @@ namespace Syncro.Api.Controllers
         }
         // GET: api/accounts/{email}
         [HttpGet("{email}/get")]
-        public async Task<ActionResult<AccountModel>> GetAccountByEmail(string email)
+        public async Task<ActionResult<AccountNoPasswordModel>> GetAccountByEmail(string email)
         {
             try
             {
                 var account = await _accountService.GetAccountByEmailAsync(email);
-                return Ok(account);
+                var accountNoPassword = TranferModelsMapper.AccountNoPasswordModelMapMapper(account);
+                return Ok(accountNoPassword);
             }
             catch (ArgumentException ex)
             {
@@ -68,12 +82,13 @@ namespace Syncro.Api.Controllers
         }
         // GET: api/accounts/{email}
         [HttpGet("{nickname}/getnick")]
-        public async Task<ActionResult<AccountModel>> GetAccountByNickname(string nickname)
+        public async Task<ActionResult<AccountNoPasswordModel>> GetAccountByNickname(string nickname)
         {
             try
             {
                 var account = await _accountService.GetAccountByNicknameAsync(nickname);
-                return Ok(account);
+                var accountNoPassword = TranferModelsMapper.AccountNoPasswordModelMapMapper(account);
+                return Ok(accountNoPassword);
             }
             catch (ArgumentException ex)
             {
@@ -93,19 +108,20 @@ namespace Syncro.Api.Controllers
             if (account == null)
             {
                 return StatusCode(404, $"Account not found error: ID {userId}");
-            } 
+            }
             return Ok(account.nickname);
         }
         //
         // POST: api/accounts
         [HttpPost]
-        public async Task<ActionResult<AccountModel>> CreateAccount([FromBody] AccountModel account)
+        public async Task<ActionResult<AccountNoPasswordModel>> CreateAccount([FromBody] AccountModel account)
         {
             try
             {
                 var createdAccount = await _accountService.CreateAccountAsync(account);
+                var createdAccountNoPassword = TranferModelsMapper.AccountNoPasswordModelMapMapper(createdAccount);
                 var createdPersonalAccountInfo = await _infoService.CreatePersonalAccountInfoAsync(account.Id);
-                return CreatedAtAction(nameof(GetAccountById), new { id = createdAccount.Id }, createdAccount);
+                return CreatedAtAction(nameof(GetAccountById), new { id = createdAccount.Id }, createdAccountNoPassword);
             }
             catch (ArgumentException ex)
             {
@@ -293,7 +309,7 @@ namespace Syncro.Api.Controllers
 
         //GET: api/accounts/full_account_info/{id} - вся инфа для обновления для фронтенда
         [HttpGet("full_account_info/{id}")]
-        public async Task<ActionResult<AccountWithPersonalInfoModel>> GetAccountWithPersonalInfoAsync(Guid id)
+        public async Task<ActionResult<AccountWithPersonalInfoNoPasswordModel>> GetAccountWithPersonalInfoAsync(Guid id)
         {
             try
             {
@@ -322,10 +338,9 @@ namespace Syncro.Api.Controllers
             }
         }
 
+        //PUT: api/accounts/full_account_info/{id} - запрос для обновления всей инфы пользователя
         [HttpPut("full_account_info/{id}")]
-        public async Task<IActionResult> UpdateAccountWithPersonalInfoAsync(
-    Guid id,
-    [FromForm] AccountWithPersonalInfoModel model)
+        public async Task<IActionResult> UpdateAccountWithPersonalInfoAsync(Guid id, [FromForm] AccountWithPersonalInfoModel model)
         {
             try
             {
@@ -352,5 +367,66 @@ namespace Syncro.Api.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
+        [HttpPost("forget_password")]
+        public async Task<IActionResult> ForgetPassword([FromBody] Application.ModelsDTO.ForgetPasswordRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return StatusCode(400, $"Bad request error: {ModelState}");
+            }
+            try
+            {
+                var account = await _accountService.GetAccountByEmailAsync(request.Email);
+                
+                //string callbackUrl = Url.Action("reset_password", "api/accounts", new { Email = request.Email  }, protocol: HttpContext.Request.Scheme);
+
+                var callbackUrl = Url.Action(nameof(ForgetPassword), nameof(AccountController).Replace("Controller",string.Empty), new { id = account.Id }, protocol: HttpContext.Request.Scheme);
+
+                var result = await _emailService.SendEmailAsync(request.Email, "Сброс пароля Syncro", "Для сброса пароля перейдите по ссылке: " + (callbackUrl as string) + ". Если это не вы, то ни в коем случае не переходите по ссылке!");
+
+                return Ok($"Reset password message sent");
+            }
+            catch (ArgumentException aex)
+            {
+                return Ok($"Reset password message sent");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpPost("reset_password/{id}")]
+        public async Task<IActionResult> ResetPassword(Guid id,[FromBody] Application.ModelsDTO.ResetPasswordRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return StatusCode(400, $"Bad request error: {ModelState}");
+            }
+
+            try
+            {
+                var account = await _accountService.GetAccountByIdAsync(id);
+                
+                var result = await _accountService.ResetPassword(account.Id, request.Password);
+
+                return Ok($"Password reset");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return StatusCode(404, $"Account not found error: {ex.Message}");
+            }
+            catch (ArgumentException ex)
+            {
+                return StatusCode(400, $"Bad request error: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        
     }
 }

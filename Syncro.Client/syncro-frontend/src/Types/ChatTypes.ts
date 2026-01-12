@@ -67,6 +67,7 @@ export interface VideoCallProps {
     remoteAvatarUrl: string;
     localStream?: MediaStream | null;
     remoteStream?: MediaStream | null;
+    replaceVideoTrack: (track: MediaStreamTrack) => void;
 }
 
 export interface MessageProps extends PersonalMessageData {
@@ -74,4 +75,5 @@ export interface MessageProps extends PersonalMessageData {
     avatarUrl: string;
     previousMessageAuthor?: string | null;
     previousMessageDate?: Date | null;
+    searchQuery?: string;
 }

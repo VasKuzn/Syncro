@@ -6,16 +6,26 @@ import { emptyFilterMessages } from "../../Constants/FriendFilterMessages";
 import { AnimatePresence, motion } from 'framer-motion';
 import loadingIcon from '../../assets/usersicon.svg';
 
-const FriendsComponent = ({ friends, onFriendAdded }: FriendProps) => {
+const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const [notification, setNotification] = useState<{ message: string, isError: boolean } | null>(null);
     const [filter, setFilter] = useState<FriendFilterTypes>('all');
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
     const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
     const [selectedFriend, setSelectedFriend] = useState<ShortFriend | null>(null);
+    const [searchQuery, setSearchQuery] = useState(''); // FR1: Состояние для поискового запроса
 
     const addFriendInputRef = useRef<HTMLInputElement>(null);
+    const searchInputRef = useRef<HTMLInputElement>(null);
     const popoverRef = useRef<HTMLDivElement>(null);
+
+    // FR5: Сброс поиска при смене фильтра
+    useEffect(() => {
+        setSearchQuery('');
+        if (searchInputRef.current) {
+            searchInputRef.current.value = '';
+        }
+    }, [filter]);
 
     useEffect(() => {
         const loadCurrentUser = async () => {
@@ -138,6 +148,19 @@ const FriendsComponent = ({ friends, onFriendAdded }: FriendProps) => {
         }
     };
 
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchQuery(e.target.value);
+    };
+
+    const handleClearSearch = () => {
+        setSearchQuery('');
+        if (searchInputRef.current) {
+            searchInputRef.current.value = '';
+            searchInputRef.current.focus();
+        }
+    };
+
+    // Сначала фильтруем друзей по выбранному фильтру, затем применяем поиск
     const filteredFriends = (() => {
         let result = friends.filter(friend => {
             if (filter === 'online') {
@@ -149,6 +172,14 @@ const FriendsComponent = ({ friends, onFriendAdded }: FriendProps) => {
             if (filter === 'banned') return friend.status === 2;
             return true;
         });
+
+        // Применяем поиск к отфильтрованному списку
+        if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase().trim();
+            result = result.filter(friend =>
+                friend.nickname.toLowerCase().includes(query)
+            );
+        }
 
         if (filter === 'all') {
             result = result.sort((a, b) => {
@@ -218,16 +249,53 @@ const FriendsComponent = ({ friends, onFriendAdded }: FriendProps) => {
             <div className="friends-list">
                 <div className="input-container">
                     <div className="input-box">
-                        <input className="friends-search" placeholder="Поиск" />
+                        {/* FR1: Управляемое поле для поиска */}
+                        <input
+                            ref={searchInputRef}
+                            className="friends-search"
+                            placeholder="Поиск"
+                            value={searchQuery}
+                            onChange={handleSearchChange}
+                        />
                         <img className="search-icon" src="/search.png" alt="Поиск" />
+                        {/* Кнопка для очистки поиска */}
+                        {searchQuery && (
+                            <button
+                                className="clear-search-btn"
+                                onClick={handleClearSearch}
+                                style={{
+                                    position: 'absolute',
+                                    right: '10px',
+                                    background: 'none',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    fontSize: '18px',
+                                    color: '#666',
+                                    padding: '0',
+                                    width: '20px',
+                                    height: '20px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}
+                            >
+                                ×
+                            </button>
+                        )}
                     </div>
                 </div>
 
                 <div className="friends-container">
+                    {/* Обработка пустого результата после поиска */}
                     {filteredFriends.length === 0 ? (
                         <div className="empty-state">
                             <img src="/no-friends.png" alt="Нет друзей" />
-                            <p>{currentEmptyFilterMessage}</p>
+                            <p>
+                                {searchQuery.trim()
+                                    ? `По запросу «${searchQuery}» друзей не найдено`
+                                    : currentEmptyFilterMessage
+                                }
+                            </p>
                         </div>
                     ) : (
                         filteredFriends.map(friend => {
@@ -309,6 +377,7 @@ const FriendsComponent = ({ friends, onFriendAdded }: FriendProps) => {
                                                         <FriendDetails
                                                             friend={friend}
                                                             friends={friends}
+                                                            setFriends={setFriends}
                                                             onAccept={handleAccept}
                                                             onCancel={handleCancel}
                                                         />
