@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Syncro.Application.SelectelStorage;
+using Syncro.Application.Interfaces.CouchBaseStorage;
 
 namespace Syncro.Infrastructure.Services
 {

@@ -3,11 +3,11 @@ import BodyComponent from "./BodyComponent";
 import { FriendProps } from "../../Types/FriendType";
 
 
-const MainComponent = ({ friends }: FriendProps) => {
+const MainComponent = ({ friends, setFriends }: FriendProps) => {
     return (
         <div className="main-page">
             <BodyComponent
-                friends={friends}>
+                friends={friends} setFriends={setFriends} >
             </BodyComponent>
         </div>
     );

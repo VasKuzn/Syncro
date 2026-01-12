@@ -1,3 +1,5 @@
+using Syncro.Application.Interfaces.CouchBaseStorage;
+
 namespace Syncro.Api.Controllers
 {
     [ApiController]
@@ -123,6 +125,27 @@ namespace Syncro.Api.Controllers
             catch (KeyNotFoundException ex)
             {
                 return StatusCode(404, $"Message not found error: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        // PUT api/messages/read/all
+        [HttpPut("read/all")]
+        [ProducesResponseType(typeof(IEnumerable<MessageModel>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<IEnumerable<MessageModel>>> MarkMessagesAsRead([FromQuery] Guid personalConferenceId)
+        {
+            try
+            {
+                var result = await _messageService.MarkMessagesAsReadAsync(personalConferenceId);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return StatusCode(404, $"Messages not found error: {ex.Message}");
             }
             catch (Exception ex)
             {

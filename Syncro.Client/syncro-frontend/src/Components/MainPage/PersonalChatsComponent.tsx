@@ -1,7 +1,9 @@
-import { fetchCurrentUser, getPersonalConference } from "../../Services/MainFormService";
+import { fetchCurrentUser, getPersonalConference, markMessagesAsRead } from "../../Services/MainFormService";
 import { FriendProps } from "../../Types/FriendType";
 import { useNavigate } from 'react-router-dom';
-const PersonalChatsComponent = ({ friends }: FriendProps) => {
+import { messageHub } from "../../Hubs/MessageHub";
+
+const PersonalChatsComponent = ({ friends, setFriends }: FriendProps) => {
     const navigate = useNavigate();
     return (
         <div className="personal-chats">
@@ -19,6 +21,17 @@ const PersonalChatsComponent = ({ friends }: FriendProps) => {
                             try {
                                 const currentUserId = await fetchCurrentUser();
                                 const personalConferenceId = await getPersonalConference(currentUserId, friend.id);
+
+                                await messageHub.init();
+                                await messageHub.subscribeToConference(personalConferenceId);
+                                
+                                await markMessagesAsRead(personalConferenceId);
+                                
+                                setFriends(prev =>
+                                    prev.map(f =>
+                                        f.id === friend.id ? { ...f, unreadCount: 0 } : f
+                                    )
+                                );
 
                                 navigate("/chat", {
                                     state: {
@@ -40,6 +53,11 @@ const PersonalChatsComponent = ({ friends }: FriendProps) => {
                                 <span className="nickname">{friend.nickname}</span>
                                 <span className={`online-status ${friend.isOnline ? '' : 'offline'}`}>{friend.isOnline ? "В сети" : "Не в сети"}</span>
                             </div>
+                            {friend.unreadCount && (
+                                    <div className="unread-badge">
+                                    {friend.unreadCount}
+                                </div>
+                            )}
                         </div>
                     </div>
                 ))}

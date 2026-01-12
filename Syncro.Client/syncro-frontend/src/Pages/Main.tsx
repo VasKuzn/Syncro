@@ -10,6 +10,7 @@ const Main = () => {
     const [friends, setFriends] = useState<Friend[]>([]);
     const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
     const [accountConnection, setAccountConnection] = useState<signalR.HubConnection | null>(null);
+    const [messageConnection, setMessageConnection] = useState<signalR.HubConnection | null>(null);
 
     const initSignalR = useCallback(async (userId: string | null) => {
         const newConnection = new signalR.HubConnectionBuilder()
@@ -69,6 +70,30 @@ const Main = () => {
             console.error('AccountHub connection error', err);
         }
 
+        try {
+            const msgConnection = new signalR.HubConnectionBuilder()
+                .withUrl("http://localhost:5232/personalmessageshub",
+                {
+                    withCredentials: true,
+                    skipNegotiation: true,
+                    transport: signalR.HttpTransportType.WebSockets
+                })
+                .configureLogging(signalR.LogLevel.Information)
+                .build();
+            
+            msgConnection.on("NewMessage", (message) => {
+                console.log("NewMessage", message);
+                const fromUserId = message.fromUserId;
+                setFriends(prev => prev.map(f => f.id === fromUserId ? { ...f, unreadCount: (f.unreadCount ?? 0) + 1 } : f));
+            });
+
+            await msgConnection.start();
+
+            setMessageConnection(msgConnection);
+        } catch (err) {
+            console.error('MessageHub connection error', err);
+        }
+
         return newConnection;
     }, []);
 
@@ -116,7 +141,7 @@ const Main = () => {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 1, ease: "easeInOut" }}
             >
-            <MainComponent friends={friends} />
+            <MainComponent friends={friends} setFriends={setFriends} />
             </motion.div>
         </AnimatePresence>
     );

@@ -8,11 +8,11 @@ namespace Syncro.Api.Hubs
         }
         public async Task SendAnswer(string receiverId, string answer)
         {
-            await Clients.User(receiverId).SendAsync("ReceiveAnswer", Context.UserIdentifier, answer);
+            await Clients.User(receiverId).SendAsync("ReceiveAnswer", answer);
         }
         public async Task SendIceCandidate(string receiverId, string candidate)
         {
-            await Clients.User(receiverId).SendAsync("ReceiveIceCandidate", Context.UserIdentifier, candidate);
+            await Clients.User(receiverId).SendAsync("ReceiveIceCandidate", candidate);
         }
         public async Task EndCall(string receiverId)
         {

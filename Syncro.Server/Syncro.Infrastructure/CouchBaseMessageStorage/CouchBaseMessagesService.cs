@@ -4,8 +4,9 @@ using Couchbase.Query;
 using Newtonsoft.Json.Linq;
 using Couchbase.KeyValue;
 using Microsoft.Extensions.Configuration;
+using Syncro.Application.Interfaces.CouchBaseStorage;
 
-namespace Syncro.Infrastructure.CouchBaseStorage
+namespace Syncro.Infrastructure.CouchBaseMessageStorage
 {
     public class CouchBaseMessagesService : ICouchBaseMessagesService
     {
@@ -247,6 +248,38 @@ namespace Syncro.Infrastructure.CouchBaseStorage
             catch (Exception ex)
             {
                 Console.WriteLine($"Error marking message as read: {ex}");
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<MessageModel>> MarkMessagesAsReadAsync(Guid personalConferenceId)
+        {
+            try
+            {
+                var query = $@"
+                    UPDATE `{_bucketName}`.`{_scopeName}`.`{_collectionName}` AS m
+                    SET m.isRead = TRUE
+                    WHERE m.type = 'message'
+                        AND m.personalConferenceId = $personalConferenceId
+                        AND m.isRead = FALSE
+                    RETURNING m.*";
+
+                var parameters = new QueryOptions()
+                     .Parameter("personalConferenceId", personalConferenceId);
+
+                var result = await _cluster.QueryAsync<MessageModel>(query, parameters);
+
+                var updatedMessages = new List<MessageModel>();
+                await foreach (var row in result)
+                {
+                    updatedMessages.Add(row);
+                }
+
+                return updatedMessages;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error marking messages as read: {ex}");
                 throw;
             }
         }

@@ -4,7 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Syncro.Infrastructure.Selectel;
 using Syncro.Application.SelectelStorage;
 using Syncro.Application.Interfaces.Repositories;
-using Syncro.Infrastructure.CouchBaseStorage;
+using Syncro.Infrastructure.CouchBaseMessageStorage;
+using Syncro.Application.Interfaces.CouchBaseStorage;
 
 public static class ServiceRegistration
 {

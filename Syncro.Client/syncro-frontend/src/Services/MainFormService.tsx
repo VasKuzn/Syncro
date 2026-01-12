@@ -211,7 +211,8 @@ export const loadFriendInfo = async (
             friendsSince: new Date(friend.friendsSince),
             userWhoReceived: friend.userWhoRecieved,
             userWhoSent: friend.userWhoSent,
-            friendShipId: friend.id
+            friendShipId: friend.id,
+            unreadCount: friend.unreadCount
         };
 
         loadedFriends.push(cleanedFriend);
@@ -240,3 +241,19 @@ export async function getUserInfo(id: string | null): Promise<UserInfo | null> {
         throw new Error((error as NetworkError).message || 'Ошибка сети');
     }
 }
+
+export const markMessagesAsRead = async (personalConferenceId: string) => {
+    try {
+        const response = await fetch(`http://localhost:5232/api/messages/read/all?personalConferenceId=${personalConferenceId}`, {
+            method: "PUT",
+        });
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to mark messages as read: ${errorText}`);
+        }
+        return await response.json(); // возвращает массив MessageModel
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+};
