@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { PersonalMessageData } from '../Types/ChatTypes';
 import Message from '../Components/ChatPage/MessageComponent';
 import MessageInput from '../Components/ChatPage/MessageInput';
@@ -9,7 +9,7 @@ import '../Styles/Chat.css';
 import { Friend, ShortFriend } from '../Types/FriendType';
 import { fetchCurrentUser } from '../Services/MainFormService';
 import { useLocation } from 'react-router-dom';
-import { createMessage, getMessages, uploadMediaMessage, getPersonalConferenceById } from '../Services/ChatService';
+import { createMessage, getMessages, uploadMediaMessage, getPersonalConferenceById, initializeEncryptionWithFriend } from '../Services/ChatService';
 import usePersonalMessagesHub from '../Hooks/UsePersonalMessages';
 import UseRtcConnection from '../Hooks/UseRtcConnection';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -18,6 +18,7 @@ import loadingIcon from '../assets/loadingicon.svg';
 import { UserInfo } from '../Types/UserInfo';
 import searchIcon from '../assets/search3.png';
 import arrowDownIcon from '../assets/arrow-down.png';
+import { encryptionService } from '../Services/EncryptionService';
 
 const ChatPage = () => {
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -25,6 +26,7 @@ const ChatPage = () => {
   const [messages, setMessages] = useState<PersonalMessageData[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const location = useLocation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatRef = useRef<HTMLDivElement | null>(null);
@@ -52,6 +54,9 @@ const ChatPage = () => {
 
   // Ref для элементов сообщений
   const messageRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+  const [encryptionSessionReady, setEncryptionSessionReady] = useState(false);
+
+  const processedMessagesRef = useRef<Set<string>>(new Set());
 
   const rtcConnection = UseRtcConnection({
     onRemoteStream: (stream: MediaStream) => {
@@ -87,9 +92,19 @@ const ChatPage = () => {
     const chat = chatRef.current;
     if (!chat) return;
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        chat.scrollTop = chat.scrollHeight;
-      });
+      chat.scrollTop = chat.scrollHeight;
+    });
+  }, []);
+
+  const updateMessage = useCallback((message: PersonalMessageData) => {
+    setMessages(prev => {
+      const existingIndex = prev.findIndex(m => m.id === message.id);
+      if (existingIndex >= 0) {
+        const newMessages = [...prev];
+        newMessages[existingIndex] = message;
+        return newMessages;
+      }
+      return [...prev, message];
     });
   }, []);
 
@@ -98,6 +113,49 @@ const ChatPage = () => {
     if (!pos) return true;
     return pos.scrollHeight - pos.scrollTop - pos.clientHeight < 300;
   }, []);
+
+  const decryptSingleMessage = useCallback(async (message: PersonalMessageData, forceDecryptOwn = false): Promise<PersonalMessageData> => {
+    if (!message.isEncrypted || !message.encryptionMetadata || !message.messageContent) {
+      return message;
+    }
+
+    const isOwnMessage = message.accountId === currentUserId;
+    if (isOwnMessage && !forceDecryptOwn) {
+      return message;
+    }
+
+    const senderId = message.accountId;
+    if (!senderId) {
+      return message;
+    }
+
+    if (!message.encryptionMetadata) {
+      console.warn('Message missing encryption metadata, cannot decrypt:', message.id);
+      return message;
+    }
+
+    if (message.messageContent.length < 4) {
+      console.warn('Message appears too short to be encrypted:', message.id);
+      return message;
+    }
+
+    try {
+      const decrypted = await encryptionService.autoDecryptMessage(message, senderId);
+
+      return {
+        ...decrypted,
+        encryptionMetadata: undefined,
+        isEncrypted: false
+      };
+    } catch (error) {
+      console.warn('Failed to decrypt message:', message.id, error);
+      return {
+        ...message,
+        messageContent: '[Не удалось расшифровать сообщение]',
+        isEncrypted: false
+      };
+    }
+  }, [currentUserId]);
 
   // Поиск сообщений
   const performSearch = useCallback((query: string) => {
@@ -192,7 +250,20 @@ const ChatPage = () => {
   useEffect(() => {
     const initializeUser = async () => {
       const userId = await fetchCurrentUser();
+      if (!userId) return;
+
       setCurrentUserId(userId);
+      encryptionService.setCurrentUserId(userId);
+
+      try {
+        const publicKey = await encryptionService.getPublicKey(userId);
+        if (!publicKey) {
+          console.log('Generating encryption keys for user:', userId);
+          await encryptionService.generateKeys(userId);
+        }
+      } catch (error) {
+        console.warn('Failed to initialize user encryption:', error);
+      }
     };
 
     initializeUser();
@@ -206,54 +277,70 @@ const ChatPage = () => {
   }, [location.state]);
 
   const loadMessages = useCallback(async () => {
-    if (!personalConference) return;
+    if (!personalConference || !currentUserId) return;
 
     try {
+      setIsLoadingMessages(true);
+
       const loadedMessages = await getMessages(personalConference);
-      setMessages(loadedMessages);
+      processedMessagesRef.current.clear();
+
+      const decryptedMessages = await Promise.all(
+        loadedMessages.map((message) =>
+          message.isEncrypted && message.encryptionMetadata
+            ? decryptSingleMessage(message, true)
+            : Promise.resolve(message)
+        )
+      );
+
+      setMessages(decryptedMessages);
       scrollToBottomInstant();
     } catch (error) {
       console.error('Failed to load messages:', error);
+    } finally {
+      setIsLoadingMessages(false);
     }
-  }, [personalConference]);
+  }, [personalConference, currentUserId, scrollToBottomInstant, decryptSingleMessage]);
 
   useEffect(() => {
     loadMessages();
   }, [loadMessages]);
 
-  // Загрузка данных пользователя и друга
+  const fetchUserById = useCallback(async (userId: string) => {
+    const res = await fetch(`http://localhost:5232/api/accounts/${userId}`);
+    if (!res.ok) throw new Error('Failed to fetch user');
+    return res.json();
+  }, []);
+
   useEffect(() => {
     const fetchCurrentUserData = async () => {
-      if (!personalConference || !currentUserId) return;
+      if (!currentUserId) return;
       try {
-        const res = await fetch(`http://localhost:5232/api/accounts/${currentUserId}`);
-        const currentUserData = await res.json();
+        const currentUserData = await fetchUserById(currentUserId);
         setCurrentUser(currentUserData);
       } catch (err) {
-        console.error("Failed to load current user", err);
+        console.error('Failed to load current user', err);
       }
     };
     fetchCurrentUserData();
-  }, [personalConference, currentUserId]);
+  }, [currentUserId, fetchUserById]);
 
   useEffect(() => {
     const fetchConferenceAndFriend = async () => {
       if (!personalConference || !currentUserId) return;
       try {
         const conf = await getPersonalConferenceById(personalConference);
-        const friendId =
-          String(conf.user1).toLowerCase() === String(currentUserId).toLowerCase()
-            ? conf.user2
-            : conf.user1;
-        const res = await fetch(`http://localhost:5232/api/accounts/${friendId}`);
-        const friendData = await res.json();
+        const friendId = String(conf.user1).toLowerCase() === String(currentUserId).toLowerCase()
+          ? conf.user2
+          : conf.user1;
+        const friendData = await fetchUserById(friendId);
         setCurrentFriend(friendData);
       } catch (err) {
-        console.error("Failed to load conference or friend", err);
+        console.error('Failed to load conference or friend', err);
       }
     };
     fetchConferenceAndFriend();
-  }, [personalConference, currentUserId]);
+  }, [personalConference, currentUserId, fetchUserById]);
 
   // Вешаем обработчик скролла
   useEffect(() => {
@@ -264,33 +351,74 @@ const ChatPage = () => {
     }
   }, [handleScroll]);
 
-  // Обработчик нового сообщения
   const handleNewMessage = useCallback((message: PersonalMessageData) => {
-    setMessages(prev => {
-      if (!prev.some(m => m.id === message.id)) {
-        return [...prev, message];
-      }
-      return prev;
-    });
+    try {
+      const messageId = message.id;
 
-    if (isUserAtBottom() && !isSearchActive) {
-      setTimeout(scrollToBottom, 100);
+      if (processedMessagesRef.current.has(messageId)) {
+        return;
+      }
+      processedMessagesRef.current.add(messageId);
+
+      if (message.accountId === currentUserId) {
+        updateMessage({ ...message, isEncrypted: false });
+        if (isUserAtBottom()) {
+          setTimeout(scrollToBottom, 50);
+        }
+        return;
+      }
+
+      if (!message.isEncrypted || !message.encryptionMetadata) {
+        updateMessage(message);
+        if (isUserAtBottom()) {
+          setTimeout(scrollToBottom, 50);
+        }
+        return;
+      }
+
+      decryptSingleMessage(message).then(decryptedMessage => {
+        updateMessage(decryptedMessage);
+        if (isUserAtBottom()) {
+          setTimeout(scrollToBottom, 50);
+        }
+      }).catch(error => {
+        console.error('Error decrypting real-time message:', error);
+        processedMessagesRef.current.delete(message.id);
+      });
+
+    } catch (error) {
+      console.error('Error processing new message:', error);
+      processedMessagesRef.current.delete(message.id);
     }
-  }, [scrollToBottom, isUserAtBottom, isSearchActive]);
+  }, [scrollToBottom, isUserAtBottom, decryptSingleMessage, currentUserId, updateMessage]);
 
   usePersonalMessagesHub(personalConference, handleNewMessage);
 
+  useEffect(() => {
+    const initializeEncryption = async () => {
+      if (currentFriend?.id && currentUserId) {
+        try {
+          const success = await initializeEncryptionWithFriend(currentFriend.id, currentUserId);
+          setEncryptionSessionReady(success);
+        } catch (error) {
+          console.error('Error initializing encryption with friend:', error);
+          setEncryptionSessionReady(false);
+        }
+      }
+    };
+
+    if (currentFriend && currentUserId) {
+      initializeEncryption();
+    }
+  }, [currentFriend, currentUserId]);
+
   // Функции для звонков
   const handleStartCall = async () => {
-    if (!currentFriend?.id || !rtcConnection.isConnected) {
-      console.error("Cannot start call: friend not loaded or connection not ready");
-      return;
-    }
+    if (!currentFriend?.id || !rtcConnection.isConnected) return;
 
     try {
       await rtcConnection.getLocalStream();
       await rtcConnection.createOffer(currentFriend.id);
-
       setInCall(true);
       setShowCallModal(false);
       setIncomingCall(false);
@@ -301,14 +429,10 @@ const ChatPage = () => {
 
   const handleAcceptCall = async () => {
     try {
-      console.log("Accepting call from:", callInitiator);
-
       await rtcConnection.getLocalStream();
       setShowCallModal(false);
       setInCall(true);
       setIncomingCall(false);
-
-      console.log("Call accepted successfully");
     } catch (error) {
       console.error("Failed to accept call:", error);
     }
@@ -348,8 +472,9 @@ const ChatPage = () => {
   }) => {
     if (!currentUserId || !personalConference) return;
 
-    const newMessage: PersonalMessageData = {
-      id: crypto.randomUUID(),
+    const tempMessageId = crypto.randomUUID();
+    const tempMessage: PersonalMessageData = {
+      id: tempMessageId,
       messageContent: text,
       messageDateSent: new Date(),
       accountId: currentUserId,
@@ -364,27 +489,39 @@ const ChatPage = () => {
       referenceMessageId: null,
       mediaUrl: media?.mediaUrl,
       mediaType: media?.mediaType,
-      fileName: media?.fileName
+      fileName: media?.fileName,
+      isEncrypted: false,
+      encryptionVersion: encryptionSessionReady ? 1 : undefined
     };
 
+    setMessages(prev => [...prev, tempMessage]);
+    scrollToBottomInstant();
+
     try {
-      if (media && media.file) {
+      const messageData = {
+        ...tempMessage,
+        isEncrypted: encryptionSessionReady
+      };
+
+      if (media?.file) {
         setIsUploading(true);
-        await uploadMediaMessage(newMessage.id, {
+        await uploadMediaMessage(tempMessageId, {
           file: media.file,
           messageContent: text,
           accountId: currentUserId,
           accountNickname: currentUser?.nickname || null,
-          personalConferenceId: personalConference
+          personalConferenceId: personalConference,
+          isEncrypted: encryptionSessionReady
         });
       } else {
-        await createMessage(newMessage);
+        await createMessage(messageData);
       }
       if (!isSearchActive) {
         setTimeout(scrollToBottom, 100);
       }
     } catch (error) {
       console.error('Failed to send message:', error);
+      setMessages(prev => prev.filter(m => m.id !== tempMessageId));
     } finally {
       setIsUploading(false);
     }
@@ -568,6 +705,13 @@ const ChatPage = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
           >
+            {isLoadingMessages && (
+              <div className="messages-decrypting-overlay">
+                <div className="messages-decrypting-spinner"></div>
+                <div className="messages-decrypting-text">Загрузка чата...</div>
+              </div>
+            )}
+
             <AnimatePresence mode="popLayout">
               {messages.map((msg, i) => (
                 <motion.div

@@ -1,4 +1,5 @@
 using Syncro.Application.TransferModels;
+using Syncro.Infrastructure.Exceptions;
 
 namespace Syncro.Api.Controllers
 {
@@ -123,13 +124,32 @@ namespace Syncro.Api.Controllers
                 var createdPersonalAccountInfo = await _infoService.CreatePersonalAccountInfoAsync(account.Id);
                 return CreatedAtAction(nameof(GetAccountById), new { id = createdAccount.Id }, createdAccountNoPassword);
             }
+            catch (ConflictException ex)
+            {
+                return StatusCode(409, new
+                {
+                    success = false,
+                    error = "Conflict",
+                    message = ex.Message
+                });
+            }
             catch (ArgumentException ex)
             {
-                return StatusCode(400, $"Bad request error: {ex.Message}");
+                return StatusCode(400, new
+                {
+                    success = false,
+                    error = "Validation error",
+                    message = ex.Message
+                });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, new
+                {
+                    success = false,
+                    error = "Internal server error",
+                    message = "An unexpected error occurred"
+                });
             }
         }
 

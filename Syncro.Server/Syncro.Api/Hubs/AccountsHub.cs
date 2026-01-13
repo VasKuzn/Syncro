@@ -46,23 +46,32 @@ namespace Syncro.Api.Hubs
                     {
                         var friends = await _friendsService.GetFriendsByAccountAsync(userGuid);
                         var friendIds = friends
-                            .Where(f => f.status == Syncro.Domain.Enums.FriendsStatusEnum.Accepted)
+                            .Where(f => f.status == FriendsStatusEnum.Accepted)
                             .Select(f => f.userWhoSent == userGuid ? f.userWhoRecieved : f.userWhoSent)
                             .Distinct();
 
-                        foreach (var friendId in friendIds)
+                        var notificationTasks = friendIds.Select(async friendId =>
                         {
-                            await _friendsHubContext.Clients.Group($"friends-{friendId}").SendAsync("AccountActivity", new
+                            try
                             {
-                                UserId = userId,
-                                IsOnline = true,
-                                Timestamp = DateTime.UtcNow
-                            });
-                        }
+                                await _friendsHubContext.Clients.Group($"friends-{friendId}").SendAsync("AccountActivity", new
+                                {
+                                    UserId = userId,
+                                    IsOnline = true,
+                                    Timestamp = DateTime.UtcNow
+                                });
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogWarning(ex, "Failed to notify friend {FriendId} about user {UserId} activity", friendId, userId);
+                            }
+                        });
+
+                        await Task.WhenAll(notificationTasks);
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Failed to notify friends for user {UserId}", userId);
+                        _logger.LogError(ex, "Failed to get friends for user {UserId} during online notification", userId);
                     }
                 }
             }
@@ -72,20 +81,33 @@ namespace Syncro.Api.Hubs
                 try
                 {
                     var friends = await _friendsService.GetFriendsByAccountAsync(callerGuid);
-                    var friendIds = friends
-                        .Where(f => f.status == Syncro.Domain.Enums.FriendsStatusEnum.Accepted)
-                        .Select(f => f.userWhoSent == callerGuid ? f.userWhoRecieved : f.userWhoSent)
-                        .Distinct()
-                        .Select(g => g.ToString())
-                        .Where(s => _userConnectionCounts.ContainsKey(s));
 
-                    await Clients.Caller.SendAsync("OnlineFriends", friendIds.ToList());
+                    if (friends is { Count: > 0 })
+                    {
+                        var friendIds = friends
+                            .Where(f => f.status == FriendsStatusEnum.Accepted)
+                            .Select(f => f.userWhoSent == callerGuid ? f.userWhoRecieved : f.userWhoSent)
+                            .Distinct()
+                            .Select(g => g.ToString())
+                            .Where(s => _userConnectionCounts.ContainsKey(s))
+                            .ToList();
+
+                        await Clients.Caller.SendAsync("OnlineFriends", friendIds);
+                    }
+                    else
+                    {
+                        await Clients.Caller.SendAsync("OnlineFriends", new List<string>());
+                    }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to build OnlineFriends for caller {CallerId}", userId);
+                    _logger.LogError(ex, "Failed to get or process friends for user {UserId}", userId);
                     await Clients.Caller.SendAsync("OnlineFriends", new List<string>());
                 }
+            }
+            else
+            {
+                await Clients.Caller.SendAsync("OnlineFriends", new List<string>());
             }
         }
 

@@ -6,6 +6,9 @@ using Syncro.Application.SelectelStorage;
 using Syncro.Application.Interfaces.Repositories;
 using Syncro.Infrastructure.CouchBaseMessageStorage;
 using Syncro.Application.Interfaces.CouchBaseStorage;
+using Syncro.Infrastructure.Encryption.Interfaces;
+using Syncro.Infrastructure.Encryption.Repositories;
+using Syncro.Infrastructure.Encryption.Services;
 
 public static class ServiceRegistration
 {
@@ -51,6 +54,12 @@ public static class ServiceRegistration
         services.AddDataBaseServices(configuration);
         services.AddS3Services(configuration);
         services.AddCouchBaseServices(configuration);
+
+        services.AddScoped<IUserEncryptionKeyRepository, UserEncryptionKeyRepository>();
+        services.AddScoped<IEncryptionSessionRepository, EncryptionSessionRepository>();
+        services.AddScoped<IGroupEncryptionKeyRepository, GroupEncryptionKeyRepository>();
+        services.AddScoped<IEncryptionService, EncryptionService>();
+        services.AddMemoryCache();
     }
 
     public static void AddS3Services(this IServiceCollection services, IConfiguration configuration)
@@ -61,7 +70,7 @@ public static class ServiceRegistration
     }
     public static void AddCouchBaseServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddSingleton<ICouchBaseMessagesService, CouchBaseMessagesService>();
+        services.AddScoped<ICouchBaseMessagesService, CouchBaseMessagesService>();
     }
     public static void AddDataBaseServices(this IServiceCollection services, IConfiguration configuration)
     {

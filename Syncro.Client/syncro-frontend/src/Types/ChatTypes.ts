@@ -17,6 +17,10 @@ export interface PersonalMessageData {
     mediaUrl?: string | null,
     mediaType?: string | number | null,
     fileName?: string | null
+    isEncrypted?: boolean;
+    encryptionMetadata?: string | object;
+    encryptionVersion?: number;
+    encryptedContent?: string;
 }
 
 export interface ShortPersonalMessageData {
@@ -29,6 +33,11 @@ export interface PersonalMessageProps {
     mediaUrl?: string | null,
     mediaType?: string | number | null,
     fileName?: string | null
+    isEncrypted?: boolean;
+    encryptionMetadata?: string | object;
+    encryptionVersion?: number;
+    encryptedContent?: string;
+
 }
 
 export interface PersonalChatProps {
@@ -43,7 +52,9 @@ export interface MessageInputProps {
         mediaUrl: string;
     }) => void;
     isUploading: boolean;
+    disabled?: boolean;
 }
+
 export interface PersonalConference {
     id: string,
     user1: string,

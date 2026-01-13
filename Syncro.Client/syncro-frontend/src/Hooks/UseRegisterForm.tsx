@@ -10,6 +10,8 @@ export const useRegisterForm = () => {
         passwordVisible: false,
         isLoading: false,
         showSuccess: false,
+        showError: false,
+        errorMessage: '',
     });
 
     const nicknameField = useRef<HTMLInputElement>(null);

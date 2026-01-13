@@ -2,6 +2,7 @@ using Syncro.Application.JWT;
 using Syncro.Domain.Utils;
 using Syncro.Application.SelectelStorage;
 using Microsoft.Extensions.Configuration;
+using Syncro.Infrastructure.Exceptions;
 
 namespace Syncro.Infrastructure.Services
 {
@@ -38,21 +39,26 @@ namespace Syncro.Infrastructure.Services
         }
         public async Task<AccountModel> CreateAccountAsync(AccountModel account)
         {
-            if (account.nickname != null && account.email != null && account.phonenumber != null) // сделать другой способ
-            {
-                if (await _accountRepository.AccountExistsByNicknameAsync(account.nickname))
-                    throw new ArgumentException("Nickname already exists.");
+            if (account == null)
+                throw new ArgumentNullException(nameof(account), "Account cannot be null");
 
-                if (await _accountRepository.AccountExistsByEmailAsync(account.email))
-                    throw new ArgumentException("Email already exists.");
+            if (string.IsNullOrWhiteSpace(account.nickname))
+                throw new ArgumentException("Nickname is required", nameof(account.nickname));
 
-                if (await _accountRepository.AccountExistsByPhoneAsync(account.phonenumber))
-                    throw new ArgumentException("Phone already exists.");
-            }
-            else
-            {
-                throw new ArgumentException("Account info to indentify is null");
-            }
+            if (string.IsNullOrWhiteSpace(account.email))
+                throw new ArgumentException("Email is required", nameof(account.email));
+
+            if (string.IsNullOrWhiteSpace(account.phonenumber))
+                throw new ArgumentException("Phone number is required", nameof(account.phonenumber));
+
+            if (await _accountRepository.AccountExistsByNicknameAsync(account.nickname))
+                throw new ConflictException($"Nickname '{account.nickname}' already exists.");
+
+            if (await _accountRepository.AccountExistsByEmailAsync(account.email))
+                throw new ConflictException($"Email '{account.email}' already exists.");
+
+            if (await _accountRepository.AccountExistsByPhoneAsync(account.phonenumber))
+                throw new ConflictException($"Phone number '{account.phonenumber}' already exists.");
 
             return await _accountRepository.AddAccountAsync(account);
         }

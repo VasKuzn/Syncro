@@ -62,19 +62,19 @@ body {
 }
 
 .profile-panel {
-  position: absolute;
-  bottom: 10px;
-  left: 2%;
-  right: 2%;
-  margin: 0 auto;
-  height: 80px;
-  background-color: #1a2438ab;
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: left;
-  color: white;
-  z-index: 2;
+    position: absolute;
+    bottom: 10px;
+    left: 2%;
+    right: 2%;
+    margin: 0 auto;
+    height: 80px;
+    background-color: #1a2438ab;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: left;
+    color: white;
+    z-index: 2;
 }
 
 .profile-info-container {
@@ -682,7 +682,6 @@ body {
 .friend-details-popover .accept-button:hover {
     background: linear-gradient(90deg, #16a34a 60%, #22c55e 100%);
     box-shadow: 0 4px 16px rgba(34, 197, 94, 0.18);
-    transform: translateY(-2px) scale(1.04);
 }
 
 .friend-details-popover .decline-button {
@@ -693,7 +692,6 @@ body {
 .friend-details-popover .decline-button:hover {
     background: linear-gradient(90deg, #b91c1c 60%, #f87171 100%);
     box-shadow: 0 4px 16px rgba(239, 113, 113, 0.18);
-    transform: translateY(-2px) scale(1.04);
 }
 
 .unread-badge {

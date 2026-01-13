@@ -5,10 +5,10 @@ import { messageHub } from "../../Hubs/MessageHub";
 
 export const FriendDetails = ({ friend, friends, setFriends, onAccept, onCancel }: FriendDetailsProps) => {
     if (!friend) return null;
-    
+
     const navigate = useNavigate();
 
-    const goToChat = async() => {
+    const goToChat = async () => {
         const currentUserId = await fetchCurrentUser();
         const personalConferenceId = await getPersonalConference(currentUserId, friend.id);
 
@@ -27,7 +27,7 @@ export const FriendDetails = ({ friend, friends, setFriends, onAccept, onCancel 
             state: {
                 friends: friends,
                 friendId: friend.id,
-                personalConferenceId: personalConferenceId 
+                personalConferenceId: personalConferenceId
             }
         });
     };
@@ -35,7 +35,7 @@ export const FriendDetails = ({ friend, friends, setFriends, onAccept, onCancel 
     return (
         <div className="friend-details">
             <div className="friend-header">
-                <img src={friend?.avatar || "./logo.png"} alt="Avatar" className="friend-avatar big"/>
+                <img src={friend?.avatar || "./logo.png"} alt="Avatar" className="friend-avatar big" />
                 <div className="friend-main-info">
                     <div className="nickname">
                         {friend?.firstname || "Мой"} {friend?.lastname || "друг"}
@@ -64,24 +64,6 @@ export const FriendDetails = ({ friend, friends, setFriends, onAccept, onCancel 
                     💬 Перейти к чату
                 </button>
             </div>
-
-            {friend.status === 2 && (
-                <button
-                    onClick={() => onAccept?.(friend)}
-                    className="accept-button"
-                >
-                    Принять
-                </button>
-            )}
-
-            {friend.status === 0 && friend.userWhoSent === friend.id && (
-                <button
-                    onClick={() => onCancel?.(friend)}
-                    className="decline-button"
-                >
-                    Отменить заявку
-                </button>
-            )}
         </div>
     );
 };

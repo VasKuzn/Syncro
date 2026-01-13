@@ -1,4 +1,5 @@
 import { PersonalMessageData } from "../Types/ChatTypes";
+import { encryptionService } from "./EncryptionService";
 
 export const createMessage = async (message: PersonalMessageData) => {
     const response = await fetch('http://localhost:5232/api/messages', {
@@ -20,7 +21,6 @@ export const getMessages = async (personalConferenceId: string | null) => {
     if (!personalConferenceId) {
         return [];
     }
-
     const response = await fetch(
         `http://localhost:5232/api/messages/bypersonalconference?personalConferenceId=${personalConferenceId}`,
         {
@@ -36,8 +36,37 @@ export const getMessages = async (personalConferenceId: string | null) => {
         throw new Error('Failed to fetch messages');
     }
 
-    return await response.json();
+    const messages: PersonalMessageData[] = await response.json();
+
+    return messages;
 }
+
+export const initializeEncryptionWithFriend = async (friendId: string, currentUserId: string | null): Promise<boolean> => {
+    try {
+        if (!currentUserId) return false;
+
+        const friendPublicKey = await encryptionService.getPublicKey(friendId);
+        if (!friendPublicKey) {
+            console.warn('Friend public key not found');
+            return false;
+        }
+
+        const hasSession = await encryptionService.hasSession(currentUserId, friendId);
+        if (hasSession) {
+            return true;
+        }
+
+        return await encryptionService.initializeSession(
+            currentUserId,
+            friendId,
+            friendPublicKey
+        );
+    } catch (error) {
+        console.error('Error initializing encryption with friend:', error);
+        return false;
+    }
+};
+
 export const getNicknameById = async (userId: string | null) => {
     const response = await fetch(`http://localhost:5232/api/accounts/${userId}/nickname`,
         {
@@ -55,6 +84,7 @@ export const uploadMediaMessage = async (
         accountId: string;
         accountNickname: string | null;
         personalConferenceId: string;
+        isEncrypted?: boolean;
     }
 ) => {
     const formData = new FormData();

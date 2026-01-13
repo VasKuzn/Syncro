@@ -6,7 +6,7 @@ import loadingIcon from '../../assets/loadingicon.svg';
 import emojiIcon from '../../assets/emoji-icon.png';
 import EmojiPickerButton from "./EmojiPickerButton";
 
-const MessageInput = ({ onSend, isUploading }: MessageInputProps) => {
+const MessageInput = ({ onSend, isUploading, disabled = false }: MessageInputProps) => {
   const [value, setValue] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
@@ -15,7 +15,7 @@ const MessageInput = ({ onSend, isUploading }: MessageInputProps) => {
   const emojiPickerRef = useRef<HTMLDivElement>(null);
 
   const handleSend = () => {
-    if (value.trim() || selectedFile) {
+    if ((value.trim() || selectedFile) && !disabled) {
       onSend(value, selectedFile ? {
         file: selectedFile,
         fileName: selectedFile.name,
@@ -29,13 +29,13 @@ const MessageInput = ({ onSend, isUploading }: MessageInputProps) => {
   };
 
   const handleSkClick = () => {
-    if (!isUploading) {
+    if (!isUploading && !disabled) {
       fileInputRef.current?.click();
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0] && !isUploading) {
+    if (e.target.files && e.target.files[0] && !isUploading && !disabled) {
       const file = e.target.files[0];
       setSelectedFile(file);
 
@@ -54,8 +54,16 @@ const MessageInput = ({ onSend, isUploading }: MessageInputProps) => {
   };
 
   const removeFile = () => {
-    setSelectedFile(null);
-    setFilePreview(null);
+    if (!disabled) {
+      setSelectedFile(null);
+      setFilePreview(null);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !disabled) {
+      handleSend();
+    }
   };
 
   const handleEmojiSelect = (emoji: string) => {
@@ -78,7 +86,7 @@ const MessageInput = ({ onSend, isUploading }: MessageInputProps) => {
   }, []);
 
   return (
-    <div className="message-input-wrapper">
+    <div className={`message-input-container ${disabled ? 'disabled' : ''}`}>
       {selectedFile && (
         <div className={`file-preview ${filePreview ? 'image-preview' : ''}`}>
           {filePreview ? (
@@ -86,84 +94,94 @@ const MessageInput = ({ onSend, isUploading }: MessageInputProps) => {
               <img src={filePreview} alt="Preview" className="preview-image" />
               <div className="file-info">
                 <span className="file-name">{selectedFile.name}</span>
-                <button onClick={removeFile} className="remove-file-btn">×</button>
+                <button
+                  onClick={removeFile}
+                  className="remove-file-btn"
+                  disabled={disabled}
+                >
+                  ×
+                </button>
               </div>
             </>
           ) : (
             <>
               <span className="file-name">{selectedFile.name}</span>
-              <button onClick={removeFile} className="remove-file-btn">×</button>
+              <button
+                onClick={removeFile}
+                className="remove-file-btn"
+                disabled={disabled}
+              >
+                ×
+              </button>
             </>
           )}
         </div>
       )}
 
-      <div className="message-input-container">
-        <input
-          className="message-input-field"
-          placeholder="Type a message..."
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSend()}
-          disabled={isUploading}
-        />
+      <input
+        className="message-input-field"
+        placeholder="Type a message..."
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={handleKeyDown}
+        disabled={isUploading || disabled}
+      />
 
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          style={{ display: "none" }}
-          accept="image/*,video/*,audio/*"
-          disabled={isUploading}
-        />
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        style={{ display: "none" }}
+        accept="image/*,video/*,audio/*"
+        disabled={isUploading || disabled}
+      />
 
-        <button
-          className="sk-class attach-button"
-          onClick={handleSkClick}
-          type="button"
-          disabled={isUploading}
-          title="Attach file"
-        >
-          {isUploading ? (
-            <span className="upload-spinner"></span>
-          ) : (
-            <img src={attachIcon} alt="Attach media" />
-          )}
-        </button>
+      <button
+        className="sk-class attach-button"
+        onClick={handleSkClick}
+        type="button"
+        disabled={isUploading}
+        title="Attach file"
+      >
+        {isUploading ? (
+          <span className="upload-spinner"></span>
+        ) : (
+          <img src={attachIcon} alt="Attach media" />
+        )}
+      </button>
 
-        <button
-          className="sk-class emoji-button"
-          onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-          type="button"
-          disabled={isUploading}
-          title="Add emoji"
-        >
-          <img src={emojiIcon} alt="Emoji" />
-        </button>
+      <button
+        className="sk-class emoji-button"
+        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+        type="button"
+        disabled={isUploading}
+        title="Add emoji"
+      >
+        <img src={emojiIcon} alt="Emoji" />
+      </button>
 
-        <button
-          className="send-button"
-          onClick={handleSend}
-          disabled={(!value.trim() && !selectedFile) || isUploading}
-          title="Send message"
-        >
-          {isUploading ? (
-            <>
-              <img className="loading-state-img" src={loadingIcon} alt="Sending" width="30" height="30" />
-            </>
-          ) : (
-            <>
-              <img className="send-state-img" src={sendIcon} alt="Send" width="30" height="30" />
-            </>
-          )}
-        </button>
-      </div>
-
-      {showEmojiPicker && (
-        <div ref={emojiPickerRef} className="emoji-picker-container">
-          <EmojiPickerButton onEmojiSelect={handleEmojiSelect} />
-        </div>
-      )}
+      <button
+        className="send-button"
+        onClick={handleSend}
+        disabled={(!value.trim() && !selectedFile) || isUploading || disabled}
+      >
+        {isUploading ? (
+          <>
+            <img className="loading-state-img" src={loadingIcon} alt="Sending" width="30" height="30" />
+          </>
+        ) : (
+          <>
+            <img className="send-state-img" src={sendIcon} alt="Send" width="30" height="30" />
+          </>
+        )}
+      </button>
+      {
+        showEmojiPicker && (
+          <div ref={emojiPickerRef} className="emoji-picker-container">
+            <EmojiPickerButton onEmojiSelect={handleEmojiSelect} />
+          </div>
+        )
+      }
     </div>
   );
 };

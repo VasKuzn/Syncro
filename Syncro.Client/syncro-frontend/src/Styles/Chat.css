@@ -887,7 +887,6 @@ video::-webkit-media-controls-panel {
   transition: all 0.3s ease;
 }
 
-/* Стили для превью файлов */
 .file-preview {
   display: flex;
   align-items: center;
@@ -900,7 +899,6 @@ video::-webkit-media-controls-panel {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* Стили для превью изображений */
 .file-preview.image-preview {
   align-items: flex-start;
   gap: 12px;
@@ -1329,5 +1327,62 @@ video::-webkit-media-controls-panel {
   .search-button {
     width: 36px;
     height: 36px;
+  }
+}
+
+.messages {
+  position: relative;
+  overflow-y: auto;
+  flex-grow: 1;
+  padding: 16px;
+}
+
+.messages-decrypting-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  background: transparent;
+}
+
+.messages-decrypting-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(100, 126, 234, 0.2);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 12px;
+}
+
+.messages-decrypting-text {
+  font-size: 14px;
+  color: #667eea;
+  font-weight: 500;
+  background: transparent;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .messages-decrypting-text {
+    background: rgba(0, 0, 0, 0.8);
+    color: #8a9eff;
   }
 }

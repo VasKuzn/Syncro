@@ -27,19 +27,19 @@ namespace Syncro.Infrastructure.Repositories
             return account;
         }
 
+        public async Task<AccountModel> UpdateAccountAsync(AccountModel account)
+        {
+            _context.accounts.Update(account);
+            await _context.SaveChangesAsync();
+            return account;
+        }
+
         public async Task<bool> DeleteAccountAsync(Guid accountId)
         {
             var deleted = await _context.accounts
                 .Where(a => a.Id == accountId)
                 .ExecuteDeleteAsync();
             return deleted > 0;
-        }
-
-        public async Task<AccountModel> UpdateAccountAsync(AccountModel account)
-        {
-            _context.accounts.Update(account);
-            await _context.SaveChangesAsync();
-            return account;
         }
 
         public async Task<bool> AccountExistsByNicknameAsync(string nickname)
@@ -49,14 +49,7 @@ namespace Syncro.Infrastructure.Repositories
 
         public async Task<bool> AccountExistsByEmailAsync(string email)
         {
-            try
-            {
-                return await _context.accounts.AnyAsync(a => a.email == email);
-            }
-            catch
-            {
-                throw new KeyNotFoundException($"Account with email {email} not found");
-            }
+            return await _context.accounts.AnyAsync(a => a.email == email);
         }
         public async Task<bool> AccountExistsByPhoneAsync(string phonenumber)
         {
