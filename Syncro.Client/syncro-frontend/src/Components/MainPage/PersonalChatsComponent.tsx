@@ -1,10 +1,47 @@
 import { fetchCurrentUser, getPersonalConference, markMessagesAsRead } from "../../Services/MainFormService";
 import { FriendProps } from "../../Types/FriendType";
 import { useNavigate } from 'react-router-dom';
-import { messageHub } from "../../Hubs/MessageHub";
 
 const PersonalChatsComponent = ({ friends, setFriends }: FriendProps) => {
     const navigate = useNavigate();
+
+    const handleChatClick = async (friend: any) => {
+        try {
+            const currentUserId = await fetchCurrentUser();
+            const personalConferenceId = await getPersonalConference(currentUserId, friend.id);
+
+            // Немедленная навигация
+            navigate("/chat", {
+                state: {
+                    friends,
+                    friendId: friend.id,
+                    personalConferenceId
+                }
+            });
+
+            // Выполняем остальные операции уже после навигации
+            setTimeout(async () => {
+                try {
+                    const { messageHub } = await import("../../Hubs/MessageHub");
+                    await messageHub.init();
+                    await messageHub.subscribeToConference(personalConferenceId);
+                    await markMessagesAsRead(personalConferenceId);
+
+                    setFriends(prev =>
+                        prev.map(f =>
+                            f.id === friend.id ? { ...f, unreadCount: 0 } : f
+                        )
+                    );
+                } catch (error) {
+                    console.error("Ошибка при инициализации хаба:", error);
+                }
+            }, 0); // setTimeout с 0ms для следующего tick event loop
+
+        } catch (error) {
+            console.error("Ошибка при получении конференции:", error);
+        }
+    };
+
     return (
         <div className="personal-chats">
             <div className="pc-list">
@@ -12,33 +49,7 @@ const PersonalChatsComponent = ({ friends, setFriends }: FriendProps) => {
                     <div
                         key={friend.id}
                         className="pc-item"
-                        onClick={async (e) => {
-                            try {
-                                const currentUserId = await fetchCurrentUser();
-                                const personalConferenceId = await getPersonalConference(currentUserId, friend.id);
-
-                                await messageHub.init();
-                                await messageHub.subscribeToConference(personalConferenceId);
-
-                                await markMessagesAsRead(personalConferenceId);
-
-                                setFriends(prev =>
-                                    prev.map(f =>
-                                        f.id === friend.id ? { ...f, unreadCount: 0 } : f
-                                    )
-                                );
-
-                                navigate("/chat", {
-                                    state: {
-                                        friends,
-                                        friendId: friend.id,
-                                        personalConferenceId
-                                    }
-                                });
-                            } catch (error) {
-                                console.error("Ошибка при получении конференции:", error);
-                            }
-                        }}
+                        onClick={() => handleChatClick(friend)}
                     >
                         <div className="friend-info-container">
                             <div className="friend-avatar-container">

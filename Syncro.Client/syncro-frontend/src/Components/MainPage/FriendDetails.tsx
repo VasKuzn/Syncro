@@ -1,7 +1,6 @@
 import { FriendDetailsProps } from "../../Types/FriendType";
 import { useNavigate } from 'react-router-dom';
 import { fetchCurrentUser, getPersonalConference, markMessagesAsRead } from "../../Services/MainFormService";
-import { messageHub } from "../../Hubs/MessageHub";
 
 export const FriendDetails = ({ friend, friends, setFriends, onAccept, onCancel }: FriendDetailsProps) => {
     if (!friend) return null;
@@ -9,27 +8,40 @@ export const FriendDetails = ({ friend, friends, setFriends, onAccept, onCancel 
     const navigate = useNavigate();
 
     const goToChat = async () => {
-        const currentUserId = await fetchCurrentUser();
-        const personalConferenceId = await getPersonalConference(currentUserId, friend.id);
+        try {
+            const currentUserId = await fetchCurrentUser();
+            const personalConferenceId = await getPersonalConference(currentUserId, friend.id);
 
-        await messageHub.init();
-        await messageHub.subscribeToConference(personalConferenceId);
+            // Немедленная навигация
+            navigate("/chat", {
+                state: {
+                    friends: friends,
+                    friendId: friend.id,
+                    personalConferenceId: personalConferenceId
+                }
+            });
 
-        await markMessagesAsRead(personalConferenceId);
+            // Остальное делаем после перехода
+            setTimeout(async () => {
+                try {
+                    const { messageHub } = await import("../../Hubs/MessageHub");
+                    await messageHub.init();
+                    await messageHub.subscribeToConference(personalConferenceId);
+                    await markMessagesAsRead(personalConferenceId);
 
-        setFriends(prev =>
-            prev.map(f =>
-                f.id === friend.id ? { ...f, unreadCount: 0 } : f
-            )
-        );
+                    setFriends(prev =>
+                        prev.map(f =>
+                            f.id === friend.id ? { ...f, unreadCount: 0 } : f
+                        )
+                    );
+                } catch (error) {
+                    console.error("Ошибка инициализации чата:", error);
+                }
+            }, 0);
 
-        navigate("/chat", {
-            state: {
-                friends: friends,
-                friendId: friend.id,
-                personalConferenceId: personalConferenceId
-            }
-        });
+        } catch (error) {
+            console.error("Ошибка перехода в чат:", error);
+        }
     };
 
     return (
@@ -60,7 +72,7 @@ export const FriendDetails = ({ friend, friends, setFriends, onAccept, onCancel 
             </div>
 
             <div className="actions">
-                <button className="action-btn primary" onClick={() => goToChat()}>
+                <button className="action-btn primary" onClick={goToChat}>
                     💬 Перейти к чату
                 </button>
             </div>

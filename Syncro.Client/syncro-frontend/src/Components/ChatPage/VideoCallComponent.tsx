@@ -29,14 +29,14 @@ const VideoCall: React.FC<VideoCallProps> = ({
   const [speaking, setSpeaking] = useState(false);
   const currentVideoTrackRef = useRef<MediaStreamTrack | undefined>(null);
 
-    useEffect(() => {
+  useEffect(() => {
     console.log("Remote stream changed in VideoCall:", remoteStream);
-    
+
     if (remoteStream) {
       console.log("Remote stream tracks:", remoteStream.getTracks().length);
       console.log("Video tracks:", remoteStream.getVideoTracks().length);
       console.log("Audio tracks:", remoteStream.getAudioTracks().length);
-      
+
       remoteStream.getVideoTracks().forEach((track, i) => {
         console.log(`Video track ${i}:`, {
           id: track.id,
@@ -46,27 +46,27 @@ const VideoCall: React.FC<VideoCallProps> = ({
           label: track.label
         });
       });
-      
+
       const videoTrack = remoteStream.getVideoTracks()[0];
       setRemoteVideoOn(!!videoTrack && videoTrack.readyState === 'live');
     }
   }, [remoteStream]);
-  
+
   useEffect(() => {
     if (remoteVideoRef.current && remoteStream) {
       console.log("Setting remote video srcObject");
-      
+
       const currentSrcObject = remoteVideoRef.current.srcObject;
       if (currentSrcObject !== remoteStream) {
         remoteVideoRef.current.srcObject = remoteStream;
-        
+
         remoteVideoRef.current.play()
           .then(() => console.log("Remote video playing"))
           .catch(err => console.error("Failed to play remote video:", err));
       }
     }
   }, [remoteStream, remoteVideoRef.current]);
-  
+
   const handleRemoteVideoLoaded = () => {
     console.log("Remote video loadedmetadata");
     if (remoteVideoRef.current) {
@@ -78,11 +78,11 @@ const VideoCall: React.FC<VideoCallProps> = ({
 
   useEffect(() => {
     console.log("Local stream changed:", localStream);
-  
+
     if (localStream) {
       console.log("Local stream id:", localStream.id);
       console.log("Local stream tracks:", localStream.getTracks().length);
-    
+
       localStream.getTracks().forEach((track, i) => {
         console.log(`Track ${i} (${track.kind}):`, {
           id: track.id,
@@ -93,10 +93,10 @@ const VideoCall: React.FC<VideoCallProps> = ({
           muted: track.muted
         });
       });
-    
+
       const videoTrack = localStream.getVideoTracks()[0];
       setLocalVideoOn(!!videoTrack && videoTrack.readyState === 'live' && videoTrack.enabled);
-    
+
       const audioTrack = localStream.getAudioTracks()[0];
       setMicOn(!!audioTrack && audioTrack.enabled);
     }
@@ -105,14 +105,14 @@ const VideoCall: React.FC<VideoCallProps> = ({
   useEffect(() => {
     if (localVideoRef.current && localStream) {
       console.log("Setting local video srcObject, stream id:", localStream.id);
-    
+
       localVideoRef.current.srcObject = localStream;
-    
+
       localVideoRef.current.play()
         .then(() => console.log("Local video playing"))
         .catch(err => {
           console.error("Failed to play local video:", err);
-        
+
           setTimeout(() => {
             if (localVideoRef.current) {
               localVideoRef.current.play()
@@ -185,26 +185,26 @@ const VideoCall: React.FC<VideoCallProps> = ({
           video: true,
           audio: true
         });
-      
+
         const screenVideoTrack = screenStream.getVideoTracks()[0];
         const currentVideoTrack = localStream?.getVideoTracks()[0]; // Сохраняем камеру
         currentVideoTrackRef.current = currentVideoTrack;
-      
+
         if (screenVideoTrack) {
           replaceVideoTrack(screenVideoTrack);
-        
+
           if (localStream && currentVideoTrack) {
             localStream.removeTrack(currentVideoTrack);
             localStream.addTrack(screenVideoTrack);
-          
+
             if (localVideoRef.current) {
               localVideoRef.current.srcObject = localStream;
             }
           }
-        
+
           setLocalScreenOn(true);
           setLocalVideoOn(true);
-        
+
           screenVideoTrack.onended = () => {
             handleStopScreenShare();
           };
@@ -222,23 +222,23 @@ const VideoCall: React.FC<VideoCallProps> = ({
       const stream = localScreenRef.current.srcObject as MediaStream;
       stream.getTracks().forEach(track => track.stop());
     }
-  
+
     if (currentVideoTrackRef.current) {
       replaceVideoTrack(currentVideoTrackRef.current);  // Восстанавливаем камеру
-    
+
       if (localStream) {
         const screenTrack = localStream.getVideoTracks().find(track => track.kind === 'video');
         if (screenTrack) {
           localStream.removeTrack(screenTrack);
         }
         localStream.addTrack(currentVideoTrackRef.current);
-      
+
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = localStream;
         }
       }
     }
-  
+
     setLocalScreenOn(false);
     setLocalVideoOn(true);
   };
