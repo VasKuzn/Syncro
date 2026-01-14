@@ -212,7 +212,7 @@ export const loadFriendInfo = async (
             userWhoReceived: friend.userWhoRecieved,
             userWhoSent: friend.userWhoSent,
             friendShipId: friend.id,
-            unreadCount: friend.unreadCount
+            unreadCount: friendData.unreadCount
         };
 
         loadedFriends.push(cleanedFriend);

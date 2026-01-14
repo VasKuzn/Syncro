@@ -34,9 +34,7 @@ body {
 
 .sidebar-container {
     display: flex;
-    position: relative;
-    height: 100%;
-    flex-direction: row;
+    height: 100vh;
     background-color: #07081C;
     flex-shrink: 0;
     min-width: 372px;
@@ -59,21 +57,43 @@ body {
     align-items: center;
     justify-items: center;
     width: 72px;
+    background-color: #151838;
+    flex-shrink: 0;
+}
+
+.main-sidebar-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 300px;
+    position: relative;
+    overflow-y: scroll;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.main-sidebar-content::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+.profile-panel-wrapper {
+    margin-top: auto;
+    padding: 10px;
+    background: linear-gradient(to bottom, transparent, #07081C 15%);
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
 }
 
 .profile-panel {
-    position: absolute;
-    bottom: 10px;
-    left: 2%;
-    right: 2%;
-    margin: 0 auto;
-    height: 80px;
+    height: 70px;
     background-color: #1a2438ab;
-    border-radius: 20px;
+    border-radius: 35px;
     display: flex;
     align-items: center;
     justify-content: left;
-    color: white;
     z-index: 2;
 }
 
@@ -115,21 +135,24 @@ body {
     justify-content: center;
     background-color: #00000000;
     cursor: pointer;
-    height: 40px;
-    width: 40px;
+    height: 50px;
+    width: 50px;
     border-radius: 35%;
+    margin: 0 5px 0 0;
     border: none;
-    /* border: 2px solid #07081C; */
 }
 
 .settings-image {
-    max-height: 100%;
-    max-width: 100%;
+    width: 100%;
+    height: 100%;
+    filter: invert(60%) sepia(85%) saturate(771%) hue-rotate(138deg) brightness(87%) contrast(95%);
+    opacity: 60%;
     object-fit: contain;
 }
 
 .profile-button:hover {
     background: #27344f;
+    transition: all 0.3s ease-in-out
 }
 
 .group-chats {
@@ -140,15 +163,7 @@ body {
     overflow-y: auto;
 }
 
-.personal-chats {
-    justify-items: center;
-    width: 300px;
-    outline: none;
-    border: none;
-    flex-shrink: 0;
-    box-shadow: 6px 0 1vw 0.01vw #07081C;
-    z-index: 1;
-}
+
 
 .chat-separator {
     border-radius: 1px;
@@ -156,19 +171,6 @@ body {
     height: 2px;
     width: 32px;
     margin: 7px;
-}
-
-.button-search-pm {
-    align-items: center;
-    display: flex;
-    justify-content: center;
-    font-size: large;
-    height: 100%;
-    width: 100%;
-    border: none;
-    border-radius: 15px;
-    background-color: #1A2438;
-    color: #ffffff;
 }
 
 .friends-nav {
@@ -250,13 +252,6 @@ body {
     width: 50px;
 }
 
-.profile-button img {
-    display: flex;
-    align-items: center;
-    height: 72px;
-    width: 72px;
-    border-radius: 35%;
-}
 
 .group-chats-container .profile-button {
     background-color: #0F172A;
@@ -387,12 +382,6 @@ body {
     overflow: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
-}
-
-.pc-list::-webkit-scrollbar {
-    display: none;
-    width: 0;
-    height: 0;
 }
 
 .pc-item {

@@ -6,8 +6,6 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Syncro.Api.Hubs
 {
-
-    [AllowAnonymous]
     public class AccountsHub : Hub
     {
         private readonly ILogger<AccountsHub> _logger;

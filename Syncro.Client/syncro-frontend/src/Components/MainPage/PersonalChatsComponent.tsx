@@ -7,11 +7,6 @@ const PersonalChatsComponent = ({ friends, setFriends }: FriendProps) => {
     const navigate = useNavigate();
     return (
         <div className="personal-chats">
-            <div className="search-pm">
-                <button className="button-search-pm">
-                    Личные сообщения
-                </button>
-            </div>
             <div className="pc-list">
                 {friends.map(friend => (
                     <div
@@ -24,9 +19,9 @@ const PersonalChatsComponent = ({ friends, setFriends }: FriendProps) => {
 
                                 await messageHub.init();
                                 await messageHub.subscribeToConference(personalConferenceId);
-                                
+
                                 await markMessagesAsRead(personalConferenceId);
-                                
+
                                 setFriends(prev =>
                                     prev.map(f =>
                                         f.id === friend.id ? { ...f, unreadCount: 0 } : f
@@ -54,7 +49,7 @@ const PersonalChatsComponent = ({ friends, setFriends }: FriendProps) => {
                                 <span className={`online-status ${friend.isOnline ? '' : 'offline'}`}>{friend.isOnline ? "В сети" : "Не в сети"}</span>
                             </div>
                             {friend.unreadCount && (
-                                    <div className="unread-badge">
+                                <div className="unread-badge">
                                     {friend.unreadCount}
                                 </div>
                             )}

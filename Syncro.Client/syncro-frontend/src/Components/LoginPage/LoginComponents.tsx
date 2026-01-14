@@ -83,9 +83,11 @@ const LoginComponent: React.FC<LoginComponentProps> = ({
                 <div className="buttons">
                     <button type="submit" className="primary-button">
                         {isLoading ? (
-                            <div className="spinner" aria-hidden="true"></div>
+                            <div className="spinner-container">
+                                <div className="spinner-login" aria-hidden="true"></div>
+                            </div>
                         ) : (
-                            "Sign in"
+                            "Sign up"
                         )}
                     </button>
                 </div>

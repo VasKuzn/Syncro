@@ -81,14 +81,14 @@ namespace Syncro.Api.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-        // GET: api/accounts/{email}
+        // GET: api/accounts/{nickname}/getnick
         [HttpGet("{nickname}/getnick")]
-        public async Task<ActionResult<AccountNoPasswordModel>> GetAccountByNickname(string nickname)
+        public async Task<ActionResult<AccountNoPasswordWithIdModel>> GetAccountByNickname(string nickname)
         {
             try
             {
                 var account = await _accountService.GetAccountByNicknameAsync(nickname);
-                var accountNoPassword = TranferModelsMapper.AccountNoPasswordModelMapMapper(account);
+                var accountNoPassword = TranferModelsMapper.AccountNoPasswordWithIdModelMapMapper(account);
                 return Ok(accountNoPassword);
             }
             catch (ArgumentException ex)
@@ -398,10 +398,10 @@ namespace Syncro.Api.Controllers
             try
             {
                 var account = await _accountService.GetAccountByEmailAsync(request.Email);
-                
+
                 //string callbackUrl = Url.Action("reset_password", "api/accounts", new { Email = request.Email  }, protocol: HttpContext.Request.Scheme);
 
-                var callbackUrl = Url.Action(nameof(ForgetPassword), nameof(AccountController).Replace("Controller",string.Empty), new { id = account.Id }, protocol: HttpContext.Request.Scheme);
+                var callbackUrl = Url.Action(nameof(ForgetPassword), nameof(AccountController).Replace("Controller", string.Empty), new { id = account.Id }, protocol: HttpContext.Request.Scheme);
 
                 var result = await _emailService.SendEmailAsync(request.Email, "Сброс пароля Syncro", "Для сброса пароля перейдите по ссылке: " + (callbackUrl as string) + ". Если это не вы, то ни в коем случае не переходите по ссылке!");
 
@@ -418,7 +418,7 @@ namespace Syncro.Api.Controllers
         }
 
         [HttpPost("reset_password/{id}")]
-        public async Task<IActionResult> ResetPassword(Guid id,[FromBody] Application.ModelsDTO.ResetPasswordRequest request)
+        public async Task<IActionResult> ResetPassword(Guid id, [FromBody] Application.ModelsDTO.ResetPasswordRequest request)
         {
             if (!ModelState.IsValid)
             {
@@ -428,7 +428,7 @@ namespace Syncro.Api.Controllers
             try
             {
                 var account = await _accountService.GetAccountByIdAsync(id);
-                
+
                 var result = await _accountService.ResetPassword(account.Id, request.Password);
 
                 return Ok($"Password reset");
@@ -447,6 +447,6 @@ namespace Syncro.Api.Controllers
             }
         }
 
-        
+
     }
 }

@@ -64,6 +64,7 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
         }
 
         try {
+            debugger;
             setIsLoading(true);
             setNotification(null);
 
@@ -306,7 +307,6 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
                         filteredFriends.map(friend => {
                             const isIncomingRequest = friend.status === 0 && friend.userWhoReceived === currentUserId;
                             const isMyRequest = friend.status === 0 && friend.userWhoSent === currentUserId;
-                            const isSelected = selectedRequestId === friend.id;
                             const isFriendSelected = selectedFriend?.id === friend.id;
 
                             return (

@@ -19,6 +19,7 @@ import { UserInfo } from '../Types/UserInfo';
 import searchIcon from '../assets/search3.png';
 import arrowDownIcon from '../assets/arrow-down.png';
 import { encryptionService } from '../Services/EncryptionService';
+import EmojiPickerButton from '../Components/ChatPage/EmojiPickerButton';
 
 const ChatPage = () => {
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -30,6 +31,11 @@ const ChatPage = () => {
   const location = useLocation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatRef = useRef<HTMLDivElement | null>(null);
+
+  // Добавить состояния для эмодзи-пикера
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [messageInputValue, setMessageInputValue] = useState('');
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
 
   // Состояния для поиска
   const [isSearchActive, setIsSearchActive] = useState(false);
@@ -325,6 +331,27 @@ const ChatPage = () => {
     fetchCurrentUserData();
   }, [currentUserId, fetchUserById]);
 
+  // Добавить обработчик выбора эмодзи
+  const handleEmojiSelect = useCallback((emoji: string) => {
+    setMessageInputValue(prev => prev + emoji);
+  }, []);
+
+  // Добавить обработчик клика вне эмодзи-пикера
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (emojiPickerRef.current &&
+        !emojiPickerRef.current.contains(event.target as Node) &&
+        !(event.target as Element).closest('.emoji-button')) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   useEffect(() => {
     const fetchConferenceAndFriend = async () => {
       if (!personalConference || !currentUserId) return;
@@ -524,6 +551,8 @@ const ChatPage = () => {
       setMessages(prev => prev.filter(m => m.id !== tempMessageId));
     } finally {
       setIsUploading(false);
+      setMessageInputValue(''); // Очистить поле ввода после отправки
+      setShowEmojiPicker(false); // Скрыть пикер
     }
   };
 
@@ -761,11 +790,31 @@ const ChatPage = () => {
             <MessageInput
               onSend={handleSend}
               isUploading={isUploading}
+              value={messageInputValue}
+              onValueChange={setMessageInputValue}
+              onToggleEmojiPicker={() => setShowEmojiPicker(!showEmojiPicker)}
+              showEmojiPicker={showEmojiPicker}
             />
+            {showEmojiPicker && (
+              <motion.div
+                ref={emojiPickerRef}
+                className="emoji-picker-container"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.2 }}
+              >
+                <EmojiPickerButton onEmojiSelect={handleEmojiSelect} />
+              </motion.div>
+            )}
           </motion.div>
         </>
       }
       friends={friends}
+      nickname={currentUser?.nickname}
+      avatar={currentUser?.avatar}
+      isOnline={true}
+
     />
   );
 };

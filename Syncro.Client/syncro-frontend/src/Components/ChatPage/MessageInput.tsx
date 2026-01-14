@@ -4,15 +4,24 @@ import attachIcon from '../../assets/clipicon.svg';
 import sendIcon from '../../assets/send-message.svg';
 import loadingIcon from '../../assets/loadingicon.svg';
 import emojiIcon from '../../assets/emoji-icon.png';
-import EmojiPickerButton from "./EmojiPickerButton";
 
-const MessageInput = ({ onSend, isUploading, disabled = false }: MessageInputProps) => {
-  const [value, setValue] = useState("");
+const MessageInput = ({
+  onSend,
+  isUploading,
+  disabled = false,
+  value,
+  onValueChange,
+  onToggleEmojiPicker,
+  showEmojiPicker
+}: MessageInputProps & {
+  value: string;
+  onValueChange: (value: string) => void;
+  onToggleEmojiPicker: () => void;
+  showEmojiPicker: boolean;
+}) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const emojiPickerRef = useRef<HTMLDivElement>(null);
 
   const handleSend = () => {
     if ((value.trim() || selectedFile) && !disabled) {
@@ -22,7 +31,7 @@ const MessageInput = ({ onSend, isUploading, disabled = false }: MessageInputPro
         mediaType: selectedFile.type,
         mediaUrl: filePreview || ""
       } : undefined);
-      setValue("");
+      onValueChange("");
       setSelectedFile(null);
       setFilePreview(null);
     }
@@ -66,25 +75,6 @@ const MessageInput = ({ onSend, isUploading, disabled = false }: MessageInputPro
     }
   };
 
-  const handleEmojiSelect = (emoji: string) => {
-    setValue(prev => prev + emoji);
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (emojiPickerRef.current &&
-        !emojiPickerRef.current.contains(event.target as Node) &&
-        !(event.target as Element).closest('.emoji-button')) {
-        setShowEmojiPicker(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
   return (
     <div className={`message-input-container ${disabled ? 'disabled' : ''}`}>
       {selectedFile && (
@@ -122,7 +112,7 @@ const MessageInput = ({ onSend, isUploading, disabled = false }: MessageInputPro
         className="message-input-field"
         placeholder="Type a message..."
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(e) => onValueChange(e.target.value)}
         onKeyDown={handleKeyDown}
         disabled={isUploading || disabled}
       />
@@ -151,8 +141,8 @@ const MessageInput = ({ onSend, isUploading, disabled = false }: MessageInputPro
       </button>
 
       <button
-        className="sk-class emoji-button"
-        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+        className={`sk-class emoji-button ${showEmojiPicker ? 'active' : ''}`}
+        onClick={onToggleEmojiPicker}
         type="button"
         disabled={isUploading}
         title="Add emoji"
@@ -175,13 +165,6 @@ const MessageInput = ({ onSend, isUploading, disabled = false }: MessageInputPro
           </>
         )}
       </button>
-      {
-        showEmojiPicker && (
-          <div ref={emojiPickerRef} className="emoji-picker-container">
-            <EmojiPickerButton onEmojiSelect={handleEmojiSelect} />
-          </div>
-        )
-      }
     </div>
   );
 };

@@ -436,9 +436,9 @@ input::placeholder {
   height: 100%;
 }
 
-.spinner {
-  width: 20px;
-  height: 20px;
+.spinner-login {
+  width: 25px;
+  height: 25px;
   border: 3px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
   border-top-color: white;
@@ -446,7 +446,11 @@ input::placeholder {
 }
 
 @keyframes spin {
-  to {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
     transform: rotate(360deg);
   }
 }

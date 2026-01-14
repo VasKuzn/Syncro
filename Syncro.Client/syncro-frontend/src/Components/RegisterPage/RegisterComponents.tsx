@@ -98,7 +98,7 @@ const RegisterComponent: React.FC<RegisterComponentProps> = ({
                     >
                         {isLoading ? (
                             <div className="spinner-container">
-                                <div className="spinner" aria-hidden="true"></div>
+                                <div className="spinner-login" aria-hidden="true"></div>
                             </div>
                         ) : (
                             "Sign up"

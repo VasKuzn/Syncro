@@ -43,16 +43,23 @@ export interface PersonalMessageProps {
 export interface PersonalChatProps {
     chatContent?: React.ReactNode;
     friends?: Friend[];
+    nickname?: string;
+    avatar?: string;
+    isOnline?: boolean;
 }
 export interface MessageInputProps {
     onSend: (text: string, media?: {
         file: File;
-        fileName: string;
-        mediaType: string;
         mediaUrl: string;
+        mediaType: string;
+        fileName: string;
     }) => void;
     isUploading: boolean;
     disabled?: boolean;
+    value?: string;
+    onValueChange?: (value: string) => void;
+    onToggleEmojiPicker?: () => void;
+    showEmojiPicker?: boolean;
 }
 
 export interface PersonalConference {
