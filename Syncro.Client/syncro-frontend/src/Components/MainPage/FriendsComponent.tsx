@@ -64,7 +64,6 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
         }
 
         try {
-            debugger;
             setIsLoading(true);
             setNotification(null);
 
@@ -141,14 +140,30 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
             setIsLoading(false);
         }
     };
-    const handleCancel = async (friend: ShortFriend) => {
+    const handleCancel = async (friend: ShortFriend, event?: React.MouseEvent) => {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+
         try {
             setIsLoading(true);
             await deleteFriendship(friend.friendShipId);
-            onFriendAdded?.();
+
             setSelectedFriend(null);
+            setSelectedRequestId(null);
+
+            setFriends(prevFriends => prevFriends.filter(f => f.friendShipId !== friend.friendShipId));
+
+            onFriendAdded?.();
+
         } catch (error) {
             console.error("Ошибка при отмене заявки:", error);
+            setNotification({
+                message: "Не удалось отменить заявку",
+                isError: true
+            });
+            setTimeout(() => setNotification(null), 3500);
         } finally {
             setIsLoading(false);
         }
@@ -291,9 +306,9 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
                     </div>
                 </div>
 
-                <div className="friends-container">
+                <div className="friends-container" key={`friends-${filter}-${filteredFriends.length}-${searchQuery}`}>
                     {/* Обработка пустого результата после поиска */}
-                    {filteredFriends.length === 0 ? (
+                    {(friends.length === 0 || filteredFriends.length === 0) ? (
                         <div className="empty-state">
                             <img src="/no-friends.png" alt="Нет друзей" />
                             <p>
@@ -380,7 +395,7 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
                                                                             }}
                                                                             disabled={isLoading}
                                                                         >
-                                                                            ✅ Принять
+                                                                            Принять
                                                                         </button>
                                                                         <button
                                                                             className="decline-button"
@@ -390,35 +405,29 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
                                                                             }}
                                                                             disabled={isLoading}
                                                                         >
-                                                                            ❌ Отклонить
+                                                                            Отклонить
                                                                         </button>
                                                                     </div>
                                                                 </>
                                                             ) : isMyRequest ? (
                                                                 <>
-                                                                    <p style={{ marginTop: 0, marginBottom: 12 }}>Вы отправили заявку {friend.nickname}</p>
+                                                                    <p style={{ marginTop: 0, marginBottom: 12 }}>
+                                                                        Вы отправили заявку {friend.nickname}
+                                                                    </p>
                                                                     <div className="friend-request-actions">
                                                                         <motion.button
                                                                             className="decline-button"
-                                                                            onClick={async (e) => {
-                                                                                e.stopPropagation();
-                                                                                setIsLoading(true);
-                                                                                try {
-                                                                                    await deleteFriendship(friend.friendShipId);
-                                                                                    setSelectedFriend(null);
-                                                                                    setSelectedRequestId(null);
-                                                                                    onFriendAdded?.();
-                                                                                } catch (err) {
-                                                                                    // handle error
-                                                                                } finally {
-                                                                                    setIsLoading(false);
-                                                                                }
-                                                                            }}
+                                                                            onClick={(e) => handleCancel(friend, e)}
                                                                             disabled={isLoading}
                                                                             whileHover={{ scale: 1.05 }}
                                                                             whileTap={{ scale: 0.95 }}
                                                                         >
-                                                                            ❌ Отменить заявку
+                                                                            {isLoading ? (
+                                                                                <>
+                                                                                    <span className="button-loader" />
+                                                                                    Отмена...
+                                                                                </>
+                                                                            ) : 'Отменить заявку'}
                                                                         </motion.button>
                                                                     </div>
                                                                 </>

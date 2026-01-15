@@ -61,7 +61,6 @@ const Main = () => {
             });
 
             accConnection.on("OnlineFriends", (onlineIds: string[]) => {
-                console.log('OnlineFriends snapshot', onlineIds);
                 setFriends(prev => prev.map(f => ({ ...f, isOnline: onlineIds.includes(f.id) })));
             });
 
@@ -77,14 +76,14 @@ const Main = () => {
         try {
             const msgConnection = new signalR.HubConnectionBuilder()
                 .withUrl("http://localhost:5232/personalmessageshub",
-                {
-                    withCredentials: true,
-                    skipNegotiation: true,
-                    transport: signalR.HttpTransportType.WebSockets
-                })
+                    {
+                        withCredentials: true,
+                        skipNegotiation: true,
+                        transport: signalR.HttpTransportType.WebSockets
+                    })
                 .configureLogging(signalR.LogLevel.Information)
                 .build();
-            
+
             msgConnection.on("NewMessage", (message) => {
                 console.log("NewMessage", message);
                 const fromUserId = message.fromUserId;
@@ -122,12 +121,10 @@ const Main = () => {
                     await refreshFriendsData(userId);
                     await initSignalR(userId);
                 }
-                console.log(userId)
                 const info = await getUserInfo(userId)
-                if (info) {                        
-                    setCurrentUserInfo({avatar: info.avatar, nickname:info.nickname, isOnline: true})
+                if (info) {
+                    setCurrentUserInfo({ avatar: info.avatar, nickname: info.nickname, isOnline: true })
                 }
-                console.log(info)
             } catch (error) {
                 console.error("Ошибка загрузки:", error);
             }
@@ -152,7 +149,7 @@ const Main = () => {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 1, ease: "easeInOut" }}
             >
-                <MainComponent 
+                <MainComponent
                     friends={friends}
                     nickname={userInfo?.nickname}
                     avatar={userInfo?.avatar}

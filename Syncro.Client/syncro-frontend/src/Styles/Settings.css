@@ -113,7 +113,21 @@ body {
   background-color: #3B82F6;
   color: #ffffff;
   width: fit-content;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+  animation: gradient-flow 3s infinite;
 }
+
+.setting-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.5);
+  cursor: pointer;
+}
+
+
+
+
 
 .settings-header {
   font-size: x-large;
