@@ -16,7 +16,7 @@ namespace Syncro.Api.Extensions
             }
 
             //app.UseHttpsRedirection();
-
+            app.UseCors("AllowAll");
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseCookiePolicy(new CookiePolicyOptions
@@ -25,7 +25,7 @@ namespace Syncro.Api.Extensions
                 HttpOnly = HttpOnlyPolicy.Always,
                 Secure = CookieSecurePolicy.Always,
             });
-            app.UseCors("AllowAll");
+
         }
         public static void ConfigureEndpoints(this WebApplication app)
         {

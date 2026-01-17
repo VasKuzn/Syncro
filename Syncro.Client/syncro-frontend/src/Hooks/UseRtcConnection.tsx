@@ -24,6 +24,7 @@ const UseRtcConnection = ({
     const isCallEndingRef = useRef(false);
     const pendingOfferRef = useRef<{ senderId: string; offer: RTCSessionDescriptionInit; } | null>(null);
     const pendingIceCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
+    const [isConnected, setIsConnected] = useState(false);
 
     const ICE_SERVERS: RTCConfiguration = {
         iceServers: [
@@ -67,7 +68,7 @@ const UseRtcConnection = ({
         peerConnection.addTransceiver('video', {
             direction: 'sendrecv',
         });
-  
+
         peerConnection.addTransceiver('audio', {
             direction: 'sendrecv',
         });
@@ -76,9 +77,10 @@ const UseRtcConnection = ({
             if (!event.candidate) return;
 
             if (connectionRef.current?.state !== "Connected") {
+                console.warn("Cannot send ICE candidate - SignalR not connected");
                 return;
             }
-            
+
             if (event.candidate) {
                 connectionRef.current?.invoke("SendIceCandidate", receiverId, JSON.stringify(event.candidate.toJSON())).catch(err => {
                     console.error("Error sending ICE candidate:", err);
@@ -88,20 +90,20 @@ const UseRtcConnection = ({
 
         peerConnection.ontrack = (event: RTCTrackEvent) => {
             console.log("ontrack fired. Track:", event.track, "Streams:", event.streams);
-    
+
             if (!remoteStreamRef.current) {
                 remoteStreamRef.current = new MediaStream();
             }
             const existingTrack = remoteStreamRef.current
                 .getTracks()
                 .find(t => t.id === event.track.id);
-    
+
             if (!existingTrack) {
                 remoteStreamRef.current.addTrack(event.track);
                 console.log(`Added ${event.track.kind} track to remote stream`);
             }
             const updatedStream = new MediaStream(remoteStreamRef.current.getTracks());
-    
+
             setRemoteStreamState(updatedStream);
             onRemoteStream?.(updatedStream);
         };
@@ -120,9 +122,14 @@ const UseRtcConnection = ({
     const createOffer = useCallback(async (receiverId: string) => {
         resetCallState();
 
+        if (!isConnected) {
+            console.error("Cannot create offer - SignalR not connected");
+            return;
+        }
+
         try {
             const peerConnection = initializePeerConnection(receiverId);
-            
+
             if (!localStreamRef.current) {
                 await getLocalStream();
             }
@@ -141,11 +148,11 @@ const UseRtcConnection = ({
             await peerConnection.setLocalDescription(offer);
             await connectionRef.current?.invoke("SendOffer", receiverId, JSON.stringify(offer));
 
-            console.log("Offer sent");
+            console.log("Offer sent to:", receiverId);
         } catch (err) {
             console.error("Error creating offer:", err);
         }
-    }, [initializePeerConnection]);
+    }, [initializePeerConnection, isConnected]);
 
     const handleReceiveOffer = useCallback(async (senderId: string, offerString: string) => {
         resetCallState();
@@ -280,50 +287,42 @@ const UseRtcConnection = ({
         }
     }, []);
 
-    const getTokenFromCookies = useCallback((): string => {
-        const name = "access-token";
-        const nameEQ = name + "=";
-        const cookies = document.cookie.split(';');
-
-        for (let i = 0; i < cookies.length; i++) {
-            let cookie = cookies[i].trim();
-            if (cookie.indexOf(nameEQ) === 0) {
-                return cookie.substring(nameEQ.length);
-            }
-        }
-        return "";
-    }, []);
-
     useEffect(() => {
         const startConnection = async () => {
             if (connectionRef.current) return;
 
             try {
+                console.log("Starting SignalR connection...");
+
                 const connection = new HubConnectionBuilder()
                     .withUrl("http://localhost:5232/videochathub", {
-                        accessTokenFactory: () => getTokenFromCookies(),
                         transport: 1,
-                        withCredentials: true,
+                        skipNegotiation: false,
+                        //withCredentials: true,
                     })
                     .configureLogging(LogLevel.Warning)
-                    .withAutomaticReconnect([0, 0, 0, 1000, 3000, 5000])
+                    .withAutomaticReconnect()
                     .build();
 
                 connection.on("ReceiveOffer", (senderId: string, offer: string) => {
+                    console.log("SignalR: Received offer from:", senderId);
                     handleReceiveOffer(senderId, offer);
                 });
 
                 connection.on("ReceiveAnswer", (answerJson: string) => {
+                    console.log("SignalR: Received answer");
                     const answerInit = JSON.parse(answerJson);
                     handleReceiveAnswer(answerInit);
                 });
 
                 connection.on("ReceiveIceCandidate", (candidateJson: string) => {
+                    console.log("SignalR: Received ICE candidate");
                     const candidateInit = JSON.parse(candidateJson) as RTCIceCandidateInit;
                     handleIceCandidate(candidateInit);
                 });
 
                 connection.on("CallEnded", () => {
+                    console.log("SignalR: Call ended");
                     if (peerConnectionRef.current) {
                         peerConnectionRef.current.close();
                         peerConnectionRef.current = null;
@@ -331,11 +330,38 @@ const UseRtcConnection = ({
                     onCallEnded?.("");
                 });
 
+                // Обработчики состояния подключения
+                connection.onclose((error) => {
+                    console.warn("SignalR connection closed:", error);
+                    setIsConnected(false);
+                });
+
+                connection.onreconnecting((error) => {
+                    console.warn("SignalR reconnecting:", error);
+                    setIsConnected(false);
+                });
+
+                connection.onreconnected((connectionId) => {
+                    console.log("SignalR reconnected:", connectionId);
+                    setIsConnected(true);
+                });
+
+                // Начинаем подключение
                 await connection.start();
+                console.log("SignalR connection established. State:", connection.state);
+                console.log("Connection ID:", connection.connectionId);
                 connectionRef.current = connection;
-                console.log("SignalR connection established");
-            } catch (err) {
-                console.error("Error while establishing connection:", err);
+                setIsConnected(true);
+
+            } catch (err: any) {
+                console.error("Error while establishing SignalR connection:", {
+                    message: err.message,
+                    name: err.name,
+                    stack: err.stack,
+                    status: err.statusCode,
+                    statusText: err.statusText
+                });
+                setIsConnected(false);
             }
         };
 
@@ -343,12 +369,64 @@ const UseRtcConnection = ({
 
         return () => {
             if (connectionRef.current) {
+                console.log("Cleaning up SignalR connection...");
                 connectionRef.current
                     .stop()
+                    .then(() => console.log("SignalR connection stopped"))
                     .catch((err) => console.error("Error stopping connection:", err));
                 connectionRef.current = null;
+                setIsConnected(false);
             }
         };
+    }, [handleReceiveOffer, handleReceiveAnswer, handleIceCandidate, onCallEnded]);
+
+    // Функция для принудительной проверки состояния
+    const checkConnectionStatus = useCallback(() => {
+        if (connectionRef.current) {
+            console.log("SignalR Status:", {
+                state: connectionRef.current.state,
+                connectionId: connectionRef.current.connectionId,
+                isConnected: connectionRef.current.state === "Connected"
+            });
+            return connectionRef.current.state === "Connected";
+        }
+        return false;
+    }, []);
+
+    // Функция для переподключения
+    const reconnect = useCallback(async () => {
+        if (connectionRef.current?.state === "Connected") {
+            console.log("Already connected");
+            return;
+        }
+
+        try {
+            if (connectionRef.current) {
+                await connectionRef.current.stop();
+                connectionRef.current = null;
+            }
+
+            const connection = new HubConnectionBuilder()
+                .withUrl("http://localhost:5232/videochathub", {
+                    transport: 1,
+                    skipNegotiation: true,
+                    withCredentials: true,
+                })
+                .configureLogging(LogLevel.Information)
+                .withAutomaticReconnect()
+                .build();
+
+            // Установите обработчики событий...
+            // (повторите те же обработчики что в useEffect)
+
+            await connection.start();
+            connectionRef.current = connection;
+            setIsConnected(true);
+            console.log("Reconnected successfully");
+        } catch (error) {
+            console.error("Failed to reconnect:", error);
+            setIsConnected(false);
+        }
     }, []);
 
     return {
@@ -359,7 +437,9 @@ const UseRtcConnection = ({
         getLocalStream,
         endCall: endCallInternal,
         replaceVideoTrack,
-        isConnected: connectionRef.current?.state === "Connected",
+        checkConnectionStatus,
+        reconnect,
+        isConnected,
     };
 };
 
