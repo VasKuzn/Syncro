@@ -19,9 +19,15 @@ export interface Friend {
 export interface ShortFriend {
     id: string;
     nickname: string;
+    email: string;
+    firstname: string;
+    lastname: string;
+    phonenumber:string;
     avatar: string;
     friendShipId: string;
 }
+
+
 
 export interface FriendProps {
     friends: Friend[];
