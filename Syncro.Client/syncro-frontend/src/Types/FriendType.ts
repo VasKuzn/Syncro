@@ -42,7 +42,11 @@ export interface FriendDetailsProps {
     setFriends: React.Dispatch<React.SetStateAction<Friend[]>>;
     onAccept?: (friend: Friend) => void;
     onCancel?: (friend: Friend) => void;
+    filter?: FriendFilterTypes; 
+    isOpen?: boolean; 
+    onClose?: () => void; 
 }
+
 export interface AccountActivity {
     UserId: string;
     IsOnline: boolean;
