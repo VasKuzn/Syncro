@@ -814,7 +814,7 @@ const ChatPage = () => {
       nickname={currentUser?.nickname}
       avatar={currentUser?.avatar}
       isOnline={true}
-
+      setFriends={setFriends}
     />
   );
 };
