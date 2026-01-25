@@ -289,6 +289,7 @@ const UseRtcConnection = ({
 
     useEffect(() => {
         const startConnection = async () => {
+
             if (connectionRef.current) return;
 
             try {
@@ -297,13 +298,12 @@ const UseRtcConnection = ({
                 const connection = new HubConnectionBuilder()
                     .withUrl("http://localhost:5232/videochathub", {
                         transport: 1,
-                        skipNegotiation: false,
-                        //withCredentials: true,
+                        skipNegotiation: true,
+                        withCredentials: true,
                     })
                     .configureLogging(LogLevel.Warning)
                     .withAutomaticReconnect()
                     .build();
-
                 connection.on("ReceiveOffer", (senderId: string, offer: string) => {
                     console.log("SignalR: Received offer from:", senderId);
                     handleReceiveOffer(senderId, offer);
@@ -393,41 +393,6 @@ const UseRtcConnection = ({
         return false;
     }, []);
 
-    // Функция для переподключения
-    const reconnect = useCallback(async () => {
-        if (connectionRef.current?.state === "Connected") {
-            console.log("Already connected");
-            return;
-        }
-
-        try {
-            if (connectionRef.current) {
-                await connectionRef.current.stop();
-                connectionRef.current = null;
-            }
-
-            const connection = new HubConnectionBuilder()
-                .withUrl("http://localhost:5232/videochathub", {
-                    transport: 1,
-                    skipNegotiation: true,
-                    withCredentials: true,
-                })
-                .configureLogging(LogLevel.Information)
-                .withAutomaticReconnect()
-                .build();
-
-            // Установите обработчики событий...
-            // (повторите те же обработчики что в useEffect)
-
-            await connection.start();
-            connectionRef.current = connection;
-            setIsConnected(true);
-            console.log("Reconnected successfully");
-        } catch (error) {
-            console.error("Failed to reconnect:", error);
-            setIsConnected(false);
-        }
-    }, []);
 
     return {
         createOffer,
@@ -438,7 +403,6 @@ const UseRtcConnection = ({
         endCall: endCallInternal,
         replaceVideoTrack,
         checkConnectionStatus,
-        reconnect,
         isConnected,
     };
 };

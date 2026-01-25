@@ -84,7 +84,7 @@ namespace Syncro.Api.Controllers
             {
                 if (friends.userWhoSent == friends.userWhoRecieved)
                 {
-                   return StatusCode(400, $"Bad request error: You cann't be friend with yourself");
+                    return StatusCode(400, $"Bad request error: You cann't be friend with yourself");
                 }
 
                 var createdFriend = await _friendsService.CreateFriendsAsync(friends);
