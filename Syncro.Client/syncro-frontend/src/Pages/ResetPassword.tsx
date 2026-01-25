@@ -3,6 +3,7 @@ import ResetPasswordForm from '../Components/PasswordPage/ResetPasswordForm';
 import { ResetPasswordFormData } from '../Types/ResetPasswordTypes';
 import { MIN_PASSWORD_LENGTH } from '../Constants/LoginConsts';
 import '../Styles/ResetPassword.css';
+import { resetPassword } from '../Services/ResetPasswordService'
 
 const ResetPassword = () => {
     const [formData, setFormData] = useState<ResetPasswordFormData>({
@@ -73,8 +74,14 @@ const ResetPassword = () => {
         setIsLoading(true);
         try {
             // Здесь будет реальный запрос к API
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            // id аккаунта в первом параметре указывайте свой 
+            const result = await resetPassword("_", formData.newPassword)     
             
+            if (!result.ok) {
+                console.log("тут")
+                throw new Error("Ошибка при сбросе пароля")
+            }
+                            
             setSuccessMessage('Пароль успешно изменен!');
             
             // Перенаправление после успеха
@@ -83,8 +90,9 @@ const ResetPassword = () => {
             }, 3000);
         } catch (error) {
             setErrors({ 
-                confirmPassword: 'Произошла ошибка. Пожалуйста, попробуйте снова.' 
+                confirmPassword: 'Произошла ошибка. Пожалуйста, попробуйте снова.'         
             });
+            console.log(error)
         } finally {
             setIsLoading(false);
         }

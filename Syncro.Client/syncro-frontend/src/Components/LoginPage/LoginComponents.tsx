@@ -78,7 +78,7 @@ const LoginComponent: React.FC<LoginComponentProps> = ({
                         <label htmlFor="keep-signed-in">Keep me signed in &#128526;</label>
                     </div>
 
-                    <a href="forgot-password" className="forgot-element underline-element" >Forgot password? &#129327;</a>
+                    <a href="forgot_password" className="forgot-element underline-element" >Forgot password? &#129327;</a>
                 </div>
                 <div className="buttons">
                     <button type="submit" className="primary-button">
