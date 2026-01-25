@@ -1386,3 +1386,256 @@ video::-webkit-media-controls-panel {
     color: #8a9eff;
   }
 }
+
+/* Стили для информации о друге в шапке чата */
+.friend-info-header {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  margin-right: 10px;
+}
+
+.friend-profile-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background-color: rgba(59, 130, 246, 0.1);
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.friend-profile-preview:hover {
+  background-color: rgba(59, 130, 246, 0.2);
+  border-color: #3B82F6;
+}
+
+.friend-avatar-small {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #3B82F6;
+}
+
+.friend-nickname {
+  font-weight: 600;
+  color: #E2E8F0;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .friend-nickname {
+    max-width: 100px;
+  }
+  
+  .friend-profile-preview {
+    padding: 4px 8px;
+  }
+}
+
+/* Стили для модального окна профиля друга в чате */
+.friend-details-modal-chat {
+  background-color: #1A2438;
+  border-radius: 12px;
+  padding: 24px;
+  min-width: 350px;
+  max-width: 450px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  border: 1px solid #2D3748;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header-chat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #2D3748;
+}
+
+.modal-header-chat h3 {
+  margin: 0;
+  color: #E2E8F0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.modal-close-btn-chat {
+  background: none;
+  border: none;
+  color: #94A3B8;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.modal-close-btn-chat:hover {
+  color: #E2E8F0;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.friend-header-chat {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.friend-avatar-chat {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #3B82F6;
+}
+
+.friend-main-info-chat {
+  flex: 1;
+}
+
+.nickname-chat {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #E2E8F0;
+  margin-bottom: 4px;
+}
+
+.full-name-chat {
+  font-size: 1rem;
+  color: #94A3B8;
+  margin-bottom: 8px;
+}
+
+.online-status-chat {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background-color: #059669;
+  color: white;
+}
+
+.online-status-chat.offline {
+  background-color: #6B7280;
+}
+
+.friend-info-chat {
+  background-color: #0F172A;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 20px;
+}
+
+.info-row-chat {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #2D3748;
+}
+
+.info-row-chat:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.info-label-chat {
+  font-weight: 600;
+  color: #94A3B8;
+  min-width: 80px;
+}
+
+.modal-actions-chat {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.action-btn-chat {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.action-btn-chat.primary {
+  background-color: #3B82F6;
+  color: white;
+}
+
+.action-btn-chat.primary:hover {
+  background-color: #2563EB;
+}
+
+.action-btn-chat.danger {
+  background-color: #DC2626;
+  color: white;
+}
+
+.action-btn-chat.danger:hover {
+  background-color: #B91C1C;
+}
+
+.action-btn-chat.secondary {
+  background-color: #4B5563;
+  color: white;
+}
+
+.action-btn-chat.secondary:hover {
+  background-color: #374151;
+}
+
+/* Стили для попапов профиля в сообщениях */
+.message-profile-popup {
+  position: absolute;
+  z-index: 1000;
+  background: #1A2438;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #2D3748;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  min-width: 250px;
+  max-width: 300px;
+}
+
+.popup-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #3B82F6;
+  margin-bottom: 10px;
+}
+
+.popup-nickname {
+  font-weight: 600;
+  color: #E2E8F0;
+  margin-bottom: 4px;
+  font-size: 1rem;
+}
+
+.popup-online {
+  font-size: 0.875rem;
+  color: #94A3B8;
+}

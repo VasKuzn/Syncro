@@ -70,19 +70,18 @@ const MediaRenderer = ({ url, category, fileName }: { url: string; category: str
         </div>
     );
 };
+
 const highlightTextMatches = (text: string, query?: string) => {
     if (!query || !text || query.trim() === '') {
-        return text; // Возвращаем текст без изменений, если запроса нет
+        return text;
     }
 
     try {
-        // Экранируем специальные символы для безопасного использования в RegExp
         const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const parts = text.split(new RegExp(`(${escapedQuery})`, 'gi'));
 
         return parts.map((part, index) => {
             if (part.toLowerCase() === query.toLowerCase()) {
-                // Подсвечиваем совпадение
                 return (
                     <mark key={index} className="message-search-highlight">
                         {part}
@@ -92,7 +91,6 @@ const highlightTextMatches = (text: string, query?: string) => {
             return part;
         });
     } catch (error) {
-        // В случае ошибки в регулярном выражении возвращаем исходный текст
         console.warn('Ошибка при подсветке текста:', error);
         return text;
     }
@@ -109,8 +107,9 @@ const Message = ({
     avatarUrl,
     previousMessageAuthor,
     previousMessageDate,
-    searchQuery // <-- Принимаем новый пропс здесь
-}: MessageProps) => {
+    searchQuery,
+    onAvatarClick // Добавляем новый пропс для обработки клика на аватарку
+}: MessageProps & { onAvatarClick?: () => void }) => {
     const date = new Date(messageDateSent);
     const previousDate = previousMessageDate ? new Date(previousMessageDate) : null;
 
@@ -132,13 +131,18 @@ const Message = ({
         <ErrorBoundary>
             <div className={`messageItem ${isOwnMessage ? 'own-message' : 'friend-message'} ${hideProfileInfo ? 'no-profile' : ''}`}>
                 {!hideProfileInfo && (
-                    <div className="photo">
+                    <div 
+                        className="photo" 
+                        onClick={!isOwnMessage && onAvatarClick ? onAvatarClick : undefined}
+                        style={{ cursor: !isOwnMessage && onAvatarClick ? 'pointer' : 'default' }}
+                    >
                         <img
                             src={avatarUrl}
                             alt={`${accountNickname} avatar`}
                             onError={(e) => {
                                 e.currentTarget.src = './logo.png';
-                            }} />
+                            }} 
+                        />
                     </div>
                 )}
                 <div className="content">
@@ -149,7 +153,6 @@ const Message = ({
                         <>
                             {messageContent && (
                                 <div style={{ marginBottom: '6px' }}>
-                                    {/* Подсветка текста в медиа-сообщениях */}
                                     {searchQuery ? highlightTextMatches(messageContent, searchQuery) : messageContent}
                                 </div>
                             )}
@@ -158,7 +161,6 @@ const Message = ({
                         </>
                     ) : (
                         <p className="message">
-                            {/* Подсветка текста в обычных сообщениях */}
                             {searchQuery ? highlightTextMatches(messageContent, searchQuery) : messageContent}
                             <time className="time">{formattedTime}</time>
                         </p>

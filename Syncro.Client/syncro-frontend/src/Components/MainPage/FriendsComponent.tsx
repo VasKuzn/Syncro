@@ -1,9 +1,9 @@
-import { ShortFriend, FriendFilterTypes, FriendProps } from "../../Types/FriendType";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { ShortFriend, FriendFilterTypes, FriendProps, Friend } from "../../Types/FriendType";
+import { useState, useRef, useEffect } from "react";
 import { getUserByNickname, fetchCurrentUser, sendFriendRequest, updateFriendStatus, deleteFriendship } from "../../Services/MainFormService";
 import { FriendDetails } from "./FriendDetails";
 import { emptyFilterMessages } from "../../Constants/FriendFilterMessages";
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import loadingIcon from '../../assets/usersicon.svg';
 
 const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) => {
@@ -11,15 +11,13 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
     const [notification, setNotification] = useState<{ message: string, isError: boolean } | null>(null);
     const [filter, setFilter] = useState<FriendFilterTypes>('all');
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-    const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
-    const [selectedFriend, setSelectedFriend] = useState<ShortFriend | null>(null);
-    const [searchQuery, setSearchQuery] = useState(''); // FR1: Состояние для поискового запроса
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedFriendForModal, setSelectedFriendForModal] = useState<Friend | null>(null);
 
     const addFriendInputRef = useRef<HTMLInputElement>(null);
     const searchInputRef = useRef<HTMLInputElement>(null);
-    const popoverRef = useRef<HTMLDivElement>(null);
 
-    // FR5: Сброс поиска при смене фильтра
     useEffect(() => {
         setSearchQuery('');
         if (searchInputRef.current) {
@@ -34,27 +32,6 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
         };
         loadCurrentUser();
     }, []);
-
-    const handleClickOutside = useCallback((event: MouseEvent) => {
-        const target = event.target as Element;
-
-        // Проверяем, что клик был не на попапе и не на friend-item
-        const isClickOnPopover = popoverRef.current?.contains(target);
-        const isClickOnFriendItem = target.closest('.friend-item');
-        const isClickOnCloseButton = target.closest('.close-popover');
-
-        if (selectedFriend && !isClickOnPopover && !isClickOnFriendItem && !isClickOnCloseButton) {
-            setSelectedFriend(null);
-            setSelectedRequestId(null);
-        }
-    }, [selectedFriend]);
-
-    useEffect(() => {
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [handleClickOutside]);
 
     const addFriend = async () => {
         const nickname = addFriendInputRef.current?.value.trim();
@@ -106,54 +83,75 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
             setTimeout(() => setNotification(null), 3500);
         }
     };
+
     const handleFriendClick = (friend: ShortFriend) => {
-        if (selectedFriend?.id === friend.id) {
-            setSelectedFriend(null);
-            setSelectedRequestId(null);
-        } else {
-            setSelectedFriend(friend);
-            setSelectedRequestId(friend.id);
+        const fullFriend = friends.find(f => f.id === friend.id);
+        if (fullFriend) {
+            setSelectedFriendForModal(fullFriend);
+            setIsModalOpen(true);
         }
     };
-    const handleAccept = async (friend: any) => {
+
+    const handleAccept = async (friend: Friend) => {
         try {
             setIsLoading(true);
-            await updateFriendStatus(friend.friendShipId, 1); // 1 = accepted
-            setSelectedRequestId(null);
+            await updateFriendStatus(friend.friendShipId, 1);
+            
+            setFriends(prevFriends =>
+                prevFriends.map(f =>
+                    f.friendShipId === friend.friendShipId 
+                        ? { ...f, status: 1 } 
+                        : f
+                )
+            );
+            
             onFriendAdded?.();
         } catch (error) {
             console.error("Ошибка при принятии заявки:", error);
+            setNotification({
+                message: "Не удалось принять заявку",
+                isError: true
+            });
+            setTimeout(() => setNotification(null), 3500);
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleDecline = async (friend: ShortFriend) => {
+    const handleDecline = async (friend: Friend) => {
         try {
             setIsLoading(true);
-            await updateFriendStatus(friend.friendShipId, 2); // 2 = declined
-            setSelectedRequestId(null);
+            await updateFriendStatus(friend.friendShipId, 2);
+            
+            setFriends(prevFriends =>
+                prevFriends.map(f =>
+                    f.friendShipId === friend.friendShipId 
+                        ? { ...f, status: 2 } 
+                        : f
+                )
+            );
+            
             onFriendAdded?.();
         } catch (error) {
             console.error("Ошибка при отклонении заявки:", error);
+            setNotification({
+                message: "Не удалось отклонить заявку",
+                isError: true
+            });
+            setTimeout(() => setNotification(null), 3500);
         } finally {
             setIsLoading(false);
         }
     };
-    const handleCancel = async (friend: ShortFriend, event?: React.MouseEvent) => {
-        if (event) {
-            event.stopPropagation();
-            event.preventDefault();
-        }
 
+    const handleCancelRequest = async (friend: Friend) => {
         try {
             setIsLoading(true);
             await deleteFriendship(friend.friendShipId);
 
-            setSelectedFriend(null);
-            setSelectedRequestId(null);
-
-            setFriends(prevFriends => prevFriends.filter(f => f.friendShipId !== friend.friendShipId));
+            setFriends(prevFriends => 
+                prevFriends.filter(f => f.friendShipId !== friend.friendShipId)
+            );
 
             onFriendAdded?.();
 
@@ -169,6 +167,39 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
         }
     };
 
+    const handleDeleteFriend = async (friend: Friend) => {
+        try {
+            setIsLoading(true);
+            await deleteFriendship(friend.friendShipId);
+
+            setFriends(prevFriends => 
+                prevFriends.filter(f => f.friendShipId !== friend.friendShipId)
+            );
+
+            onFriendAdded?.();
+
+        } catch (error) {
+            console.error("Ошибка при удалении друга:", error);
+            setNotification({
+                message: "Не удалось удалить друга",
+                isError: true
+            });
+            setTimeout(() => setNotification(null), 3500);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleCancel = (friend: Friend) => {
+        if (filter === 'all' || filter === 'online') {
+            handleDeleteFriend(friend);
+        } else if (filter === 'myrequests') {
+            handleCancelRequest(friend);
+        } else if (filter === 'requestsfromme') {
+            handleDecline(friend);
+        }
+    };
+
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchQuery(e.target.value);
     };
@@ -181,20 +212,18 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
         }
     };
 
-    // Сначала фильтруем друзей по выбранному фильтру, затем применяем поиск
     const filteredFriends = (() => {
         let result = friends.filter(friend => {
             if (filter === 'online') {
                 return friend.isOnline && friend.status === 1;
             }
-            if (filter === 'myrequests') return friend.status === 0 && friend.userWhoReceived === friend.id;
-            if (filter === 'requestsfromme') return friend.status === 0 && friend.userWhoSent === friend.id;
+            if (filter === 'myrequests') return friend.status === 0 && friend.userWhoSent === currentUserId;
+            if (filter === 'requestsfromme') return friend.status === 0 && friend.userWhoReceived === currentUserId;
             if (filter === 'all') return friend.status === 1;
             if (filter === 'banned') return friend.status === 2;
             return true;
         });
 
-        // Применяем поиск к отфильтрованному списку
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase().trim();
             result = result.filter(friend =>
@@ -211,12 +240,16 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
         return result;
     })();
 
-    const currentEmptyFilterMessage = emptyFilterMessages[filter]
+    const currentEmptyFilterMessage = emptyFilterMessages[filter];
 
     useEffect(() => {
-        setSelectedFriend(null);
-        setSelectedRequestId(null);
-    }, [filter]);
+        if (selectedFriendForModal) {
+            const updatedFriend = friends.find(f => f.id === selectedFriendForModal.id);
+            if (updatedFriend) {
+                setSelectedFriendForModal(updatedFriend);
+            }
+        }
+    }, [friends, selectedFriendForModal]);
 
     return (
         <div className="friends">
@@ -270,7 +303,6 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
             <div className="friends-list">
                 <div className="input-container">
                     <div className="input-box">
-                        {/* FR1: Управляемое поле для поиска */}
                         <input
                             ref={searchInputRef}
                             className="friends-search"
@@ -279,7 +311,6 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
                             onChange={handleSearchChange}
                         />
                         <img className="search-icon" src="/search.png" alt="Поиск" />
-                        {/* Кнопка для очистки поиска */}
                         {searchQuery && (
                             <button
                                 className="clear-search-btn"
@@ -307,7 +338,6 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
                 </div>
 
                 <div className="friends-container" key={`friends-${filter}-${filteredFriends.length}-${searchQuery}`}>
-                    {/* Обработка пустого результата после поиска */}
                     {(friends.length === 0 || filteredFriends.length === 0) ? (
                         <div className="empty-state">
                             <img src="/no-friends.png" alt="Нет друзей" />
@@ -320,13 +350,14 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
                         </div>
                     ) : (
                         filteredFriends.map(friend => {
-                            const isIncomingRequest = friend.status === 0 && friend.userWhoReceived === currentUserId;
-                            const isMyRequest = friend.status === 0 && friend.userWhoSent === currentUserId;
-                            const isFriendSelected = selectedFriend?.id === friend.id;
-
                             return (
-                                <div key={friend.id} className="friend-item" style={{ position: 'relative', zIndex: isFriendSelected ? 100 : 1 }}
+                                <motion.div
+                                    key={friend.id}
+                                    className="friend-item"
                                     onClick={() => handleFriendClick(friend)}
+                                    whileHover={{ scale: 1.01 }}
+                                    whileTap={{ scale: 0.99 }}
+                                    transition={{ duration: 0.2 }}
                                 >
                                     <div className="friend-avatar-container">
                                         <img
@@ -341,121 +372,33 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
                                     <div className="friend-info-container">
                                         <div className="friend-text-info">
                                             <span className="nickname">{friend.nickname}</span>
-                                            <span className={`online-status ${friend.isOnline ? '' : 'offline'}`}>{friend.isOnline ? "В сети" : "Не в сети"}</span>
+                                            <span className={`online-status ${friend.isOnline ? '' : 'offline'}`}>
+                                                {friend.isOnline ? "В сети" : "Не в сети"}
+                                            </span>
                                         </div>
-
-                                        <AnimatePresence>
-                                            {isFriendSelected && (
-                                                <motion.div
-                                                    ref={popoverRef}
-                                                    className="friend-details-popover"
-                                                    style={{ zIndex: 200 }}
-                                                    onClick={e => e.stopPropagation()}
-                                                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                                                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                                                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                                                    transition={{
-                                                        type: "spring",
-                                                        stiffness: 300,
-                                                        damping: 25,
-                                                        duration: 0.2
-                                                    }}
-                                                >
-                                                    <motion.div
-                                                        initial={{ opacity: 0, y: 10 }}
-                                                        animate={{ opacity: 1, y: 0 }}
-                                                        transition={{ delay: 0.1 }}
-                                                    >
-                                                        <FriendDetails
-                                                            friend={friend}
-                                                            friends={friends}
-                                                            setFriends={setFriends}
-                                                            onAccept={handleAccept}
-                                                            onCancel={handleCancel}
-                                                        />
-                                                    </motion.div>
-
-                                                    {(isIncomingRequest || isMyRequest) && (
-                                                        <motion.div
-                                                            initial={{ opacity: 0, height: 0 }}
-                                                            animate={{ opacity: 1, height: "auto" }}
-                                                            exit={{ opacity: 0, height: 0 }}
-                                                            transition={{ duration: 0.2 }}
-                                                            style={{ marginTop: 12 }}
-                                                        >
-                                                            {isIncomingRequest ? (
-                                                                <>
-                                                                    <p style={{ marginTop: 0, marginBottom: 12 }}>{friend.nickname} хочет добавить вас в друзья</p>
-                                                                    <div className="friend-request-actions">
-                                                                        <button
-                                                                            className="accept-button"
-                                                                            onClick={(e) => {
-                                                                                e.stopPropagation();
-                                                                                handleAccept(friend);
-                                                                            }}
-                                                                            disabled={isLoading}
-                                                                        >
-                                                                            Принять
-                                                                        </button>
-                                                                        <button
-                                                                            className="decline-button"
-                                                                            onClick={(e) => {
-                                                                                e.stopPropagation();
-                                                                                handleDecline(friend);
-                                                                            }}
-                                                                            disabled={isLoading}
-                                                                        >
-                                                                            Отклонить
-                                                                        </button>
-                                                                    </div>
-                                                                </>
-                                                            ) : isMyRequest ? (
-                                                                <>
-                                                                    <p style={{ marginTop: 0, marginBottom: 12 }}>
-                                                                        Вы отправили заявку {friend.nickname}
-                                                                    </p>
-                                                                    <div className="friend-request-actions">
-                                                                        <motion.button
-                                                                            className="decline-button"
-                                                                            onClick={(e) => handleCancel(friend, e)}
-                                                                            disabled={isLoading}
-                                                                            whileHover={{ scale: 1.05 }}
-                                                                            whileTap={{ scale: 0.95 }}
-                                                                        >
-                                                                            {isLoading ? (
-                                                                                <>
-                                                                                    <span className="button-loader" />
-                                                                                    Отмена...
-                                                                                </>
-                                                                            ) : 'Отменить заявку'}
-                                                                        </motion.button>
-                                                                    </div>
-                                                                </>
-                                                            ) : null}
-                                                        </motion.div>
-                                                    )}
-
-                                                    <motion.button
-                                                        className="close-popover"
-                                                        onClick={e => { e.stopPropagation(); setSelectedFriend(null); }}
-                                                        whileHover={{ scale: 1.2, rotate: 90 }}
-                                                        whileTap={{ scale: 0.9 }}
-                                                        initial={{ opacity: 0, rotate: -45 }}
-                                                        animate={{ opacity: 1, rotate: 0 }}
-                                                        transition={{ delay: 0.3 }}
-                                                    >
-                                                        ×
-                                                    </motion.button>
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
                                     </div>
-                                </div>
+                                </motion.div>
                             );
                         })
                     )}
                 </div>
             </div>
+
+            {selectedFriendForModal && (
+                <FriendDetails
+                    friend={selectedFriendForModal}
+                    friends={friends}
+                    setFriends={setFriends}
+                    onAccept={handleAccept}
+                    onCancel={handleCancel}
+                    filter={filter}
+                    isOpen={isModalOpen}
+                    onClose={() => {
+                        setIsModalOpen(false);
+                        setTimeout(() => setSelectedFriendForModal(null), 300);
+                    }}
+                />
+            )}
         </div>
     );
 };

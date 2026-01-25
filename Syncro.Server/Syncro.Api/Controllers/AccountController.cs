@@ -45,12 +45,12 @@ namespace Syncro.Api.Controllers
 
         // GET: api/accounts/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<AccountNoPasswordModel>> GetAccountById(Guid id)
+        public async Task<ActionResult<AccountNoPasswordWithIdModel>> GetAccountById(Guid id)
         {
             try
             {
                 var account = await _accountService.GetAccountByIdAsync(id);
-                var accountNoPassword = TranferModelsMapper.AccountNoPasswordModelMapMapper(account);
+                var accountNoPassword = TranferModelsMapper.AccountNoPasswordWithIdModelMapMapper(account);
                 return Ok(accountNoPassword);
             }
             catch (ArgumentException ex)

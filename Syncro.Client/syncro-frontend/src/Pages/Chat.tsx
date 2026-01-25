@@ -20,6 +20,7 @@ import searchIcon from '../assets/search3.png';
 import arrowDownIcon from '../assets/arrow-down.png';
 import { encryptionService } from '../Services/EncryptionService';
 import EmojiPickerButton from '../Components/ChatPage/EmojiPickerButton';
+import { FriendProfileChat } from '../Components/ChatPage/FriendProfileChat';
 
 const ChatPage = () => {
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -31,6 +32,9 @@ const ChatPage = () => {
   const location = useLocation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatRef = useRef<HTMLDivElement | null>(null);
+
+  // Состояние для профиля друга
+  const [showFriendProfile, setShowFriendProfile] = useState(false);
 
   // Добавить состояния для эмодзи-пикера
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -565,257 +569,289 @@ const ChatPage = () => {
   };
 
   return (
-    <MainComponent
-      chatContent={
-        <>
-
-          <AnimatePresence>
-            {!inCall && (
-              <motion.div
-                className="call-button-container"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-              >
-                {/* Панель поиска - теперь внутри chat-header-controls */}
-                <AnimatePresence>
-                  {isSearchActive && (
-                    <motion.div
-                      className="search-panel"
-                      initial={{ opacity: 0, width: 0, x: -20 }}
-                      animate={{ opacity: 1, width: "300px", x: 0 }}
-                      exit={{ opacity: 0, width: 0, x: -20 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <div className="search-input-container">
-                        <img src={searchIcon} alt="Поиск" className="search-icon" />
-                        <input
-                          type="text"
-                          className="search-input"
-                          placeholder="Поиск сообщений..."
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          autoFocus
+    <>
+      <MainComponent
+        chatContent={
+          <>
+            <AnimatePresence>
+              {!inCall && (
+                <motion.div
+                  className="call-button-container"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                >
+                  {/* Добавленная информация о друге */}
+                  <div className="friend-info-header">
+                    {currentFriend && (
+                      <div 
+                        className="friend-profile-preview"
+                        onClick={() => setShowFriendProfile(true)}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <img 
+                          src={currentFriend?.avatar || "./logo.png"} 
+                          alt={currentFriend?.nickname}
+                          className="friend-avatar-small"
                         />
-                        <button className="search-close-btn" onClick={handleExitSearch}>
-                          ✕
-                        </button>
+                        <span className="friend-nickname">{currentFriend?.nickname}</span>
                       </div>
+                    )}
+                  </div>
 
-                      {searchQuery && (
-                        <div className="search-results-info">
-                          <span>
-                            {searchResults.length > 0
-                              ? `Найдено: ${currentResultIndex + 1} из ${searchResults.length}`
-                              : 'Совпадений не найдено'}
-                          </span>
-                          <div className="search-navigation">
-                            <button
-                              className="search-nav-btn"
-                              onClick={goToPrevResult}
-                              disabled={searchResults.length === 0}
-                            >
-                              ▲
-                            </button>
-                            <button
-                              className="search-nav-btn"
-                              onClick={goToNextResult}
-                              disabled={searchResults.length === 0}
-                            >
-                              ▼
-                            </button>
-                          </div>
+                  {/* Панель поиска */}
+                  <AnimatePresence>
+                    {isSearchActive && (
+                      <motion.div
+                        className="search-panel"
+                        initial={{ opacity: 0, width: 0, x: -20 }}
+                        animate={{ opacity: 1, width: "300px", x: 0 }}
+                        exit={{ opacity: 0, width: 0, x: -20 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <div className="search-input-container">
+                          <img src={searchIcon} alt="Поиск" className="search-icon" />
+                          <input
+                            type="text"
+                            className="search-input"
+                            placeholder="Поиск сообщений..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            autoFocus
+                          />
+                          <button className="search-close-btn" onClick={handleExitSearch}>
+                            ✕
+                          </button>
                         </div>
-                      )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
 
-                {/* Кнопка поиска - слева от панели */}
-                {!isSearchActive && (
+                        {searchQuery && (
+                          <div className="search-results-info">
+                            <span>
+                              {searchResults.length > 0
+                                ? `Найдено: ${currentResultIndex + 1} из ${searchResults.length}`
+                                : 'Совпадений не найдено'}
+                            </span>
+                            <div className="search-navigation">
+                              <button
+                                className="search-nav-btn"
+                                onClick={goToPrevResult}
+                                disabled={searchResults.length === 0}
+                              >
+                                ▲
+                              </button>
+                              <button
+                                className="search-nav-btn"
+                                onClick={goToNextResult}
+                                disabled={searchResults.length === 0}
+                              >
+                                ▼
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Кнопка поиска */}
+                  {!isSearchActive && (
+                    <motion.button
+                      className="search-button"
+                      onClick={() => setIsSearchActive(true)}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <img src={searchIcon} alt="Поиск" width="16" height="16" />
+                    </motion.button>
+                  )}
+
+                  {/* Кнопка звонка */}
                   <motion.button
-                    className="search-button"
-                    onClick={() => setIsSearchActive(true)}
+                    className="call-button"
+                    onClick={handleStartCall}
+                    disabled={!rtcConnection.isConnected || !currentFriend}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <img src={searchIcon} alt="Поиск" width="16" height="16" />
+                    {rtcConnection.isConnected ? (
+                      <>
+                        <img className='call-state-img' src={callIcon} alt="Вызов" width="16" height="16" />
+                        Начать звонок
+                      </>
+                    ) : (
+                      <>
+                        <img className='loading-state-img' src={loadingIcon} alt="Подключение" width="16" height="16" />
+                        Подключение...
+                      </>
+                    )}
                   </motion.button>
-                )}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-                {/* Кнопка звонка */}
+            {/* Кнопка быстрой прокрутки вниз */}
+            <AnimatePresence>
+              {showScrollDownButton && (
                 <motion.button
-                  className="call-button"
-                  onClick={handleStartCall}
-                  disabled={!rtcConnection.isConnected || !currentFriend}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  className="scroll-down-button"
+                  onClick={scrollToBottom}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ duration: 0.2 }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
                 >
-                  {rtcConnection.isConnected ? (
-                    <>
-                      <img className='call-state-img' src={callIcon} alt="Вызов" width="16" height="16" />
-                      Начать звонок
-                    </>
-                  ) : (
-                    <>
-                      <img className='loading-state-img' src={loadingIcon} alt="Подключение" width="16" height="16" />
-                      Подключение...
-                    </>
-                  )}
+                  <img src={arrowDownIcon} alt="Вниз" width="20" height="20" />
                 </motion.button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              )}
+            </AnimatePresence>
 
-          {/* Кнопка быстрой прокрутки вниз */}
-          <AnimatePresence>
-            {showScrollDownButton && (
-              <motion.button
-                className="scroll-down-button"
-                onClick={scrollToBottom}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ duration: 0.2 }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <img src={arrowDownIcon} alt="Вниз" width="20" height="20" />
-              </motion.button>
-            )}
-          </AnimatePresence>
-
-          <AnimatePresence>
-            {showCallModal && incomingCall && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
-              >
-                <CallWindow
-                  isIncoming={true}
-                  userName={currentFriend?.nickname || 'Друг'}
-                  avatarUrl={currentFriend?.avatar || './logo.png'}
-                  onAccept={handleAcceptCall}
-                  onReject={handleRejectCall}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <AnimatePresence>
-            {inCall && currentFriend && currentUser && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-              >
-                <VideoCall
-                  remoteUserName={currentFriend.nickname}
-                  remoteAvatarUrl={currentFriend.avatar || './logo.png'}
-                  localUserName={currentUser.nickname}
-                  localAvatarUrl={currentUser.avatar || './logo.png'}
-                  onEndCall={handleEndCall}
-                  localStream={localStream}
-                  remoteStream={remoteStream}
-                  replaceVideoTrack={rtcConnection.replaceVideoTrack}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <motion.div
-            className="messages"
-            ref={chatRef}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.4 }}
-          >
-            {isLoadingMessages && (
-              <div className="messages-decrypting-overlay">
-                <div className="messages-decrypting-spinner"></div>
-                <div className="messages-decrypting-text">Загрузка чата...</div>
-              </div>
-            )}
-
-            <AnimatePresence mode="popLayout">
-              {messages.map((msg, i) => (
+            <AnimatePresence>
+              {showCallModal && incomingCall && (
                 <motion.div
-                  key={msg.id}
-                  ref={(el) => {
-                    if (el) {
-                      messageRefs.current.set(i, el);
-                    } else {
-                      messageRefs.current.delete(i);
-                    }
-                  }}
-                  layout
-                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 300,
-                    damping: 25,
-                    opacity: { duration: 0.2 }
-                  }}
-                  className={`message-container ${searchResults.includes(i) ? 'search-result' : ''
-                    } ${i === searchResults[currentResultIndex] ? 'current-result' : ''
-                    }`}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
                 >
-                  <Message
-                    {...msg}
-                    isOwnMessage={msg.accountId === currentUserId}
-                    avatarUrl={msg.accountId === currentUserId ?
-                      (currentUser?.avatar || './logo.png') :
-                      (currentFriend?.avatar || './logo.png')}
-                    previousMessageAuthor={i > 0 ? messages[i - 1].accountNickname : null}
-                    previousMessageDate={i > 0 ? messages[i - 1].messageDateSent : null}
-                    searchQuery={searchQuery}
+                  <CallWindow
+                    isIncoming={true}
+                    userName={currentFriend?.nickname || 'Друг'}
+                    avatarUrl={currentFriend?.avatar || './logo.png'}
+                    onAccept={handleAcceptCall}
+                    onReject={handleRejectCall}
                   />
                 </motion.div>
-              ))}
+              )}
             </AnimatePresence>
-            <div ref={messagesEndRef} />
-          </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.3 }}
-          >
-            <MessageInput
-              onSend={handleSend}
-              isUploading={isUploading}
-              value={messageInputValue}
-              onValueChange={setMessageInputValue}
-              onToggleEmojiPicker={() => setShowEmojiPicker(!showEmojiPicker)}
-              showEmojiPicker={showEmojiPicker}
-            />
-            {showEmojiPicker && (
-              <motion.div
-                ref={emojiPickerRef}
-                className="emoji-picker-container"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.2 }}
-              >
-                <EmojiPickerButton onEmojiSelect={handleEmojiSelect} />
-              </motion.div>
-            )}
-          </motion.div>
-        </>
-      }
-      friends={friends}
-      nickname={currentUser?.nickname}
-      avatar={currentUser?.avatar}
-      isOnline={true}
+            <AnimatePresence>
+              {inCall && currentFriend && currentUser && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                >
+                  <VideoCall
+                    remoteUserName={currentFriend.nickname}
+                    remoteAvatarUrl={currentFriend.avatar || './logo.png'}
+                    localUserName={currentUser.nickname}
+                    localAvatarUrl={currentUser.avatar || './logo.png'}
+                    onEndCall={handleEndCall}
+                    localStream={localStream}
+                    remoteStream={remoteStream}
+                    replaceVideoTrack={rtcConnection.replaceVideoTrack}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-    />
+            <motion.div
+              className="messages"
+              ref={chatRef}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4 }}
+            >
+              {isLoadingMessages && (
+                <div className="messages-decrypting-overlay">
+                  <div className="messages-decrypting-spinner"></div>
+                  <div className="messages-decrypting-text">Загрузка чата...</div>
+                </div>
+              )}
+
+              <AnimatePresence mode="popLayout">
+                {messages.map((msg, i) => (
+                  <motion.div
+                    key={msg.id}
+                    ref={(el) => {
+                      if (el) {
+                        messageRefs.current.set(i, el);
+                      } else {
+                        messageRefs.current.delete(i);
+                      }
+                    }}
+                    layout
+                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 300,
+                      damping: 25,
+                      opacity: { duration: 0.2 }
+                    }}
+                    className={`message-container ${searchResults.includes(i) ? 'search-result' : ''
+                      } ${i === searchResults[currentResultIndex] ? 'current-result' : ''
+                      }`}
+                  >
+                    <Message
+                      {...msg}
+                      isOwnMessage={msg.accountId === currentUserId}
+                      avatarUrl={msg.accountId === currentUserId ?
+                        (currentUser?.avatar || './logo.png') :
+                        (currentFriend?.avatar || './logo.png')}
+                      previousMessageAuthor={i > 0 ? messages[i - 1].accountNickname : null}
+                      previousMessageDate={i > 0 ? messages[i - 1].messageDateSent : null}
+                      searchQuery={searchQuery}
+                      onAvatarClick={() => {
+                        // Если это сообщение друга, открываем его профиль
+                        if (msg.accountId !== currentUserId) {
+                          setShowFriendProfile(true);
+                        }
+                      }}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+              <div ref={messagesEndRef} />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.3 }}
+            >
+              <MessageInput
+                onSend={handleSend}
+                isUploading={isUploading}
+                value={messageInputValue}
+                onValueChange={setMessageInputValue}
+                onToggleEmojiPicker={() => setShowEmojiPicker(!showEmojiPicker)}
+                showEmojiPicker={showEmojiPicker}
+              />
+              {showEmojiPicker && (
+                <motion.div
+                  ref={emojiPickerRef}
+                  className="emoji-picker-container"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <EmojiPickerButton onEmojiSelect={handleEmojiSelect} />
+                </motion.div>
+              )}
+            </motion.div>
+          </>
+        }
+        friends={friends}
+        nickname={currentUser?.nickname}
+        avatar={currentUser?.avatar}
+        isOnline={true}
+      />
+      
+      {/* Модальное окно профиля друга */}
+      <FriendProfileChat
+        friend={currentFriend}
+        isOpen={showFriendProfile}
+        onClose={() => setShowFriendProfile(false)}
+        //showActions={true}
+      />
+    </>
   );
 };
 

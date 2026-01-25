@@ -19,9 +19,15 @@ export interface Friend {
 export interface ShortFriend {
     id: string;
     nickname: string;
+    email: string;
+    firstname: string;
+    lastname: string;
+    phonenumber:string;
     avatar: string;
     friendShipId: string;
 }
+
+
 
 export interface FriendProps {
     friends: Friend[];
@@ -42,7 +48,11 @@ export interface FriendDetailsProps {
     setFriends: React.Dispatch<React.SetStateAction<Friend[]>>;
     onAccept?: (friend: Friend) => void;
     onCancel?: (friend: Friend) => void;
+    filter?: FriendFilterTypes; 
+    isOpen?: boolean; 
+    onClose?: () => void; 
 }
+
 export interface AccountActivity {
     UserId: string;
     IsOnline: boolean;
