@@ -226,7 +226,7 @@ namespace Syncro.Api.Controllers
         }
         // POST: api/accounts/current - получение accountid из jwt выданного
         [HttpGet("current")]
-        //[Authorize]
+        [Authorize]
         public IActionResult GetCurrentUserId()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);

@@ -849,7 +849,7 @@ const ChatPage = () => {
         friend={currentFriend}
         isOpen={showFriendProfile}
         onClose={() => setShowFriendProfile(false)}
-        showActions={true}
+        //showActions={true}
       />
     </>
   );

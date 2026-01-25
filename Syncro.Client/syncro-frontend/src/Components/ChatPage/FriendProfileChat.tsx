@@ -1,19 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Friend, ShortFriend } from '../../Types/FriendType';
+import { ShortFriend } from '../../Types/FriendType';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface FriendProfileChatProps {
-  friend: Friend | ShortFriend | null;
+  friend: ShortFriend | null;
   isOpen: boolean;
   onClose: () => void;
-  showActions?: boolean;
 }
 
 export const FriendProfileChat: React.FC<FriendProfileChatProps> = ({
   friend,
   isOpen,
-  onClose,
-  showActions = false
+  onClose
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const [isClosing, setIsClosing] = useState(false);
@@ -55,34 +53,17 @@ export const FriendProfileChat: React.FC<FriendProfileChatProps> = ({
     }, 200);
   };
 
-  // Проверяем, есть ли у друга полная информация
-  const isFullFriend = (friend: Friend | ShortFriend | null): friend is Friend => {
-    return friend !== null && 'email' in friend && 'friendsSince' in friend;
-  };
-
-  // Форматирование даты
-  const formatDate = (date: Date | string) => {
-    const d = new Date(date);
-    const day = d.getDate().toString().padStart(2, '0');
-    const month = (d.getMonth() + 1).toString().padStart(2, '0');
-    const year = d.getFullYear();
-    return `${day}.${month}.${year}`;
-  };
-
-  // Получаем статус онлайн
-  const getOnlineStatus = () => {
-    if (!friend) return 'Неизвестно';
-    if ('isOnline' in friend) {
-      return friend.isOnline ? 'В сети' : 'Не в сети';
-    }
-    return 'Статус недоступен';
-  };
-
-  // Получаем имя и фамилию если есть
+  // Получаем полное имя если есть
   const getFullName = () => {
-    if (!isFullFriend(friend)) return null;
+    if (!friend) return null;
     if (!friend.firstname && !friend.lastname) return null;
     return `${friend.firstname || ''} ${friend.lastname || ''}`.trim();
+  };
+
+  // Проверяем, есть ли какая-либо информация для отображения
+  const hasAdditionalInfo = () => {
+    if (!friend) return false;
+    return friend.email || friend.phonenumber || getFullName();
   };
 
   if (!friend) return null;
@@ -143,58 +124,27 @@ export const FriendProfileChat: React.FC<FriendProfileChatProps> = ({
                   {getFullName() && (
                     <div className="full-name-chat">{getFullName()}</div>
                   )}
-                  <div className={`online-status-chat ${isFullFriend(friend) && friend.isOnline ? '' : 'offline'}`}>
-                    {getOnlineStatus()}
+                  <div className="online-status-chat">
+                    Заглушка для статуса
                   </div>
                 </div>
               </div>
 
-              <div className="friend-info-chat">
-                {isFullFriend(friend) ? (
-                  <>
-                    {friend.email && (
-                      <div className="info-row-chat">
-                        <span className="info-label-chat">Email:</span>
-                        <span>{friend.email}</span>
-                      </div>
-                    )}
-                    {friend.phonenumber && (
-                      <div className="info-row-chat">
-                        <span className="info-label-chat">Телефон:</span>
-                        <span>{friend.phonenumber}</span>
-                      </div>
-                    )}
+              {hasAdditionalInfo() && (
+                <div className="friend-info-chat">
+                  {friend.email && (
                     <div className="info-row-chat">
-                      <span className="info-label-chat">Дата добавления:</span>
-                      <span>{formatDate(friend.friendsSince)}</span>
+                      <span className="info-label-chat">Email:</span>
+                      <span>{friend.email}</span>
                     </div>
+                  )}
+                  
+                  {friend.phonenumber && (
                     <div className="info-row-chat">
-                      <span className="info-label-chat">Статус:</span>
-                      <span>{friend.status === 1 ? 'Подтвержден' : 'Ожидает подтверждения'}</span>
+                      <span className="info-label-chat">Телефон:</span>
+                      <span>{friend.phonenumber}</span>
                     </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="info-row-chat">
-                      <span className="info-label-chat">ID:</span>
-                      <span>{friend.id}</span>
-                    </div>
-                    <div className="info-row-chat">
-                      <span className="info-label-chat">Friendship ID:</span>
-                      <span>{friend.friendShipId}</span>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {showActions && (
-                <div className="modal-actions-chat">
-                  <button className="action-btn-chat primary">
-                    💬 Написать сообщение
-                  </button>
-                  <button className="action-btn-chat secondary">
-                    👤 Полный профиль
-                  </button>
+                  )}
                 </div>
               )}
             </motion.div>
