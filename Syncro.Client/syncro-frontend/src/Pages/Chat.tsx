@@ -842,6 +842,7 @@ const ChatPage = () => {
         nickname={currentUser?.nickname}
         avatar={currentUser?.avatar}
         isOnline={true}
+        setFriends={setFriends}
       />
       
       {/* Модальное окно профиля друга */}

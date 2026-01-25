@@ -59,7 +59,7 @@ const PersonalChatsComponent = ({ friends, setFriends }: FriendProps) => {
                                 <span className="nickname">{friend.nickname}</span>
                                 <span className={`online-status ${friend.isOnline ? '' : 'offline'}`}>{friend.isOnline ? "В сети" : "Не в сети"}</span>
                             </div>
-                            {friend.unreadCount && (
+                            {friend.unreadCount > 0 && (
                                 <div className="unread-badge">
                                     {friend.unreadCount}
                                 </div>

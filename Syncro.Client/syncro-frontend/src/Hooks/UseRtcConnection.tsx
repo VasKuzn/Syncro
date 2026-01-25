@@ -378,7 +378,7 @@ const UseRtcConnection = ({
                 setIsConnected(false);
             }
         };
-    }, [handleReceiveOffer, handleReceiveAnswer, handleIceCandidate, onCallEnded]);
+    }, []);
 
     // Функция для принудительной проверки состояния
     const checkConnectionStatus = useCallback(() => {
