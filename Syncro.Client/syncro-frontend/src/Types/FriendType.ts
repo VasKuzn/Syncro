@@ -59,4 +59,4 @@ export interface AccountActivity {
     Timestamp: string
 }
 
-export type FriendFilterTypes = 'all' | 'online' | 'myrequests' | 'banned' | 'requestsfromme'
+export type FriendFilterTypes = 'all' | 'online' | 'myrequests' | 'requestsfromme'
