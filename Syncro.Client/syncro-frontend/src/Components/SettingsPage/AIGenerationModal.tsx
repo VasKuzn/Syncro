@@ -35,7 +35,6 @@ const AIGenerationModal: React.FC<AIGenerationModalProps> = ({
                 throw new Error(`Ошибка генерации: ${response.status}`);
             }
 
-            // Получаем изображение как blob
             const blob = await response.blob();
 
             // Создаем URL для предпросмотра

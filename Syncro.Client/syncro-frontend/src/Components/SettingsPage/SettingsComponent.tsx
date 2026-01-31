@@ -26,7 +26,6 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
     onSubmit,
     onChange,
     onAvatarUpdate,
-    currentAvatarFile
 }) => {
     const [showAvatarModal, setShowAvatarModal] = useState(false);
     const [showAIModal, setShowAIModal] = useState(false);
@@ -41,25 +40,21 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
     };
 
     const handleFileSelect = (file: File) => {
-        // Создаем URL для предпросмотра
-        const previewUrl = URL.createObjectURL(file);
 
-        // Обновляем аватар в родительском компоненте
         onAvatarUpdate(file);
 
         setShowAvatarModal(false);
     };
 
     const handleAIGenerate = () => {
+
         setShowAvatarModal(false);
+
         setShowAIModal(true);
     };
 
     const handleAIGenerated = (file: File) => {
-        // Создаем URL для предпросмотра
-        const previewUrl = URL.createObjectURL(file);
 
-        // Обновляем аватар в родительском компоненте
         onAvatarUpdate(file);
 
         setShowAIModal(false);

@@ -4,16 +4,16 @@ import { useNavigate } from 'react-router-dom';
 import { fetchCurrentUser, getPersonalConference, markMessagesAsRead } from "../../Services/MainFormService";
 import { motion, AnimatePresence } from 'framer-motion';
 
-export const FriendDetails = ({ 
-  friend, 
-  friends, 
-  setFriends, 
-  onAccept, 
+export const FriendDetails = ({
+  friend,
+  friends,
+  setFriends,
+  onAccept,
   onCancel,
   filter = 'all',
   isOpen,
   onClose
-}: FriendDetailsProps & { 
+}: FriendDetailsProps & {
   filter?: string;
   isOpen: boolean;
   onClose: () => void;
@@ -22,7 +22,6 @@ export const FriendDetails = ({
   const modalRef = useRef<HTMLDivElement>(null);
   const [isClosing, setIsClosing] = useState(false);
 
-  // Закрытие по ESC
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
@@ -41,7 +40,7 @@ export const FriendDetails = ({
     } else {
       document.body.style.overflow = 'auto';
     }
-    
+
     return () => {
       document.body.style.overflow = 'auto';
     };
@@ -63,13 +62,13 @@ export const FriendDetails = ({
 
   const goToChat = async () => {
     if (!friend) return;
-    
+
     try {
       const currentUserId = await fetchCurrentUser();
       const personalConferenceId = await getPersonalConference(currentUserId, friend.id);
 
       handleClose();
-      
+
       navigate("/chat", {
         state: {
           friends: friends,
@@ -185,7 +184,7 @@ export const FriendDetails = ({
 
   // Проверяем, показывать ли имя/фамилию
   const shouldShowName = friend.firstname || friend.lastname;
-  const fullName = shouldShowName 
+  const fullName = shouldShowName
     ? `${friend.firstname || ''} ${friend.lastname || ''}`.trim()
     : null;
 
@@ -221,11 +220,11 @@ export const FriendDetails = ({
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ 
-                type: "spring", 
-                stiffness: 300, 
+              transition={{
+                type: "spring",
+                stiffness: 300,
                 damping: 25,
-                duration: 0.2 
+                duration: 0.2
               }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -249,15 +248,15 @@ export const FriendDetails = ({
 
               <div className="friend-info">
                 <div className="info-row">
-                  <span className="info-label">Email:</span> 
+                  <span className="info-label">Email:</span>
                   {friend.email || "Не указан"}
                 </div>
                 <div className="info-row">
-                  <span className="info-label">Телефон:</span> 
+                  <span className="info-label">Телефон:</span>
                   {friend.phonenumber || "Не указан"}
                 </div>
                 <div className="info-row">
-                  <span className="info-label">Дата:</span> 
+                  <span className="info-label">Дата:</span>
                   {formatDate(friend.friendsSince)}
                 </div>
               </div>

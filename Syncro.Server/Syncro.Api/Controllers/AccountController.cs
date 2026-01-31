@@ -62,7 +62,7 @@ namespace Syncro.Api.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-        // GET: api/accounts/{email}
+        // GET: api/accounts/{email}/get
         [HttpGet("{email}/get")]
         public async Task<ActionResult<AccountNoPasswordModel>> GetAccountByEmail(string email)
         {
@@ -216,15 +216,14 @@ namespace Syncro.Api.Controllers
                     });
                     return Ok(new { Message = "Logged in successfully" });
                 }
-                return StatusCode(404, $"User unauthorized error: {result.Error}");
+                return StatusCode(401, $"User unauthorized error: {result.Error}");
             }
             catch (Exception)
             {
                 return StatusCode(404, $"Аккаунт с таким email не найден");
             }
-
         }
-        // POST: api/accounts/current - получение accountid из jwt выданного
+        // GET: api/accounts/current - получение accountid из выданного jwt
         [HttpGet("current")]
         [Authorize]
         public IActionResult GetCurrentUserId()
@@ -389,7 +388,7 @@ namespace Syncro.Api.Controllers
         }
 
         [HttpPost("forget_password")]
-        public async Task<IActionResult> ForgetPassword([FromBody] Application.ModelsDTO.ForgetPasswordRequest request)
+        public async Task<IActionResult> ForgetPassword([FromBody] ForgetPasswordRequest request)
         {
             if (!ModelState.IsValid)
             {
@@ -407,7 +406,7 @@ namespace Syncro.Api.Controllers
 
                 return Ok($"Reset password message sent");
             }
-            catch (ArgumentException aex)
+            catch (ArgumentException ex)
             {
                 return Ok($"Reset password message sent");
             }

@@ -115,3 +115,8 @@ export const getPersonalConferenceById = async (id: string) => {
     }
     return await response.json();
 };
+export const fetchUserById = async (userId: string) => {
+    const res = await fetch(`http://localhost:5232/api/accounts/${userId}`);
+    if (!res.ok) throw new Error('Failed to fetch user');
+    return res.json();
+};

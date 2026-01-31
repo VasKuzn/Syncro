@@ -9,7 +9,7 @@ import '../Styles/Chat.css';
 import { Friend, ShortFriend } from '../Types/FriendType';
 import { fetchCurrentUser } from '../Services/MainFormService';
 import { useLocation } from 'react-router-dom';
-import { createMessage, getMessages, uploadMediaMessage, getPersonalConferenceById, initializeEncryptionWithFriend } from '../Services/ChatService';
+import { createMessage, getMessages, uploadMediaMessage, getPersonalConferenceById, initializeEncryptionWithFriend, fetchUserById } from '../Services/ChatService';
 import usePersonalMessagesHub from '../Hooks/UsePersonalMessages';
 import UseRtcConnection from '../Hooks/UseRtcConnection';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -316,12 +316,6 @@ const ChatPage = () => {
     loadMessages();
   }, [loadMessages]);
 
-  const fetchUserById = useCallback(async (userId: string) => {
-    const res = await fetch(`http://localhost:5232/api/accounts/${userId}`);
-    if (!res.ok) throw new Error('Failed to fetch user');
-    return res.json();
-  }, []);
-
   useEffect(() => {
     const fetchCurrentUserData = async () => {
       if (!currentUserId) return;
@@ -585,13 +579,13 @@ const ChatPage = () => {
                   {/* Добавленная информация о друге */}
                   <div className="friend-info-header">
                     {currentFriend && (
-                      <div 
+                      <div
                         className="friend-profile-preview"
                         onClick={() => setShowFriendProfile(true)}
                         style={{ cursor: 'pointer' }}
                       >
-                        <img 
-                          src={currentFriend?.avatar || "./logo.png"} 
+                        <img
+                          src={currentFriend?.avatar || "./logo.png"}
                           alt={currentFriend?.nickname}
                           className="friend-avatar-small"
                         />
@@ -844,13 +838,13 @@ const ChatPage = () => {
         isOnline={true}
         setFriends={setFriends}
       />
-      
+
       {/* Модальное окно профиля друга */}
       <FriendProfileChat
         friend={currentFriend}
         isOpen={showFriendProfile}
         onClose={() => setShowFriendProfile(false)}
-        //showActions={true}
+      //showActions={true}
       />
     </>
   );

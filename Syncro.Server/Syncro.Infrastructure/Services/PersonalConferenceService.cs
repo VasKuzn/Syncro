@@ -1,3 +1,5 @@
+using Syncro.Infrastructure.Exceptions;
+
 namespace Syncro.Infrastructure.Services
 {
     public class PersonalConferenceService : IConferenceService<PersonalConferenceModel>
@@ -30,7 +32,7 @@ namespace Syncro.Infrastructure.Services
                 throw new ArgumentException("One or both users don't exist");
 
             if (await _personalConferenceRepository.ConferenceExistsAsync(personalConference.user1, personalConference.user2))
-                throw new ArgumentException("Personal conference between these users already exists.");
+                throw new ConflictException("Personal conference between these users already exists.");
 
 
             return await _personalConferenceRepository.AddConferenceAsync(personalConference);
