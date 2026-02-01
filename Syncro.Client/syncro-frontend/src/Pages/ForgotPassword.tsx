@@ -1,9 +1,10 @@
 import { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ForgotPasswordForm from '../Components/ForgotPasswordPage/ForgotPasswordForm';
 import { ForgotPasswordFormData } from '../Types/ForgotPasswordTypes';
 import { EMAIL_REGEX } from '../Constants/LoginConsts';
 import '../Styles/ResetPassword.css';
-import { sendEmail } from '../Services/ForgotPasswordService';
+import { sendResetEmail } from '../Services/ForgotPasswordService';
 
 const ForgotPassword = () => {
     const [formData, setFormData] = useState<ForgotPasswordFormData>({
@@ -13,10 +14,11 @@ const ForgotPassword = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [successMessage, setSuccessMessage] = useState<string>('');
+    const navigate = useNavigate();
 
     const validateEmail = useCallback((email: string): string | null => {
         if (!email) {
-            return 'Пожалуйста, введите email.'
+            return 'Пожалуйста, введите email.';
         } else if (!EMAIL_REGEX.test(email)) {
             return 'Введите корректный email.';
         }
@@ -25,7 +27,7 @@ const ForgotPassword = () => {
 
     const handleInputChange = useCallback((field: keyof ForgotPasswordFormData, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }));
-        
+
         if (errors[field]) {
             setErrors(prev => {
                 const newErrors = { ...prev };
@@ -37,42 +39,37 @@ const ForgotPassword = () => {
 
     const handleSubmit = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
-        
-        const newErrors: Record<string, string> = {};
 
-        const passwordError = validateEmail(formData.email);
-        if (passwordError) {
-            newErrors.newPassword = passwordError;
-        }
-
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
+        const emailError = validateEmail(formData.email);
+        if (emailError) {
+            setErrors({ email: emailError });
             return;
         }
 
         setErrors({});
-        
         setIsLoading(true);
+
         try {
-            const result = await sendEmail(formData.email)
-            
+            const result = await sendResetEmail(formData.email);
+
             if (!result.ok) {
-                throw new Error("Ошибка при отправке письма")
+                const errorData = await result.json();
+                throw new Error(errorData.message || "Ошибка при отправке письма");
             }
 
-            setSuccessMessage('На указанный адрес отправлено письмо');
-            
+            setSuccessMessage('Инструкции по сбросу пароля отправлены на указанный email. Проверьте свою почту.');
+
             setTimeout(() => {
-                window.location.href = '/login';
-            }, 3000);
-        } catch (error) {
-            setErrors({ 
-                confirmPassword: 'Произошла ошибка. Пожалуйста, попробуйте снова.' 
+                navigate('/login');
+            }, 5000);
+        } catch (error: any) {
+            setErrors({
+                email: error.message || 'Произошла ошибка. Пожалуйста, попробуйте снова.'
             });
         } finally {
             setIsLoading(false);
         }
-    }, [formData, validateEmail]);
+    }, [formData, validateEmail, navigate]);
 
     return (
         <div className="reset-password-page">

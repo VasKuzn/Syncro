@@ -1,4 +1,4 @@
-import { Friend } from "./FriendType";
+import { Friend, ShortFriend } from "./FriendType";
 
 export interface PersonalMessageData {
     id: string,
@@ -94,4 +94,9 @@ export interface MessageProps extends PersonalMessageData {
     previousMessageAuthor?: string | null;
     previousMessageDate?: Date | null;
     searchQuery?: string;
+}
+
+export interface UseCallManagementProps {
+    currentFriend: ShortFriend | null;
+    currentUserId: string | null;
 }

@@ -1,20 +1,26 @@
-import { NetworkError } from "../Types/LoginTypes";
+export const validateResetToken = async (token: string) => {
+    const response = await fetch(`http://localhost:5232/api/accounts/validate_reset_token/${token}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
 
-export const resetPassword = async (id:string, password:string) => {
-    const passwordConfirm = password
-    const credentials = {password, passwordConfirm}
+    return response;
+};
 
-    try {
-        const response = await fetch(`http://localhost:5232/api/accounts/reset_password/${id}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(credentials),
-            credentials: "include"
-        });        
-        return response;
-    } catch (error) {
-        throw new Error((error as NetworkError).message || "Ошибка сети")
-    }
-}
+export const resetPassword = async (token: string, newPassword: string, confirmPassword: string) => {
+    const response = await fetch(`http://localhost:5232/api/accounts/reset_password`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            token,
+            newPassword,
+            confirmPassword
+        }),
+    });
+
+    return response;
+};

@@ -10,25 +10,20 @@ interface UseMessageManagementProps {
     currentUserId: string | null;
     currentUser: UserInfo | null;
     encryptionSessionReady: boolean;
-    scrollToBottomInstant: () => void;
-    scrollToBottom: () => void;
-    isUserAtBottom: () => boolean;
 }
 
 export const useMessageManagement = ({
     personalConference,
     currentUserId,
     currentUser,
-    encryptionSessionReady,
-    scrollToBottomInstant,
-    scrollToBottom,
-    isUserAtBottom
+    encryptionSessionReady
 }: UseMessageManagementProps) => {
     const [messages, setMessages] = useState<PersonalMessageData[]>([]);
     const [isUploading, setIsUploading] = useState(false);
     const [isLoadingMessages, setIsLoadingMessages] = useState(false);
 
     const processedMessagesRef = useRef<Set<string>>(new Set());
+    const shouldScrollToBottomRef = useRef(false);
 
     const decryptSingleMessage = useCallback(async (message: PersonalMessageData, forceDecryptOwn = false): Promise<PersonalMessageData> => {
         if (!message.isEncrypted || !message.encryptionMetadata || !message.messageContent) {
@@ -77,6 +72,7 @@ export const useMessageManagement = ({
 
         try {
             setIsLoadingMessages(true);
+            shouldScrollToBottomRef.current = true; // Устанавливаем флаг для прокрутки
             const loadedMessages = await getMessages(personalConference);
             processedMessagesRef.current.clear();
 
@@ -111,25 +107,16 @@ export const useMessageManagement = ({
 
             if (message.accountId === currentUserId) {
                 updateMessage({ ...message, isEncrypted: false });
-                if (isUserAtBottom()) {
-                    setTimeout(scrollToBottom, 50);
-                }
                 return;
             }
 
             if (!message.isEncrypted || !message.encryptionMetadata) {
                 updateMessage(message);
-                if (isUserAtBottom()) {
-                    setTimeout(scrollToBottom, 50);
-                }
                 return;
             }
 
             decryptSingleMessage(message).then(decryptedMessage => {
                 updateMessage(decryptedMessage);
-                if (isUserAtBottom()) {
-                    setTimeout(scrollToBottom, 50);
-                }
             }).catch(error => {
                 console.error('Error decrypting real-time message:', error);
                 processedMessagesRef.current.delete(message.id);
@@ -139,7 +126,7 @@ export const useMessageManagement = ({
             console.error('Error processing new message:', error);
             processedMessagesRef.current.delete(message.id);
         }
-    }, [currentUserId, decryptSingleMessage, isUserAtBottom, scrollToBottom, updateMessage]);
+    }, [currentUserId, decryptSingleMessage, updateMessage]);
 
     usePersonalMessagesHub(personalConference, handleNewMessage);
 
@@ -174,6 +161,7 @@ export const useMessageManagement = ({
         };
 
         setMessages(prev => [...prev, tempMessage]);
+        shouldScrollToBottomRef.current = true; // Устанавливаем флаг для прокрутки
 
         try {
             const messageData = {
@@ -208,6 +196,7 @@ export const useMessageManagement = ({
         isUploading,
         isLoadingMessages,
         loadMessages,
-        handleSend
+        handleSend,
+        shouldScrollToBottomRef
     };
 };

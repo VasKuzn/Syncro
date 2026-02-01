@@ -1,11 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
-import { ShortFriend } from '../Types/FriendType';
 import UseRtcConnection from './UseRtcConnection';
-
-interface UseCallManagementProps {
-    currentFriend: ShortFriend | null;
-    currentUserId: string | null;
-}
+import { UseCallManagementProps } from '../Types/ChatTypes';
 
 export const useCallManagement = ({ currentFriend, currentUserId }: UseCallManagementProps) => {
     const [showCallModal, setShowCallModal] = useState(false);

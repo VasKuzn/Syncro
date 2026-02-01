@@ -23,6 +23,8 @@ namespace Syncro.Infrastructure.Data.DataBaseContext
         public DbSet<EncryptionSession> EncryptionSessions { get; set; }
         public DbSet<GroupEncryptionKey> GroupEncryptionKeys { get; set; }
 
+        public DbSet<PasswordResetTokenModel> PasswordResetToken { get; set; }
+
         public DataBaseContext(DbContextOptions options) : base(options)
         {
 

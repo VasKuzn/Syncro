@@ -1,4 +1,7 @@
+using System.Security.Cryptography;
+using Microsoft.EntityFrameworkCore;
 using Syncro.Application.TransferModels;
+using Syncro.Infrastructure.Data.DataBaseContext;
 using Syncro.Infrastructure.Exceptions;
 
 namespace Syncro.Api.Controllers
@@ -9,14 +12,18 @@ namespace Syncro.Api.Controllers
     {
         private readonly IAccountService _accountService;
         private readonly IPersonalAccountInfoService _infoService;
+        private readonly DataBaseContext _context;
+        private readonly ILogger<AccountController> _logger;
 
         private readonly IEmailService _emailService;
 
-        public AccountController(IAccountService accountService, IPersonalAccountInfoService infoService, IEmailService emailService)
+        public AccountController(IAccountService accountService, IPersonalAccountInfoService infoService, IEmailService emailService, DataBaseContext context, ILogger<AccountController> logger)
         {
             _accountService = accountService;
             _infoService = infoService;
             _emailService = emailService;
+            _context = context;
+            _logger = logger;
         }
 
         // GET: api/accounts
@@ -387,62 +394,196 @@ namespace Syncro.Api.Controllers
             }
         }
 
+        private string GenerateSecureToken()
+        {
+            var randomBytes = new byte[32];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomBytes);
+            return Convert.ToBase64String(randomBytes)
+                .Replace('+', '-')
+                .Replace('/', '_')
+                .Replace("=", "");
+        }
+
         [HttpPost("forget_password")]
         public async Task<IActionResult> ForgetPassword([FromBody] ForgetPasswordRequest request)
         {
             if (!ModelState.IsValid)
             {
-                return StatusCode(400, $"Bad request error: {ModelState}");
+                return BadRequest(ModelState);
             }
+
             try
             {
                 var account = await _accountService.GetAccountByEmailAsync(request.Email);
+                if (account == null)
+                {
+                    // Security best practice: не раскрываем существование email
+                    return Ok(new { message = "Если учетная запись существует, на email отправлена инструкция" });
+                }
 
-                //string callbackUrl = Url.Action("reset_password", "api/accounts", new { Email = request.Email  }, protocol: HttpContext.Request.Scheme);
+                // Удаляем старые токены для этого email
+                var oldTokens = await _context.PasswordResetToken
+                    .Where(t => t.Email == request.Email.ToLower())
+                    .ToListAsync();
 
-                var callbackUrl = Url.Action(nameof(ForgetPassword), nameof(AccountController).Replace("Controller", string.Empty), new { id = account.Id }, protocol: HttpContext.Request.Scheme);
+                if (oldTokens.Any())
+                {
+                    _context.PasswordResetToken.RemoveRange(oldTokens);
+                }
 
-                var result = await _emailService.SendEmailAsync(request.Email, "Сброс пароля Syncro", "Для сброса пароля перейдите по ссылке: " + (callbackUrl as string) + ". Если это не вы, то ни в коем случае не переходите по ссылке!");
+                var token = GenerateSecureToken();
+                var resetToken = new PasswordResetTokenModel
+                {
+                    Id = Guid.NewGuid(),
+                    Email = request.Email.ToLower(),
+                    Token = token,
+                    CreatedAt = DateTime.UtcNow,
+                    ExpiresAt = DateTime.UtcNow.AddMinutes(15),
+                    IsUsed = false
+                };
 
-                return Ok($"Reset password message sent");
-            }
-            catch (ArgumentException ex)
-            {
-                return Ok($"Reset password message sent");
+                await _context.PasswordResetToken.AddAsync(resetToken);
+                await _context.SaveChangesAsync();
+
+                var frontendUrl = "http://localhost:5173";
+                var resetUrl = $"{frontendUrl}/reset_password?token={token}";
+
+                var emailBody = $@"
+                <h2>Сброс пароля для Syncro</h2>
+                <p>Вы запросили сброс пароля для вашего аккаунта.</p>
+                <p>Для завершения процесса перейдите по ссылке:</p>
+                <p><a href='{resetUrl}'>{resetUrl}</a></p>
+                <p><strong>Ссылка действительна 15 минут.</strong></p>
+                <p>Если вы не запрашивали сброс пароля, проигнорируйте это письмо.</p>
+                <hr>
+                <p style='color: #666; font-size: 12px;'>
+                    Это письмо отправлено автоматически. Пожалуйста, не отвечайте на него.
+                </p>";
+
+                await _emailService.SendEmailAsync(
+                    request.Email,
+                    "Сброс пароля Syncro",
+                    emailBody);
+
+                _logger.LogInformation($"Password reset token generated for {request.Email}");
+
+                return Ok(new { message = "Если учетная запись существует, на email отправлена инструкция" });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                _logger.LogError(ex, "Error in ForgetPassword");
+                return StatusCode(500, "Произошла внутренняя ошибка сервера");
             }
         }
 
-        [HttpPost("reset_password/{id}")]
-        public async Task<IActionResult> ResetPassword(Guid id, [FromBody] Application.ModelsDTO.ResetPasswordRequest request)
+        [HttpGet("validate_reset_token/{token}")]
+        public async Task<IActionResult> ValidateResetToken(string token)
         {
-            if (!ModelState.IsValid)
-            {
-                return StatusCode(400, $"Bad request error: {ModelState}");
-            }
-
             try
             {
-                var account = await _accountService.GetAccountByIdAsync(id);
+                if (string.IsNullOrEmpty(token))
+                {
+                    return BadRequest(new { message = "Токен не указан" });
+                }
 
-                var result = await _accountService.ResetPassword(account.Id, request.Password);
+                // Находим токен
+                var resetToken = await _context.PasswordResetToken
+                    .FirstOrDefaultAsync(t =>
+                        t.Token == token &&
+                        !t.IsUsed &&
+                        t.ExpiresAt > DateTime.UtcNow);
 
-                return Ok($"Password reset");
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return StatusCode(404, $"Account not found error: {ex.Message}");
-            }
-            catch (ArgumentException ex)
-            {
-                return StatusCode(400, $"Bad request error: {ex.Message}");
+                if (resetToken == null)
+                {
+                    return NotFound(new { message = "Ссылка для сброса пароля недействительна или истекла" });
+                }
+
+                return Ok(new
+                {
+                    email = resetToken.Email,
+                    valid = true
+                });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                _logger.LogError(ex, "Error validating reset token");
+                return StatusCode(500, "Произошла внутренняя ошибка сервера");
+            }
+        }
+
+        [HttpPost("reset_password")]
+        public async Task<IActionResult> ResetPassword([FromBody] Application.ModelsDTO.ResetPasswordRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                // Находим и блокируем токен
+                var resetToken = await _context.PasswordResetToken
+                    .Where(t => t.Token == request.Token && !t.IsUsed)
+                    .FirstOrDefaultAsync();
+
+                if (resetToken == null)
+                {
+                    return BadRequest(new { message = "Ссылка для сброса пароля недействительна" });
+                }
+
+                if (resetToken.ExpiresAt < DateTime.UtcNow)
+                {
+                    return BadRequest(new { message = "Ссылка для сброса пароля истекла" });
+                }
+
+                // Находим пользователя
+                var account = await _accountService.GetAccountByEmailAsync(resetToken.Email);
+                if (account == null)
+                {
+                    return BadRequest(new { message = "Пользователь не найден" });
+                }
+
+                // Сбрасываем пароль
+                var result = await _accountService.ResetPassword(account.Id, request.NewPassword);
+                if (result is null)
+                {
+                    throw new Exception("Failed to reset password");
+                }
+
+                // Помечаем токен как использованный
+                resetToken.IsUsed = true;
+                _context.PasswordResetToken.Update(resetToken);
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                // Отправляем подтверждение на email
+                var confirmationBody = $@"
+                <h2>Пароль успешно изменен</h2>
+                <p>Пароль для вашего аккаунта Syncro был успешно изменен.</p>
+                <p>Если это были не вы, немедленно свяжитесь со службой поддержки.</p>
+                <hr>
+                <p style='color: #666; font-size: 12px;'>
+                    Это письмо отправлено автоматически.
+                </p>";
+
+                await _emailService.SendEmailAsync(
+                    resetToken.Email,
+                    "Пароль успешно изменен - Syncro",
+                    confirmationBody);
+
+                _logger.LogInformation($"Password successfully reset for {resetToken.Email}");
+
+                return Ok(new { message = "Пароль успешно изменен" });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Error resetting password");
+                return StatusCode(500, "Произошла внутренняя ошибка сервера");
             }
         }
 

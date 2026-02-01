@@ -41,36 +41,28 @@ const ChatPage = () => {
   } = useChatInitialization();
 
   const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   }, []);
 
   const scrollToBottomInstant = useCallback(() => {
-    const chat = chatRef.current;
-    if (!chat) return;
-    requestAnimationFrame(() => {
-      chat.scrollTop = chat.scrollHeight;
-    });
-  }, []);
-
-  const isUserAtBottom = useCallback(() => {
-    const pos = chatRef.current;
-    if (!pos) return true;
-    return pos.scrollHeight - pos.scrollTop - pos.clientHeight < 300;
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView();
+    }
   }, []);
 
   const {
     messages,
     isUploading,
     isLoadingMessages,
-    handleSend: sendMessage
+    handleSend: sendMessage,
+    shouldScrollToBottomRef
   } = useMessageManagement({
     personalConference,
     currentUserId,
     currentUser,
-    encryptionSessionReady,
-    scrollToBottomInstant,
-    scrollToBottom,
-    isUserAtBottom
+    encryptionSessionReady
   });
 
   const search = useChatSearch(messages);
@@ -101,6 +93,31 @@ const ChatPage = () => {
     const isScrolledUp = chat.scrollHeight - chat.scrollTop - chat.clientHeight > 300;
     setShowScrollDownButton(isScrolledUp || search.isSearchActive);
   }, [search.isSearchActive]);
+
+  useEffect(() => {
+    if (shouldScrollToBottomRef.current && !isLoadingMessages && messages.length > 0) {
+      const timer = setTimeout(() => {
+        scrollToBottomInstant();
+        shouldScrollToBottomRef.current = false;
+      }, 50);
+
+      return () => clearTimeout(timer);
+    }
+  }, [messages, isLoadingMessages, scrollToBottomInstant, shouldScrollToBottomRef]);
+
+  useEffect(() => {
+    const chat = chatRef.current;
+    if (chat) {
+      const isAtBottom = chat.scrollHeight - chat.scrollTop - chat.clientHeight < 100;
+      if (isAtBottom && !search.isSearchActive) {
+        const timer = setTimeout(() => {
+          scrollToBottom();
+        }, 100);
+
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [messages, search.isSearchActive, scrollToBottom]);
 
   useEffect(() => {
     const chat = chatRef.current;
@@ -144,16 +161,8 @@ const ChatPage = () => {
     await sendMessage(text, media);
     setMessageInputValue('');
     setShowEmojiPicker(false);
-    if (!search.isSearchActive) {
-      setTimeout(scrollToBottom, 100);
-    }
-  }, [sendMessage, search.isSearchActive, scrollToBottom]);
+  }, [sendMessage]);
 
-  const handleAvatarClick = useCallback((accountId: string) => {
-    if (accountId !== currentUserId) {
-      setShowFriendProfile(true);
-    }
-  }, [currentUserId]);
 
   return (
     <>
@@ -379,7 +388,6 @@ const ChatPage = () => {
                       previousMessageDate={i > 0 ? messages[i - 1].messageDateSent : null}
                       searchQuery={search.searchQuery}
                       onAvatarClick={() => {
-                        // Если это сообщение друга, открываем его профиль
                         if (msg.accountId !== currentUserId) {
                           setShowFriendProfile(true);
                         }
