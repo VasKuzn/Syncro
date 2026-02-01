@@ -1,4 +1,5 @@
 import { Friend, ShortFriend } from "./FriendType";
+import { UserInfo } from "./UserInfo";
 
 export interface PersonalMessageData {
     id: string,
@@ -99,4 +100,11 @@ export interface MessageProps extends PersonalMessageData {
 export interface UseCallManagementProps {
     currentFriend: ShortFriend | null;
     currentUserId: string | null;
+}
+
+export interface UseMessageManagementProps {
+    personalConference: string | null;
+    currentUserId: string | null;
+    currentUser: UserInfo | null;
+    encryptionSessionReady: boolean;
 }

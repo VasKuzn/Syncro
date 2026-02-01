@@ -107,18 +107,7 @@ namespace Syncro.Api.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-        // Мб потом убрать
-        // GET: api/accounts/{id}/nickname
-        [HttpGet("{userId}/nickname")]
-        public async Task<ActionResult<string>> GetNickname(Guid userId)
-        {
-            var account = await _accountService.GetAccountByIdAsync(userId);
-            if (account == null)
-            {
-                return StatusCode(404, $"Account not found error: ID {userId}");
-            }
-            return Ok(account.nickname);
-        }
+
         //
         // POST: api/accounts
         [HttpPost]
@@ -418,11 +407,9 @@ namespace Syncro.Api.Controllers
                 var account = await _accountService.GetAccountByEmailAsync(request.Email);
                 if (account == null)
                 {
-                    // Security best practice: не раскрываем существование email
                     return Ok(new { message = "Если учетная запись существует, на email отправлена инструкция" });
                 }
 
-                // Удаляем старые токены для этого email
                 var oldTokens = await _context.PasswordResetToken
                     .Where(t => t.Email == request.Email.ToLower())
                     .ToListAsync();
@@ -487,7 +474,6 @@ namespace Syncro.Api.Controllers
                     return BadRequest(new { message = "Токен не указан" });
                 }
 
-                // Находим токен
                 var resetToken = await _context.PasswordResetToken
                     .FirstOrDefaultAsync(t =>
                         t.Token == token &&
@@ -524,7 +510,6 @@ namespace Syncro.Api.Controllers
 
             try
             {
-                // Находим и блокируем токен
                 var resetToken = await _context.PasswordResetToken
                     .Where(t => t.Token == request.Token && !t.IsUsed)
                     .FirstOrDefaultAsync();
@@ -539,28 +524,24 @@ namespace Syncro.Api.Controllers
                     return BadRequest(new { message = "Ссылка для сброса пароля истекла" });
                 }
 
-                // Находим пользователя
                 var account = await _accountService.GetAccountByEmailAsync(resetToken.Email);
                 if (account == null)
                 {
                     return BadRequest(new { message = "Пользователь не найден" });
                 }
 
-                // Сбрасываем пароль
                 var result = await _accountService.ResetPassword(account.Id, request.NewPassword);
                 if (result is null)
                 {
                     throw new Exception("Failed to reset password");
                 }
 
-                // Помечаем токен как использованный
                 resetToken.IsUsed = true;
                 _context.PasswordResetToken.Update(resetToken);
                 await _context.SaveChangesAsync();
 
                 await transaction.CommitAsync();
 
-                // Отправляем подтверждение на email
                 var confirmationBody = $@"
                 <h2>Пароль успешно изменен</h2>
                 <p>Пароль для вашего аккаунта Syncro был успешно изменен.</p>
@@ -586,7 +567,5 @@ namespace Syncro.Api.Controllers
                 return StatusCode(500, "Произошла внутренняя ошибка сервера");
             }
         }
-
-
     }
 }

@@ -6,8 +6,6 @@ using Couchbase.KeyValue;
 using Microsoft.Extensions.Configuration;
 using System.Text.Json;
 using Syncro.Infrastructure.Encryption.Interfaces;
-using Syncro.Domain.Models;
-using Syncro.Infrastructure.Services;
 using Syncro.Application.Interfaces.CouchBaseStorage;
 
 namespace Syncro.Infrastructure.CouchBaseMessageStorage

@@ -1,6 +1,5 @@
 import { useRef, useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useLocation } from 'react-router-dom';
 import Message from '../Components/ChatPage/MessageComponent';
 import MessageInput from '../Components/ChatPage/MessageInput';
 import MainComponent from '../Components/ChatPage/MainComponents';
@@ -19,7 +18,6 @@ import searchIcon from '../assets/search3.png';
 import arrowDownIcon from '../assets/arrow-down.png';
 
 const ChatPage = () => {
-  const location = useLocation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);

@@ -3,7 +3,7 @@ import { Friend } from '../Types/FriendType';
 import { ShortFriend } from '../Types/FriendType';
 import { UserInfo } from '../Types/UserInfo';
 import { fetchCurrentUser } from '../Services/MainFormService';
-import { fetchUserById } from '../Services/ChatService'
+import { fetchUserById, initializeEncryptionWithFriend } from '../Services/ChatService'
 import { getPersonalConferenceById } from '../Services/ChatService';
 import { useLocation } from 'react-router-dom';
 import { encryptionService } from '../Services/EncryptionService';
@@ -74,6 +74,24 @@ export const useChatInitialization = () => {
         };
         fetchConferenceAndFriend();
     }, [personalConference, currentUserId]);
+
+    useEffect(() => {
+        const initializeEncryption = async () => {
+            if (currentFriend?.id && currentUserId) {
+                try {
+                    const success = await initializeEncryptionWithFriend(currentFriend.id, currentUserId);
+                    setEncryptionSessionReady(success);
+                } catch (error) {
+                    console.error('Error initializing encryption with friend:', error);
+                    setEncryptionSessionReady(false);
+                }
+            }
+        };
+
+        if (currentFriend && currentUserId) {
+            initializeEncryption();
+        }
+    }, [currentFriend, currentUserId]);
 
     return {
         friends,

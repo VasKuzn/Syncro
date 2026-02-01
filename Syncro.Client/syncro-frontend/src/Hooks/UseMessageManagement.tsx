@@ -1,16 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { PersonalMessageData } from '../Types/ChatTypes';
-import { UserInfo } from '../Types/UserInfo';
+import { PersonalMessageData, UseMessageManagementProps } from '../Types/ChatTypes';
 import { getMessages, createMessage, uploadMediaMessage } from '../Services/ChatService';
 import usePersonalMessagesHub from './UsePersonalMessages';
 import { encryptionService } from '../Services/EncryptionService';
-
-interface UseMessageManagementProps {
-    personalConference: string | null;
-    currentUserId: string | null;
-    currentUser: UserInfo | null;
-    encryptionSessionReady: boolean;
-}
 
 export const useMessageManagement = ({
     personalConference,
@@ -72,7 +64,7 @@ export const useMessageManagement = ({
 
         try {
             setIsLoadingMessages(true);
-            shouldScrollToBottomRef.current = true; // Устанавливаем флаг для прокрутки
+            shouldScrollToBottomRef.current = true;
             const loadedMessages = await getMessages(personalConference);
             processedMessagesRef.current.clear();
 
@@ -161,7 +153,7 @@ export const useMessageManagement = ({
         };
 
         setMessages(prev => [...prev, tempMessage]);
-        shouldScrollToBottomRef.current = true; // Устанавливаем флаг для прокрутки
+        shouldScrollToBottomRef.current = true;
 
         try {
             const messageData = {
