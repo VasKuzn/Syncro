@@ -405,10 +405,6 @@ namespace Syncro.Api.Controllers
             try
             {
                 var account = await _accountService.GetAccountByEmailAsync(request.Email);
-                if (account == null)
-                {
-                    return Ok(new { message = "Если учетная запись существует, на email отправлена инструкция" });
-                }
 
                 var oldTokens = await _context.PasswordResetToken
                     .Where(t => t.Email == request.Email.ToLower())
@@ -456,6 +452,11 @@ namespace Syncro.Api.Controllers
                 _logger.LogInformation($"Password reset token generated for {request.Email}");
 
                 return Ok(new { message = "Если учетная запись существует, на email отправлена инструкция" });
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning($"Password reset requested for non-existing email: {request.Email}");
+                return StatusCode(404, "Почта не найдена");
             }
             catch (Exception ex)
             {

@@ -1,5 +1,7 @@
 import React from 'react';
 import { ForgotPasswordComponentProps } from '../../Types/ForgotPasswordTypes';
+import { useNavigate } from "react-router-dom";
+
 
 const ForgotPasswordForm: React.FC<ForgotPasswordComponentProps> = ({
     formData,
@@ -9,12 +11,13 @@ const ForgotPasswordForm: React.FC<ForgotPasswordComponentProps> = ({
     onInputChange,
     onSubmit
 }) => {
+    const navigate = useNavigate();
     return (
         <div className="reset-password-page-background">
             <div className="reset-password-container">
                 <div className="reset-password-header">
-                    <h1 className="reset-password-title">Забыл пароль</h1>
-                    <p className="reset-password-subtitle">Введите адрес электронной почты, связанный с аккаунтом</p>
+                    <h1 className="reset-password-title">Забыл пароль😢</h1>
+                    <p className="reset-password-subtitle">Введите адрес электронной почты, связанный с аккаунтом🙏</p>
                 </div>
 
                 {successMessage ? (
@@ -45,20 +48,23 @@ const ForgotPasswordForm: React.FC<ForgotPasswordComponentProps> = ({
                         </div>
 
                         <div className="reset-password-buttons">
-                            <button 
-                                type="submit" 
+                            <button
+                                type="submit"
                                 className="reset-password-submit"
                                 disabled={isLoading}
                             >
                                 {isLoading ? (
                                     <div className="reset-password-spinner" aria-hidden="true"></div>
                                 ) : (
-                                    "Отправить ссылку для сброса пароля"
+                                    "Отправить ссылку для сброса пароля😁"
                                 )}
                             </button>
                         </div>
                     </form>
                 )}
+                <button className="reset-password-submit" onClick={e => navigate("/login")} style={{ marginTop: '20px' }}>
+                    Назад🤨
+                </button>
             </div>
         </div>
     );

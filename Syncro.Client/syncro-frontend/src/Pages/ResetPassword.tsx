@@ -28,7 +28,6 @@ const ResetPassword = () => {
     const [userEmail, setUserEmail] = useState<string>('');
     const [successMessage, setSuccessMessage] = useState<string>('');
 
-    // Валидация токена при загрузке
     useEffect(() => {
         const validateToken = async () => {
             if (!token) {

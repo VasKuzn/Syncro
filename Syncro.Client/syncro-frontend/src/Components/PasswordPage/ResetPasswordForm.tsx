@@ -37,7 +37,7 @@ const ResetPasswordForm: React.FC<ResetPasswordComponentProps> = ({
                         Создайте новый пароль для вашего аккаунта
                         {userEmail && (
                             <span className="reset-password-email">
-                                <br />Email: {userEmail}
+                                <br /><u>Email: {userEmail}</u>
                             </span>
                         )}
                     </p>
@@ -121,11 +121,6 @@ const ResetPasswordForm: React.FC<ResetPasswordComponentProps> = ({
                                 "Сбросить пароль"
                             )}
                         </button>
-                    </div>
-
-                    <div className="reset-password-security-notice">
-                        <p>⚠️ <strong>Ссылка действительна 15 минут</strong></p>
-                        <p>После смены пароля вы получите подтверждение на email</p>
                     </div>
                 </form>
             </div>

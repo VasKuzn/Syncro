@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-
 const BodyComponent = () => {
 
     const navigate = useNavigate();

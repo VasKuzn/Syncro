@@ -20,7 +20,7 @@ const ForgotPassword = () => {
         if (!email) {
             return 'Пожалуйста, введите email.';
         } else if (!EMAIL_REGEX.test(email)) {
-            return 'Введите корректный email.';
+            return 'Введите email в корректном формате.';
         }
         return null;
     }, []);
@@ -53,8 +53,14 @@ const ForgotPassword = () => {
             const result = await sendResetEmail(formData.email);
 
             if (!result.ok) {
-                const errorData = await result.json();
-                throw new Error(errorData.message || "Ошибка при отправке письма");
+                if (result.status === 404) {
+                    throw new Error('Пользователь с таким email не найден.');
+                } else if (result.status >= 500) {
+                    throw new Error('Ошибка при отправке письма. Пожалуйста, попробуйте позже.');
+                } else {
+                    const errorData = await result.json();
+                    throw new Error("Ошибка при отправке письма");
+                }
             }
 
             setSuccessMessage('Инструкции по сбросу пароля отправлены на указанный email. Проверьте свою почту.');
@@ -83,6 +89,7 @@ const ForgotPassword = () => {
                     onSubmit={handleSubmit}
                 />
             </div>
+
         </div>
     );
 };
