@@ -1,99 +1,8 @@
-body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  color: #ffffff;
-  overflow: hidden;
-  background-color: #151838;
-}
-
-.main-page {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100vh;
-  position: relative;
-  background-color: #07081C;
-}
-
-.title {
-  display: flex;
-  height: 3vh;
-  min-height: 30px;
-  justify-content: center;
-  align-items: center;
-  background-color: #07081C;
-  border-bottom: 1px solid #2D3748;
-}
-
-.body-container {
-  display: flex;
-  height: 97vh;
-  width: 100%;
-  flex-direction: row;
-}
-
-.sidebar-container {
-  display: flex;
-  height: 100%;
-  flex-direction: row;
-  background-color: #07081C;
-  flex-shrink: 0;
-  min-width: 372px;
-  border-right: 1px solid #2D3748;
-}
-
-.group-chats {
-  padding: 12px 8px;
-  width: 72px;
-  background-color: #0F172A;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
 .personal-chats {
   width: 300px;
   background-color: #07081C;
   display: flex;
   flex-direction: column;
-}
-
-.group-chat-list {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  margin-top: 16px;
-}
-
-.group-chat-item {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 48px;
-  width: 48px;
-  background-color: #1E293B;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.group-chat-item:hover {
-  background-color: #3B82F6;
-  transform: scale(1.05);
-}
-
-.group-chat-item.add {
-  background-color: transparent;
-  border: 2px dashed #4A5568;
-  color: #4A5568;
-  font-size: 20px;
-}
-
-.group-chat-item.add:hover {
-  border-color: #3B82F6;
-  color: #3B82F6;
 }
 
 .search-pm {
@@ -124,51 +33,6 @@ body {
   transition: all 0.2s ease;
 }
 
-.friends-nav {
-  gap: 8px;
-}
-
-.button-friends-status {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
-  background-color: #1E293B;
-  color: #CBD5E0;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.button-friends-status:hover {
-  background-color: #2D3748;
-}
-
-.button-friends-status.add {
-  background-color: #3B82F6;
-  color: white;
-}
-
-.button-friends-status.add:hover {
-  background-color: #2563EB;
-}
-
-.friends-list {
-  flex: 1;
-  overflow-y: scroll;
-  padding: 8px 0;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.friends-list::-webkit-scrollbar {
-  display: none;
-  width: 0;
-  height: 0;
-}
-
 .chat-container {
   display: flex;
   flex-direction: column;
@@ -180,6 +44,9 @@ body {
 }
 
 .messages {
+  position: relative;
+  flex-grow: 1;
+  z-index: 1;
   flex: 1;
   overflow-y: auto;
   padding: 16px;
@@ -209,6 +76,7 @@ body {
   transition: background-color 0.2s ease;
   cursor: pointer;
   word-break: break-word;
+  animation: fadeIn 0.3s ease-out;
 }
 
 .messageItem.no-profile {
@@ -310,8 +178,10 @@ body {
   border-radius: 16px 16px 0 0;
   backdrop-filter: blur(10px);
   margin: 0 16px;
-  position: relative;
   overflow: hidden;
+  position: sticky;
+  bottom: 0;
+  z-index: 40;
 }
 
 .message-input-field {
@@ -362,10 +232,6 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-.messageItem {
-  animation: fadeIn 0.3s ease-out;
 }
 
 .active-chat {
@@ -464,16 +330,6 @@ body {
 .media-file audio {
   width: 30%;
   min-width: 120px;
-}
-
-.chat-container {
-  position: relative;
-}
-
-.message-input-container {
-  position: sticky;
-  bottom: 0;
-  z-index: 40;
 }
 
 video::-webkit-media-controls-panel {
@@ -807,8 +663,12 @@ video::-webkit-media-controls-panel {
 }
 
 .avatars-row {
+  position: absolute;
+  inset: 0;
   display: flex;
-  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
 }
 
 .video-body {
@@ -828,11 +688,11 @@ video::-webkit-media-controls-panel {
 
 .video-box {
   position: relative;
-  border-radius: 12px;
+  border-radius: 8px;
   overflow: hidden;
-  background: #111;
+  background: #222;
   cursor: pointer;
-  transition: all 0.4s ease;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -867,27 +727,6 @@ video::-webkit-media-controls-panel {
   background: #000;
 }
 
-.avatars-row {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 40px;
-}
-
-.video-box {
-  position: relative;
-  cursor: pointer;
-  overflow: hidden;
-  border-radius: 8px;
-  background-color: #222;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-}
-
 .file-preview {
   display: flex;
   align-items: center;
@@ -898,6 +737,7 @@ video::-webkit-media-controls-panel {
   border-radius: 8px;
   margin-bottom: 12px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  animation: slideIn 0.3s ease-out;
 }
 
 .file-preview.image-preview {
@@ -949,10 +789,6 @@ video::-webkit-media-controls-panel {
   background: #B91C1C;
 }
 
-.file-preview {
-  animation: slideIn 0.3s ease-out;
-}
-
 @keyframes slideIn {
   from {
     opacity: 0;
@@ -978,7 +814,6 @@ video::-webkit-media-controls-panel {
 .send-state-img {
   filter: invert(70%) sepia(85%) saturate(771%) hue-rotate(138deg) brightness(87%) contrast(95%);
 }
-
 
 .loading-state-img {
   filter: invert(61%) sepia(90%) saturate(378%) hue-rotate(360deg) brightness(97%) contrast(91%);
@@ -1023,7 +858,6 @@ video::-webkit-media-controls-panel {
   position: relative;
   margin: 0 16px;
 }
-
 
 .search-input-container:focus-within {
   border-color: #3B82F6;
@@ -1329,14 +1163,6 @@ video::-webkit-media-controls-panel {
   }
 }
 
-.messages {
-  position: relative;
-  overflow-y: auto;
-  flex-grow: 1;
-  padding: 16px;
-  z-index: 1;
-}
-
 .messages-decrypting-overlay {
   position: absolute;
   top: 0;
@@ -1434,7 +1260,7 @@ video::-webkit-media-controls-panel {
   .friend-nickname {
     max-width: 100px;
   }
-  
+
   .friend-profile-preview {
     padding: 4px 8px;
   }
