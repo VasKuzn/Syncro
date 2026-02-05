@@ -933,5 +933,22 @@ body {
 
 /* Стиль для запрета скролла */
 body.modal-open {
-    overflow: hidden;
+  overflow: hidden;
+}
+
+/* Стили для вкладки Заявки мне */
+.section-title {
+    font-size: medium;
+    color: #a1a1aa;
+    margin: 15px 0 10px 10px;
+} 
+
+.section-divider {
+    height: 2px;
+    background: #4A5568;
+    margin: 20px 20px 10px 7px;
+}
+
+.rejected-section {
+    opacity: 0.5;
 }

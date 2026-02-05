@@ -113,6 +113,19 @@ export const FriendDetails = ({
   const getActions = () => {
     if (!friend) return null;
 
+    if (friend.status === 2) {
+      return (
+        <div className="modal-actions">
+          <button className="action-btn primary" onClick={() => {
+            onAccept?.(friend);
+            handleClose();
+          }}>
+          ✅ Принять
+          </button>
+        </div>
+      );
+    }
+
     switch (filter) {
       case 'all':
       case 'online':
@@ -159,10 +172,6 @@ export const FriendDetails = ({
             </button>
           </div>
         );
-
-      case 'banned':
-        // Нет кнопок
-        return null;
 
       default:
         return (
