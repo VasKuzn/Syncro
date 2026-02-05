@@ -1,5 +1,7 @@
 using Syncro.Application.TransferModels;
 using Syncro.Infrastructure.Exceptions;
+using Syncro.Infrastructure.JWT;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Syncro.Api.Controllers
 {
@@ -397,11 +399,11 @@ namespace Syncro.Api.Controllers
             }
             try
             {
-                var account = await _accountService.GetAccountByEmailAsync(request.Email);
+                var resultToken = await _accountService.GetTokenForgetPassword(request.Email);
 
-                //string callbackUrl = Url.Action("reset_password", "api/accounts", new { Email = request.Email  }, protocol: HttpContext.Request.Scheme);
+                var forgetToken = resultToken.Value;
 
-                var callbackUrl = Url.Action(nameof(ForgetPassword), nameof(AccountController).Replace("Controller", string.Empty), new { id = account.Id }, protocol: HttpContext.Request.Scheme);
+                var callbackUrl = Url.Action(nameof(ResetPassword), nameof(AccountController).Replace("Controller", string.Empty), new { token = forgetToken }, protocol: HttpContext.Request.Scheme);
 
                 var result = await _emailService.SendEmailAsync(request.Email, "Сброс пароля Syncro", "Для сброса пароля перейдите по ссылке: " + (callbackUrl as string) + ". Если это не вы, то ни в коем случае не переходите по ссылке!");
 
@@ -417,8 +419,8 @@ namespace Syncro.Api.Controllers
             }
         }
 
-        [HttpPost("reset_password/{id}")]
-        public async Task<IActionResult> ResetPassword(Guid id, [FromBody] Application.ModelsDTO.ResetPasswordRequest request)
+        [HttpPost("reset_password/{token}")]
+        public async Task<IActionResult> ResetPassword(string? token, [FromBody] Application.ModelsDTO.ResetPasswordRequest request)
         {
             if (!ModelState.IsValid)
             {
@@ -427,6 +429,14 @@ namespace Syncro.Api.Controllers
 
             try
             {
+                var handler = new JwtSecurityTokenHandler();
+
+                var jwt = handler.ReadJwtToken(token);
+
+                var idString = jwt.Claims.FirstOrDefault(x => x.Type == "nameid")?.Value;
+
+                var id = Guid.Parse(idString);
+
                 var account = await _accountService.GetAccountByIdAsync(id);
 
                 var result = await _accountService.ResetPassword(account.Id, request.Password);

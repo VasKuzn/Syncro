@@ -150,6 +150,18 @@ namespace Syncro.Infrastructure.Services
             return Result<string>.Success(token);
         }
 
+        public async Task<Result<string>> GetTokenForgetPassword(string email)
+        {
+            var user = await _accountRepository.GetAccountByEmailAsync(email);
+            if (user == null)
+            {
+                return Result<string>.Failure("User not found");
+            }
+            var token = _jwtProvider.GenerateToken(user);
+
+            return Result<string>.Success(token);
+        }
+
         public async Task<AccountModel> ResetPassword(Guid accountId, string password)
         {
             var existingAccount = await _accountRepository.GetAccountByIdAsync(accountId);
