@@ -158,5 +158,19 @@ namespace Syncro.Infrastructure.Services
 
             return await _accountRepository.UpdateAccountAsync(existingAccount);
         }
+
+        
+         public async Task<Result<bool>> Logout(Guid accountId)
+        {
+            try
+            {
+                await Task.CompletedTask;
+                return Result<bool>.Success(true);
+            }
+            catch (Exception ex)
+            {
+                return Result<bool>.Failure($"Logout failed: {ex.Message}");
+            }
+        }
     }
 }
