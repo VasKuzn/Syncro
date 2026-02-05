@@ -108,7 +108,7 @@ const Message = ({
     previousMessageAuthor,
     previousMessageDate,
     searchQuery,
-    onAvatarClick // Добавляем новый пропс для обработки клика на аватарку
+    onAvatarClick
 }: MessageProps & { onAvatarClick?: () => void }) => {
     const date = new Date(messageDateSent);
     const previousDate = previousMessageDate ? new Date(previousMessageDate) : null;
@@ -131,8 +131,8 @@ const Message = ({
         <ErrorBoundary>
             <div className={`messageItem ${isOwnMessage ? 'own-message' : 'friend-message'} ${hideProfileInfo ? 'no-profile' : ''}`}>
                 {!hideProfileInfo && (
-                    <div 
-                        className="photo" 
+                    <div
+                        className="photo"
                         onClick={!isOwnMessage && onAvatarClick ? onAvatarClick : undefined}
                         style={{ cursor: !isOwnMessage && onAvatarClick ? 'pointer' : 'default' }}
                     >
@@ -141,7 +141,7 @@ const Message = ({
                             alt={`${accountNickname} avatar`}
                             onError={(e) => {
                                 e.currentTarget.src = './logo.png';
-                            }} 
+                            }}
                         />
                     </div>
                 )}

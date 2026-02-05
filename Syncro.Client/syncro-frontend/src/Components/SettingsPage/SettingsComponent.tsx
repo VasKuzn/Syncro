@@ -28,7 +28,6 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
     onSubmit,
     onChange,
     onAvatarUpdate,
-    currentAvatarFile
 }) => {
     const [showAvatarModal, setShowAvatarModal] = useState(false);
     const [showAIModal, setShowAIModal] = useState(false);
@@ -52,7 +51,9 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
     };
 
     const handleAIGenerate = () => {
+
         setShowAvatarModal(false);
+
         setShowAIModal(true);
     };
 

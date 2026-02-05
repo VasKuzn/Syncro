@@ -59,9 +59,7 @@ const Settings = () => {
 
             if (avatarFile) {
                 userData.append("AvatarFile", avatarFile, avatarFile.name);
-            }/* else if (formState.avatar && !formState.avatar.startsWith('blob:')) {
-                userData.append("avatar", formState.avatar);
-            }*/
+            }
 
             await updateUserInfo(currentUserId, userData)
             navigate(-1)

@@ -2,14 +2,26 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Syncro.Application.ModelsDTO
 {
+    public class PasswordResetRequest
+    {
+        [EmailAddress]
+        public required string Email { get; set; }
+    }
+
+    public class ValidateResetTokenRequest
+    {
+        public required string Token { get; set; }
+    }
+
     public class ResetPasswordRequest
     {
-        [Required(ErrorMessage = "Password is required")]
-        [MinLength(6, ErrorMessage = "Password must be at least 6 characters")]
-        public string Password { get; set; }
+        public required string Token { get; set; }
 
-        [Required(ErrorMessage = "Password is required")]
-        [Compare("Password", ErrorMessage = "Password should be identical")]
-        public string PasswordConfirm { get; set; }
+        [MinLength(8)]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$")]
+        public required string NewPassword { get; set; }
+
+        [Compare("NewPassword")]
+        public required string ConfirmPassword { get; set; }
     }
 }

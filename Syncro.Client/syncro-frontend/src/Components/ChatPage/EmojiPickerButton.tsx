@@ -13,7 +13,6 @@ const EmojiPickerButton = ({ onEmojiSelect }: EmojiPickerButtonProps) => {
             theme="dark"
             onEmojiSelect={(emoji: any) => {
                 if (!emoji?.native) return;
-                // Передаем строку эмодзи в родительский компонент
                 onEmojiSelect(emoji.native);
             }}
             showPreview={true}

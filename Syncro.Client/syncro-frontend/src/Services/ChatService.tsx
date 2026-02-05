@@ -67,15 +67,6 @@ export const initializeEncryptionWithFriend = async (friendId: string, currentUs
     }
 };
 
-export const getNicknameById = async (userId: string | null) => {
-    const response = await fetch(`http://localhost:5232/api/accounts/${userId}/nickname`,
-        {
-            method: "GET",
-            credentials: "include",
-        });
-    return await response.text();
-}
-
 export const uploadMediaMessage = async (
     messageId: string,
     data: {
@@ -114,4 +105,9 @@ export const getPersonalConferenceById = async (id: string) => {
         throw new Error("Failed to fetch conference");
     }
     return await response.json();
+};
+export const fetchUserById = async (userId: string) => {
+    const res = await fetch(`http://localhost:5232/api/accounts/${userId}`);
+    if (!res.ok) throw new Error('Failed to fetch user');
+    return res.json();
 };

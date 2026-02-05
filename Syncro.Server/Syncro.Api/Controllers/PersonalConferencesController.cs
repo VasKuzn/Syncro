@@ -1,3 +1,5 @@
+using Syncro.Infrastructure.Exceptions;
+
 namespace Syncro.Api.Controllers
 {
     [ApiController]
@@ -26,7 +28,7 @@ namespace Syncro.Api.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-        // GET /api/personalconference
+        // GET /api/personalconference/{id}/getbyaccount
         [HttpGet("{id}/getbyaccount")]
         public async Task<ActionResult<IEnumerable<PersonalConferenceModel>>> GetAllPersonalConferencesByAccount(Guid id)
         {
@@ -70,6 +72,15 @@ namespace Syncro.Api.Controllers
                 var result = await _personalConferenceService.CreateConferenceAsync(conference);
                 await _messagesHub.Clients.Users(conference.user1.ToString(), conference.user2.ToString()).SendAsync("PersonalConferenceCreated", result);
                 return CreatedAtAction(nameof(GetPersonalConferenceById), new { id = result.Id }, result);
+            }
+            catch (ConflictException ex)
+            {
+                return StatusCode(409, new
+                {
+                    success = false,
+                    error = "Conflict",
+                    message = ex.Message
+                });
             }
             catch (ArgumentException ex)
             {

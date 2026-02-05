@@ -58,7 +58,7 @@ namespace Syncro.Infrastructure.Repositories
 
         public async Task<AccountModel> GetAccountByEmailAsync(string email)
         {
-            var user = await _context.accounts.FirstOrDefaultAsync(a => a.email == email) ?? throw new ArgumentException("Account is not found");
+            var user = await _context.accounts.FirstOrDefaultAsync(a => a.email.ToLower() == email.ToLower()) ?? throw new ArgumentException("Account is not found");
             return user;
         }
         public async Task<AccountModel> GetAccountByNicknameAsync(string nickname)

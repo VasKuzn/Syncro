@@ -87,7 +87,7 @@ const LoginComponent: React.FC<LoginComponentProps> = ({
                                 <div className="spinner-login" aria-hidden="true"></div>
                             </div>
                         ) : (
-                            "Sign up"
+                            "Sign in"
                         )}
                     </button>
                 </div>

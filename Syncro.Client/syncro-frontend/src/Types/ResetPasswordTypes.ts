@@ -18,4 +18,5 @@ export interface ResetPasswordComponentProps {
     onInputChange: (field: keyof ResetPasswordFormData, value: string) => void;
     onTogglePasswordVisibility: (field: keyof ResetPasswordFormData) => void;
     onSubmit: (e: React.FormEvent) => void;
+    userEmail: string;
 }
