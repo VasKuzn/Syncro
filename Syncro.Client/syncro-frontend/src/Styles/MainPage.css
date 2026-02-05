@@ -1,9 +1,9 @@
 body {
     margin: 0;
     padding: 0;
-    align-items: baseline;
-    animation: none;
-    color: #151838;
+    font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    color: #ffffff;
+    overflow: hidden;
     background-color: #151838;
 }
 
@@ -18,10 +18,12 @@ body {
 
 .title {
     display: flex;
-    height: 3%;
+    height: 3vh;
+    min-height: 30px;
     justify-content: center;
     align-items: center;
-    border: none;
+    background-color: #07081C;
+    border-bottom: 1px solid #2D3748;
 }
 
 .body-container {
@@ -59,6 +61,10 @@ body {
     width: 72px;
     background-color: #151838;
     flex-shrink: 0;
+}
+
+.group-chats-container .profile-button {
+    background-color: #0F172A;
 }
 
 .main-sidebar-content {
@@ -156,14 +162,56 @@ body {
 }
 
 .group-chats {
-    justify-items: center;
+    padding: 12px 8px;
     flex: 1;
-    padding: 0 5px;
     width: 72px;
-    overflow-y: auto;
+    background-color: #0F172A;
+    display: flex;
+    flex-direction: column;
+    justify-items: center;
+    align-items: center;
 }
 
+.group-chat-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+}
 
+.group-chat-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+    width: 48px;
+    background-color: #1E293B;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.group-chat-item:hover {
+    background-color: #3B82F6;
+    transform: scale(1.05);
+}
+
+.group-chat-item.add {
+    background-color: transparent;
+    border: 2px dashed #4A5568;
+    color: #4A5568;
+    display: flex;
+    font-size: large;
+    align-items: center;
+    height: 50px;
+    width: 50px;
+}
+
+.group-chat-item.add:hover {
+    border-color: #3B82F6;
+    color: #3B82F6;
+}
 
 .chat-separator {
     border-radius: 1px;
@@ -183,6 +231,7 @@ body {
     padding: 8px 8px 8px 30px;
     outline: none;
     border: none;
+    gap: 8px;
 }
 
 .friends-nav .input-container {
@@ -192,13 +241,16 @@ body {
 .button-friends-status {
     display: flex;
     align-items: center;
+    justify-content: center;
     font-size: large;
-    margin: 10px 10px;
-    padding: 5px;
+    margin: 10px 5px;
+    padding: 6px 12px;
     border: none;
     border-radius: 10px;
     background-color: #1A2438;
     color: #ffffff;
+    transition: all 0.2s ease;
+    cursor: pointer;
 }
 
 .button-friends-status.active {
@@ -210,6 +262,45 @@ body {
 
 .button-friends-status.add {
     background-color: #3B82F6;
+    color: white;
+}
+
+.button-friends-status:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.button-friends-status:active {
+    transform: translateY(0);
+}
+
+.button-friends-status.add {
+    position: relative;
+    overflow: hidden;
+}
+
+.button-friends-status.add:hover {
+    background-color: #2563EB;
+}
+
+.button-friends-status.add::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.button-friends-status.add:hover::after {
+    opacity: 1;
+}
+
+.button-friends-status.add:active {
+    animation: buttonClick 0.3s ease;
 }
 
 .main-logo {
@@ -225,40 +316,18 @@ body {
     align-items: center;
 }
 
-.group-chat-list {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-}
-
-.group-chat-item {
-    display: flex;
-    font-size: large;
-    align-items: center;
-    justify-content: center;
-    height: 50px;
-    width: 50px;
-    background-color: #1A2438;
-    border-radius: 10px;
-    margin: 5px 0;
-}
-
-.group-chat-item.add {
-    display: flex;
-    font-size: large;
-    align-items: center;
-    height: 50px;
-    width: 50px;
-}
-
-
-.group-chats-container .profile-button {
-    background-color: #0F172A;
-}
-
 .friends-list {
-    padding-left: 23px;
+    flex: 1;
+    overflow-y: scroll;
+    padding: 8px 0 0 23px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.friends-list::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
 }
 
 .input-container {
@@ -388,41 +457,6 @@ body {
     margin: 7px;
 }
 
-.button-friends-status {
-    transition: all 0.2s ease;
-    cursor: pointer;
-}
-
-.button-friends-status:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-.button-friends-status:active {
-    transform: translateY(0);
-}
-
-.button-friends-status.add {
-    position: relative;
-    overflow: hidden;
-}
-
-.button-friends-status.add::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.1);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.button-friends-status.add:hover::after {
-    opacity: 1;
-}
-
 @keyframes buttonClick {
     0% {
         transform: scale(1);
@@ -436,11 +470,6 @@ body {
         transform: scale(1);
     }
 }
-
-.button-friends-status.add:active {
-    animation: buttonClick 0.3s ease;
-}
-
 
 .notification {
     position: fixed;
@@ -698,205 +727,211 @@ body {
 
 /* Стили для модального окна */
 .modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: fadeIn 0.2s ease;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .friend-details-modal {
-  background: #1E293B;
-  border-radius: 16px;
-  padding: 24px;
-  max-width: 400px;
-  width: 90%;
-  max-height: 90vh;
-  overflow: auto;
-  position: relative;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2), 0 1.5px 8px #3b82f6;
-  animation: modalSlideIn 0.3s ease;
-  border: 1px solid #3B82F6;
+    background: #1E293B;
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 400px;
+    width: 90%;
+    max-height: 90vh;
+    overflow: auto;
+    position: relative;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2), 0 1.5px 8px #3b82f6;
+    animation: modalSlideIn 0.3s ease;
+    border: 1px solid #3B82F6;
 }
 
 @keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 .modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #374151;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #374151;
 }
 
 .modal-header h3 {
-  margin: 0;
-  color: #ffffff;
-  font-size: 1.25rem;
-  font-weight: 600;
+    margin: 0;
+    color: #ffffff;
+    font-size: 1.25rem;
+    font-weight: 600;
 }
 
 .modal-close-btn {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #9ca3af;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: all 0.2s;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #9ca3af;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
 }
 
 .modal-close-btn:hover {
-  background-color: #374151;
-  color: #ffffff;
+    background-color: #374151;
+    color: #ffffff;
 }
 
 .friend-details-modal .friend-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
 }
 
 .friend-details-modal .friend-avatar.big {
-  width: 80px;
-  height: 80px;
-  border: 3px solid #3B82F6;
+    width: 80px;
+    height: 80px;
+    border: 3px solid #3B82F6;
 }
 
 .friend-details-modal .friend-main-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .friend-details-modal .nickname {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #ffffff;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #ffffff;
 }
 
 .friend-details-modal .full-name {
-  font-size: 0.95rem;
-  color: #9ca3af;
+    font-size: 0.95rem;
+    color: #9ca3af;
 }
 
 .friend-details-modal .friend-info {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 24px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
 }
 
 .friend-details-modal .info-row {
-  margin-bottom: 8px;
-  font-size: 0.95rem;
-  color: #d1d5db;
-  display: flex;
-  align-items: center;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+    color: #d1d5db;
+    display: flex;
+    align-items: center;
 }
 
 .friend-details-modal .info-label {
-  color: #9ca3af;
-  margin-right: 8px;
-  min-width: 60px;
+    color: #9ca3af;
+    margin-right: 8px;
+    min-width: 60px;
 }
 
 .modal-actions {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
 }
 
 .modal-actions .action-btn {
-  flex: 1;
-  padding: 12px 16px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  font-weight: 500;
-  transition: all 0.2s;
-  min-width: 140px;
-  text-align: center;
+    flex: 1;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    min-width: 140px;
+    text-align: center;
 }
 
 .modal-actions .action-btn.primary {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  color: white;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
 }
 
 .modal-actions .action-btn.primary:hover {
-  background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .modal-actions .action-btn.danger {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  color: white;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
 }
 
 .modal-actions .action-btn.danger:hover {
-  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
 .modal-actions .action-btn.secondary {
-  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
-  color: white;
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    color: white;
 }
 
 .modal-actions .action-btn.secondary:hover {
-  background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+    background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
 }
 
 /* Адаптивность для модального окна */
 @media (max-width: 480px) {
-  .friend-details-modal {
-    width: 95%;
-    padding: 20px;
-  }
-  
-  .modal-actions {
-    flex-direction: column;
-  }
-  
-  .modal-actions .action-btn {
-    min-width: 100%;
-  }
+    .friend-details-modal {
+        width: 95%;
+        padding: 20px;
+    }
+
+    .modal-actions {
+        flex-direction: column;
+    }
+
+    .modal-actions .action-btn {
+        min-width: 100%;
+    }
 }
 
 /* Стиль для запрета скролла */
 body.modal-open {
-  overflow: hidden;
+    overflow: hidden;
 }
