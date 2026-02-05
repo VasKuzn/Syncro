@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Syncro.Application.TransferModels;
 using Syncro.Infrastructure.Data.DataBaseContext;
 using Syncro.Infrastructure.Exceptions;
+using Syncro.Infrastructure.Services;
 
 namespace Syncro.Api.Controllers
 {
@@ -566,6 +567,44 @@ namespace Syncro.Api.Controllers
                 await transaction.RollbackAsync();
                 _logger.LogError(ex, "Error resetting password");
                 return StatusCode(500, "Произошла внутренняя ошибка сервера");
+            }
+        }
+
+         // POST: api/accounts/logout
+        [HttpPost("logout")]
+        [Authorize]
+        public async Task<IActionResult> Logout()
+        {
+            try
+            {
+                Response.Cookies.Delete("access-token", new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Strict
+                });
+                
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                
+                if (Guid.TryParse(userId, out var accountId))
+                {
+                    await _accountService.Logout(accountId);
+                }
+                
+                return Ok(new { 
+                    Success = true, 
+                    Message = "Logged out successfully" 
+                });
+            }
+            catch (Exception ex)
+            {
+                Response.Cookies.Delete("access-token");
+                
+                return StatusCode(500, new { 
+                    Success = false, 
+                    Error = "Internal server error",
+                    Message = ex.Message 
+                });
             }
         }
     }

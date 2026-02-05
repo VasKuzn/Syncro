@@ -5,6 +5,7 @@ import { FriendDetails } from "./FriendDetails";
 import { emptyFilterMessages } from "../../Constants/FriendFilterMessages";
 import { motion } from 'framer-motion';
 import loadingIcon from '../../assets/usersicon.svg';
+import FriendItem from "./FriendItem";
 
 const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) => {
     const [isLoading, setIsLoading] = useState(false);
@@ -44,7 +45,6 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
             setIsLoading(true);
             setNotification(null);
 
-            const timestamp = new Date(Date.now());
             const user = await getUserByNickname(nickname);
             if (!user || !user.id) {
                 throw new Error("Пользователь не найден");
@@ -53,25 +53,59 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
             const currentUserId = await fetchCurrentUser();
             if (!currentUserId) throw new Error("Не удалось получить ID текущего пользователя");
 
-            const request = {
-                userWhoSent: currentUserId,
-                userWhoRecieved: user.id,
-                status: 0,
-                friendsSince: timestamp.toISOString()
-            };
+            const existingFriend = friends.find(f => 
+                (f.id === user.id) 
+            );
 
-            await sendFriendRequest(request);
+            // Заявка была отклонена или получена
+            if (existingFriend && existingFriend.userWhoReceived === currentUserId && (existingFriend.status === 2 || existingFriend.status === 0)) {
+                await updateFriendStatus(existingFriend.friendShipId, 1);
+            
+                setFriends(prev => prev.map(f => 
+                    f.id === existingFriend.id 
+                        ? { ...f, status: 1 }
+                        : f
+                ));
 
-            if (addFriendInputRef.current) {
-                addFriendInputRef.current.value = '';
+                setNotification({
+                    message: `Заявка ${nickname} принята!`,
+                    isError: false
+                });
             }
+            // Заявка уже одобрена или отправлена 
+            else if (existingFriend) {
+                const statusMessage = existingFriend.status === 0 
+                    ? "Заявка уже отправлена и ожидает ответа" 
+                    : "Этот пользователь уже у вас в друзьях";
+            
+                setNotification({
+                    message: statusMessage,
+                    isError: true
+                });
+            }
+            // Создание новой заявки
+            else {
+                const timestamp = new Date(Date.now());
+                const request = {
+                    userWhoSent: currentUserId,
+                    userWhoRecieved: user.id,
+                    status: 0,
+                    friendsSince: timestamp.toISOString()
+                };
 
-            setNotification({
-                message: `Запрос дружбы для ${nickname} отправлен!`,
-                isError: false
-            });
+                await sendFriendRequest(request);
 
-            onFriendAdded?.();
+                if (addFriendInputRef.current) {
+                    addFriendInputRef.current.value = '';
+                }
+
+                setNotification({
+                    message: `Запрос дружбы для ${nickname} отправлен!`,
+                    isError: false
+                });
+
+                onFriendAdded?.();
+            }
         }
         catch (error) {
             setNotification({
@@ -212,15 +246,14 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
         }
     };
 
-    const filteredFriends = (() => {
+    const filterFriends = (friends: Friend[], filter: FriendFilterTypes, searchQuery: string, currentUserId: string | null) => {
         let result = friends.filter(friend => {
             if (filter === 'online') {
                 return friend.isOnline && friend.status === 1;
             }
             if (filter === 'myrequests') return friend.status === 0 && friend.userWhoSent === currentUserId;
-            if (filter === 'requestsfromme') return friend.status === 0 && friend.userWhoReceived === currentUserId;
+            if (filter === 'requestsfromme') return friend.userWhoReceived === currentUserId && (friend.status === 0 || friend.status === 2);
             if (filter === 'all') return friend.status === 1;
-            if (filter === 'banned') return friend.status === 2;
             return true;
         });
 
@@ -238,7 +271,21 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
         }
 
         return result;
-    })();
+    };
+
+    const filteredFriends = filterFriends(friends, filter, searchQuery, currentUserId);
+    let requestsFromme: Friend[] = [];
+    let rejectedRequests: Friend[] = [];
+
+    if (filter === 'requestsfromme') {
+        requestsFromme = filteredFriends.filter(friend => 
+            friend.status === 0
+        );
+
+        rejectedRequests = filteredFriends.filter(friend => 
+            friend.status === 2
+        );
+    }
 
     const currentEmptyFilterMessage = emptyFilterMessages[filter];
 
@@ -269,7 +316,6 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
                 <label>Друзья</label>
                 <button className={`button-friends-status ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>Все</button>
                 <button className={`button-friends-status ${filter === 'online' ? 'active' : ''}`} onClick={() => setFilter('online')}>В сети</button>
-                <button className={`button-friends-status ${filter === 'banned' ? 'active' : ''}`} onClick={() => setFilter('banned')}>Отклоненные</button>
                 <button className={`button-friends-status ${filter === 'myrequests' ? 'active' : ''}`} onClick={() => setFilter('myrequests')}>Мои заявки</button>
                 <button className={`button-friends-status ${filter === 'requestsfromme' ? 'active' : ''}`} onClick={() => setFilter('requestsfromme')}>Заявки мне</button>
 
@@ -340,7 +386,7 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
                 <div className="friends-container" key={`friends-${filter}-${filteredFriends.length}-${searchQuery}`}>
                     {(friends.length === 0 || filteredFriends.length === 0) ? (
                         <div className="empty-state">
-                            <img src="/no-friends.png" alt="Нет друзей" />
+                            <img src="/no-friends.png" alt="Нет друзей" style={{ width: '60px', height: '60px' }}/>
                             <p>
                                 {searchQuery.trim()
                                     ? `По запросу «${searchQuery}» друзей не найдено`
@@ -348,41 +394,60 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
                                 }
                             </p>
                         </div>
-                    ) : (
-                        filteredFriends.map(friend => {
-                            return (
-                                <motion.div
-                                    key={friend.id}
-                                    className="friend-item"
-                                    onClick={() => handleFriendClick(friend)}
-                                    whileHover={{ scale: 1.01 }}
-                                    whileTap={{ scale: 0.99 }}
-                                    transition={{ duration: 0.2 }}
-                                >
-                                    <div className="friend-avatar-container">
-                                        <img
-                                            className="friend-avatar"
-                                            src={friend.avatar || '/logo.png'}
-                                            alt={`Аватар ${friend.nickname}`}
-                                            onError={(e) => {
-                                                (e.target as HTMLImageElement).src = '/logo.png';
-                                            }}
+                    ) : filter === "requestsfromme" ? (
+                        <>
+                        {requestsFromme.length === 0 ? (
+                            <div className="empty-state">
+                                {!searchQuery.trim() && (
+                                    <>
+                                        <h3 className="section-title">Ожидающие</h3>
+                                        <img 
+                                            src="/no-friends.png" 
+                                            alt="Нет друзей" 
+                                            style={{ width: '60px', height: '60px' }}
+                                    />
+                                    <p>{currentEmptyFilterMessage}</p>
+                                    </>
+                                )}
+                            </div>
+                        ) : (
+                            <>
+                                <h3 className="section-title">Ожидающие</h3>
+                                {requestsFromme.map(friend =>
+                                    <FriendItem 
+                                        key={friend.id} 
+                                        friend={friend} 
+                                        onClick={() => handleFriendClick(friend)}
+                                    />
+                                )}
+                            </>
+                        )}
+                        {rejectedRequests.length > 0 && (
+                            <>
+                                {!searchQuery.trim() && <div className="section-divider" />}
+                                <h3 className="section-title">Отклоненные заявки</h3>
+                                <div className="requests-section rejected-section">
+                                    {rejectedRequests.map(friend => (
+                                        <FriendItem 
+                                            key={friend.id} 
+                                            friend={friend} 
+                                            onClick={() => handleFriendClick(friend)}
                                         />
-                                    </div>
-                                    <div className="friend-info-container">
-                                        <div className="friend-text-info">
-                                            <span className="nickname">{friend.nickname}</span>
-                                            <span className={`online-status ${friend.isOnline ? '' : 'offline'}`}>
-                                                {friend.isOnline ? "В сети" : "Не в сети"}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            );
-                        })
+                                    ))}
+                                </div>
+                            </>
+                        )}
+                    </>
+                ): (filteredFriends.map(friend =>
+                       <FriendItem 
+                            key={friend.id} 
+                            friend={friend} 
+                            onClick={() => handleFriendClick(friend)}
+                        />
+                        )
                     )}
+                    </div>
                 </div>
-            </div>
 
             {selectedFriendForModal && (
                 <FriendDetails

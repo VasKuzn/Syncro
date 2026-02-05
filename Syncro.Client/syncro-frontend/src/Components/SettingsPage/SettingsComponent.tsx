@@ -2,6 +2,8 @@ import React, { useState, useRef } from 'react';
 import { SettingsComponentProps } from "../../Types/SettingsProps";
 import SettingsAddAvatarComponent from './SettingsAddAvatarComponent';
 import AIGenerationModal from './AIGenerationModal';
+import { logoutUser } from '../../Services/LogoutService';
+import { useNavigate } from 'react-router-dom';
 
 interface EnhancedSettingsComponentProps extends SettingsComponentProps {
     onAvatarUpdate: (file: File) => void;
@@ -29,7 +31,10 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
 }) => {
     const [showAvatarModal, setShowAvatarModal] = useState(false);
     const [showAIModal, setShowAIModal] = useState(false);
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const navigate = useNavigate();
 
     const handleAvatarClick = () => {
         setShowAvatarModal(true);
@@ -40,9 +45,8 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
     };
 
     const handleFileSelect = (file: File) => {
-
+        const previewUrl = URL.createObjectURL(file);
         onAvatarUpdate(file);
-
         setShowAvatarModal(false);
     };
 
@@ -54,9 +58,8 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
     };
 
     const handleAIGenerated = (file: File) => {
-
+        const previewUrl = URL.createObjectURL(file);
         onAvatarUpdate(file);
-
         setShowAIModal(false);
     };
 
@@ -65,6 +68,44 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
         if (file) {
             handleFileSelect(file);
         }
+    };
+
+    const handleLogoutClick = () => {
+        setShowLogoutModal(true);
+    };
+
+    const handleConfirmLogout = async () => {
+        try {
+            setIsLoggingOut(true);
+            
+            await logoutUser();
+            
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            document.cookie.split(";").forEach(cookie => {
+                const eqPos = cookie.indexOf("=");
+                const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+                document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+            });
+            
+            window.location.href = '/login';
+            
+        } catch (error) {
+            console.error('Logout failed:', error);
+            localStorage.clear();
+            sessionStorage.clear();
+            document.cookie.split(";").forEach(cookie => {
+                const eqPos = cookie.indexOf("=");
+                const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+                document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+            });
+            window.location.href = '/login';
+        }
+    };
+
+    const handleCancelLogout = () => {
+        setShowLogoutModal(false);
     };
 
     return (
@@ -203,6 +244,22 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
                         </div>
                     </div>
                 </div>
+
+                <div style={{ marginTop: '50px', paddingTop: '20px', borderTop: '1px solid #2D3748' }}>
+                    <div className="setting">
+                        <button 
+                            type="button"
+                            className="setting-button"
+                            onClick={handleLogoutClick}
+                            style={{
+                                backgroundColor: '#ef4444',
+                                animation: 'none'
+                            }}
+                        >
+                            Выйти из аккаунта
+                        </button>
+                    </div>
+                </div>
             </form>
 
             <input
@@ -226,6 +283,39 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
                     onGenerate={handleAIGenerated}
                     onClose={() => setShowAIModal(false)}
                 />
+            )}
+            {showLogoutModal && (
+                <div className="logout-modal-overlay">
+                    <div className="logout-modal">
+                        <div className="logout-modal-header">
+                            <h2>Подтверждение выхода</h2>
+                        </div>
+                        <div className="logout-modal-content">
+                            <p>Вы уверены, что хотите выполнить полный выход из аккаунта?</p>
+                            <p style={{ fontSize: '14px', color: '#9ca3af', marginTop: '10px' }}>
+                                После выхода вы будете перенаправлены на страницу входа.
+                            </p>
+                        </div>
+                        <div className="logout-modal-actions">
+                            <button 
+                                type="button"
+                                className="logout-modal-btn logout-modal-btn-cancel"
+                                onClick={handleCancelLogout}
+                                disabled={isLoggingOut}
+                            >
+                                Отмена
+                            </button>
+                            <button 
+                                type="button"
+                                className="logout-modal-btn logout-modal-btn-confirm"
+                                onClick={handleConfirmLogout}
+                                disabled={isLoggingOut}
+                            >
+                                {isLoggingOut ? 'Выход...' : 'Выйти'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
