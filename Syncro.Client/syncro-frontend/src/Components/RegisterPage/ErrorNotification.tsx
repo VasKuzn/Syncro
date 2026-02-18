@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { ErrorNotificationProps } from '../../Types/LoginTypes';
+import '../../Styles/Errors.css'
 
 const ErrorNotification: React.FC<ErrorNotificationProps> = ({ message, onClose }) => {
     useEffect(() => {
@@ -12,37 +13,14 @@ const ErrorNotification: React.FC<ErrorNotificationProps> = ({ message, onClose 
 
     return (
         <div
+            className="error-alert-message"
             role="alert"
             aria-live="assertive"
-            style={{
-                position: 'fixed',
-                top: 20,
-                right: 20,
-                backgroundColor: '#f44336',
-                color: 'white',
-                padding: '10px 20px',
-                borderRadius: '5px',
-                boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-                zIndex: 1000,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                minWidth: '300px',
-                maxWidth: '400px',
-            }}
         >
             <span>{message}</span>
             <button
                 onClick={onClose}
-                style={{
-                    background: 'none',
-                    border: 'none',
-                    color: 'white',
-                    fontSize: '20px',
-                    cursor: 'pointer',
-                    marginLeft: '10px',
-                    padding: '0 5px',
-                }}
+                className="error-button"
                 aria-label="Закрыть уведомление"
             >
                 ×

@@ -293,8 +293,6 @@ const UseRtcConnection = ({
             if (connectionRef.current) return;
 
             try {
-                console.log("Starting SignalR connection...");
-
                 const connection = new HubConnectionBuilder()
                     .withUrl("http://localhost:5232/videochathub", {
                         transport: 1,
@@ -348,8 +346,6 @@ const UseRtcConnection = ({
 
                 // Начинаем подключение
                 await connection.start();
-                console.log("SignalR connection established. State:", connection.state);
-                console.log("Connection ID:", connection.connectionId);
                 connectionRef.current = connection;
                 setIsConnected(true);
 

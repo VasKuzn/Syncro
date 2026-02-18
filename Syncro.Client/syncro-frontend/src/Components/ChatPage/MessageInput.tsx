@@ -118,10 +118,10 @@ const MessageInput = ({
       />
 
       <input
+        className="message-input-file"
         type="file"
         ref={fileInputRef}
         onChange={handleFileChange}
-        style={{ display: "none" }}
         accept="image/*,video/*,audio/*"
         disabled={isUploading || disabled}
       />

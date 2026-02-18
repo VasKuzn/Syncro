@@ -33,7 +33,7 @@ export const FriendProfileChat: React.FC<FriendProfileChatProps> = ({
     } else {
       document.body.style.overflow = 'auto';
     }
-    
+
     return () => {
       document.body.style.overflow = 'auto';
     };
@@ -79,18 +79,6 @@ export const FriendProfileChat: React.FC<FriendProfileChatProps> = ({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={handleBackdropClick}
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: 'rgba(0, 0, 0, 0.5)',
-              zIndex: 1000,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
           >
             <motion.div
               ref={modalRef}
@@ -98,11 +86,11 @@ export const FriendProfileChat: React.FC<FriendProfileChatProps> = ({
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ 
-                type: "spring", 
-                stiffness: 300, 
+              transition={{
+                type: "spring",
+                stiffness: 300,
                 damping: 25,
-                duration: 0.2 
+                duration: 0.2
               }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -114,8 +102,8 @@ export const FriendProfileChat: React.FC<FriendProfileChatProps> = ({
               </div>
 
               <div className="friend-header-chat">
-                <img 
-                  src={friend.avatar || "./logo.png"} 
+                <img
+                  src={friend.avatar || "./logo.png"}
                   alt={friend.nickname}
                   className="friend-avatar-chat"
                 />
@@ -138,7 +126,7 @@ export const FriendProfileChat: React.FC<FriendProfileChatProps> = ({
                       <span>{friend.email}</span>
                     </div>
                   )}
-                  
+
                   {friend.phonenumber && (
                     <div className="info-row-chat">
                       <span className="info-label-chat">Телефон:</span>

@@ -181,7 +181,6 @@ const ChatPage = () => {
                       <div
                         className="friend-profile-preview"
                         onClick={() => setShowFriendProfile(true)}
-                        style={{ cursor: 'pointer' }}
                       >
                         <img
                           src={currentFriend?.avatar || "./logo.png"}

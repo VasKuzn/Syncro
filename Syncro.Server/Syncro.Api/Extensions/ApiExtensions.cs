@@ -74,9 +74,10 @@ namespace Syncro.Api.Extensions
         {
             services.AddCors(options =>
             {
-                options.AddPolicy("AllowAll", policy =>
+                options.AddPolicy("FrontendPolicy", policy =>
                 {
-                    policy.AllowAnyHeader()
+                    policy.WithOrigins("https://your-frontend-domain.com", "http://localhost:5173")
+                        .AllowAnyHeader()
                         .AllowAnyMethod()
                         .SetIsOriginAllowed(_ => true)
                         .AllowCredentials();

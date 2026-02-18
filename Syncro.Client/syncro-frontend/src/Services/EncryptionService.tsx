@@ -66,7 +66,6 @@ class EncryptionService {
         senderId: string
     ): Promise<DecryptionResult | null> {
         try {
-            console.log('Sending decrypt request for sender:', senderId);
 
             const response = await fetch(`${this.baseUrl}/decrypt`, {
                 method: 'POST',
@@ -82,11 +81,8 @@ class EncryptionService {
                 credentials: "include",
             });
 
-            console.log('Decrypt response status:', response.status);
-
             if (response.ok) {
                 const result = await response.json();
-                console.log('Decrypt result:', result.success ? 'Success' : 'Failed');
                 return result;
             } else {
                 const errorText = await response.text();
@@ -176,7 +172,6 @@ class EncryptionService {
             );
 
             if (decryptionResult?.success) {
-                console.log('Decryption successful for message');
                 return {
                     ...message,
                     messageContent: decryptionResult.plaintext,

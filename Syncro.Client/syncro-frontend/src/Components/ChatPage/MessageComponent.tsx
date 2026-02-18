@@ -32,7 +32,6 @@ const MediaRenderer = ({ url, category, fileName }: { url: string; category: str
                 <img
                     src={url}
                     alt={fileName || 'media'}
-                    style={{ objectFit: 'cover', borderRadius: 8, display: 'block' }}
                     onError={e => {
                         const target = e.target as HTMLImageElement;
                         target.style.display = 'none';
@@ -44,7 +43,7 @@ const MediaRenderer = ({ url, category, fileName }: { url: string; category: str
     if (category === 'video') {
         return (
             <div className="media-file">
-                <video controls className="media-video" style={{ borderRadius: 8 }}>
+                <video controls className="media-video">
                     <source src={url} />
                     Ваш браузер не поддерживает видео.
                 </video>
@@ -64,7 +63,7 @@ const MediaRenderer = ({ url, category, fileName }: { url: string; category: str
     return (
         <div className="media-file">
             {getFileIconByType(undefined, fileName || undefined)}
-            <a href={url} download={fileName || undefined} target="_blank" rel="noopener noreferrer" style={{ marginLeft: 8, fontSize: 14, color: 'inherit', textDecoration: 'none', cursor: 'pointer' }}>
+            <a className="file-downloader" href={url} download={fileName || undefined} target="_blank" rel="noopener noreferrer">
                 {fileName || 'Скачать файл'}
             </a>
         </div>
@@ -126,15 +125,16 @@ const Message = ({
     const formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const isMedia = !!mediaUrl;
     const category = detectMediaCategory(mediaType, fileName);
+    const cursorClass = !isOwnMessage && onAvatarClick ? 'avatar-clickable' : 'avatar-default';
+    const combinedClassName = `photo ${cursorClass}`;
 
     return (
         <ErrorBoundary>
             <div className={`messageItem ${isOwnMessage ? 'own-message' : 'friend-message'} ${hideProfileInfo ? 'no-profile' : ''}`}>
                 {!hideProfileInfo && (
                     <div
-                        className="photo"
+                        className={combinedClassName}
                         onClick={!isOwnMessage && onAvatarClick ? onAvatarClick : undefined}
-                        style={{ cursor: !isOwnMessage && onAvatarClick ? 'pointer' : 'default' }}
                     >
                         <img
                             src={avatarUrl}
@@ -152,12 +152,12 @@ const Message = ({
                     {isMedia ? (
                         <>
                             {messageContent && (
-                                <div style={{ marginBottom: '6px' }}>
+                                <div className="message-media-bottom">
                                     {searchQuery ? highlightTextMatches(messageContent, searchQuery) : messageContent}
                                 </div>
                             )}
                             <MediaRenderer url={mediaUrl!} category={category} fileName={fileName} />
-                            {category === 'image' && <div style={{ fontSize: 14, color: 'inherit', marginTop: 4 }}></div>}
+                            {category === 'image' && <div className="image-media-bottom"></div>}
                         </>
                     ) : (
                         <p className="message">

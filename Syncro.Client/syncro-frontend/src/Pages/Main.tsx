@@ -5,7 +5,6 @@ import "../Styles/MainPage.css";
 import { Friend, AccountActivity } from "../Types/FriendType";
 import { fetchCurrentUser, getFriends, loadFriendInfo, getUserInfo } from "../Services/MainFormService"
 import { AnimatePresence, motion } from "framer-motion";
-import { MainProps } from "../Types/MainProps";
 import { ShortUserInfo } from "../Types/UserInfo";
 
 const Main = () => {

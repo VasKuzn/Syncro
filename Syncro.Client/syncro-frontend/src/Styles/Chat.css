@@ -49,7 +49,7 @@
   z-index: 1;
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
+  padding: 8px;
   scrollbar-width: thin;
   scrollbar-color: #4A5568 #1E293B;
 }
@@ -111,6 +111,14 @@
   color: #CBD5E0;
 }
 
+.avatar-clickable {
+  cursor: pointer;
+}
+
+.avatar-default {
+  cursor: default;
+}
+
 .photo img {
   width: 40px;
   height: 40px;
@@ -132,6 +140,16 @@
   font-size: 1rem;
   color: white;
   margin-right: 12px;
+}
+
+.message-media-bottom {
+  margin-bottom: 6px;
+}
+
+.image-media-bottom {
+  font-size: 14px;
+  color: inherit;
+  margin-top: 4px;
 }
 
 .time {
@@ -206,6 +224,10 @@
 
 .message-input-field::placeholder {
   color: #94A3B8;
+}
+
+.message-input-file {
+  display: none;
 }
 
 @media (max-width: 768px) {
@@ -320,11 +342,26 @@
 .media-preview img {
   max-width: 245px;
   max-height: 122px;
+  object-fit: 'cover';
+  border-radius: 8px;
+  display: 'block';
 }
 
 .media-file video {
   max-width: 400px;
   max-height: 300px;
+}
+
+.media-video {
+  border-radius: 8px;
+}
+
+.file-downloader {
+  margin-left: 8px;
+  font-size: 14px;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
 }
 
 .media-file audio {
@@ -1230,6 +1267,7 @@ video::-webkit-media-controls-panel {
   background-color: rgba(59, 130, 246, 0.1);
   transition: all 0.2s ease;
   border: 1px solid transparent;
+  cursor: pointer;
 }
 
 .friend-profile-preview:hover {

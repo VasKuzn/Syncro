@@ -37,11 +37,11 @@ const SettingsAddAvatarComponent: React.FC<SettingsAddAvatarComponentProps> = ({
 
                 <div className="avatar-modal-content">
                     <input
+                        className='avatar-modal-content-input'
                         type="file"
                         ref={currentRef}
                         onChange={handleFileChange}
                         accept="image/*"
-                        style={{ display: 'none' }}
                     />
 
                     <button

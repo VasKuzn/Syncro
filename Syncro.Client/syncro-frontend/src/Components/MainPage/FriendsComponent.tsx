@@ -53,16 +53,16 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
             const currentUserId = await fetchCurrentUser();
             if (!currentUserId) throw new Error("Не удалось получить ID текущего пользователя");
 
-            const existingFriend = friends.find(f => 
-                (f.id === user.id) 
+            const existingFriend = friends.find(f =>
+                (f.id === user.id)
             );
 
             // Заявка была отклонена или получена
             if (existingFriend && existingFriend.userWhoReceived === currentUserId && (existingFriend.status === 2 || existingFriend.status === 0)) {
                 await updateFriendStatus(existingFriend.friendShipId, 1);
-            
-                setFriends(prev => prev.map(f => 
-                    f.id === existingFriend.id 
+
+                setFriends(prev => prev.map(f =>
+                    f.id === existingFriend.id
                         ? { ...f, status: 1 }
                         : f
                 ));
@@ -74,10 +74,10 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
             }
             // Заявка уже одобрена или отправлена 
             else if (existingFriend) {
-                const statusMessage = existingFriend.status === 0 
-                    ? "Заявка уже отправлена и ожидает ответа" 
+                const statusMessage = existingFriend.status === 0
+                    ? "Заявка уже отправлена и ожидает ответа"
                     : "Этот пользователь уже у вас в друзьях";
-            
+
                 setNotification({
                     message: statusMessage,
                     isError: true
@@ -130,15 +130,15 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
         try {
             setIsLoading(true);
             await updateFriendStatus(friend.friendShipId, 1);
-            
+
             setFriends(prevFriends =>
                 prevFriends.map(f =>
-                    f.friendShipId === friend.friendShipId 
-                        ? { ...f, status: 1 } 
+                    f.friendShipId === friend.friendShipId
+                        ? { ...f, status: 1 }
                         : f
                 )
             );
-            
+
             onFriendAdded?.();
         } catch (error) {
             console.error("Ошибка при принятии заявки:", error);
@@ -156,15 +156,15 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
         try {
             setIsLoading(true);
             await updateFriendStatus(friend.friendShipId, 2);
-            
+
             setFriends(prevFriends =>
                 prevFriends.map(f =>
-                    f.friendShipId === friend.friendShipId 
-                        ? { ...f, status: 2 } 
+                    f.friendShipId === friend.friendShipId
+                        ? { ...f, status: 2 }
                         : f
                 )
             );
-            
+
             onFriendAdded?.();
         } catch (error) {
             console.error("Ошибка при отклонении заявки:", error);
@@ -183,7 +183,7 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
             setIsLoading(true);
             await deleteFriendship(friend.friendShipId);
 
-            setFriends(prevFriends => 
+            setFriends(prevFriends =>
                 prevFriends.filter(f => f.friendShipId !== friend.friendShipId)
             );
 
@@ -206,7 +206,7 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
             setIsLoading(true);
             await deleteFriendship(friend.friendShipId);
 
-            setFriends(prevFriends => 
+            setFriends(prevFriends =>
                 prevFriends.filter(f => f.friendShipId !== friend.friendShipId)
             );
 
@@ -278,11 +278,11 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
     let rejectedRequests: Friend[] = [];
 
     if (filter === 'requestsfromme') {
-        requestsFromme = filteredFriends.filter(friend => 
+        requestsFromme = filteredFriends.filter(friend =>
             friend.status === 0
         );
 
-        rejectedRequests = filteredFriends.filter(friend => 
+        rejectedRequests = filteredFriends.filter(friend =>
             friend.status === 2
         );
     }
@@ -361,21 +361,6 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
                             <button
                                 className="clear-search-btn"
                                 onClick={handleClearSearch}
-                                style={{
-                                    position: 'absolute',
-                                    right: '10px',
-                                    background: 'none',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    fontSize: '18px',
-                                    color: '#666',
-                                    padding: '0',
-                                    width: '20px',
-                                    height: '20px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                }}
                             >
                                 ×
                             </button>
@@ -386,7 +371,7 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
                 <div className="friends-container" key={`friends-${filter}-${filteredFriends.length}-${searchQuery}`}>
                     {(friends.length === 0 || filteredFriends.length === 0) ? (
                         <div className="empty-state">
-                            <img src="/no-friends.png" alt="Нет друзей" style={{ width: '60px', height: '60px' }}/>
+                            <img className="no-friends-image" src="/no-friends.png" alt="Нет друзей" />
                             <p>
                                 {searchQuery.trim()
                                     ? `По запросу «${searchQuery}» друзей не найдено`
@@ -396,58 +381,58 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
                         </div>
                     ) : filter === "requestsfromme" ? (
                         <>
-                        {requestsFromme.length === 0 ? (
-                            <div className="empty-state">
-                                {!searchQuery.trim() && (
-                                    <>
-                                        <h3 className="section-title">Ожидающие</h3>
-                                        <img 
-                                            src="/no-friends.png" 
-                                            alt="Нет друзей" 
-                                            style={{ width: '60px', height: '60px' }}
-                                    />
-                                    <p>{currentEmptyFilterMessage}</p>
-                                    </>
-                                )}
-                            </div>
-                        ) : (
-                            <>
-                                <h3 className="section-title">Ожидающие</h3>
-                                {requestsFromme.map(friend =>
-                                    <FriendItem 
-                                        key={friend.id} 
-                                        friend={friend} 
-                                        onClick={() => handleFriendClick(friend)}
-                                    />
-                                )}
-                            </>
-                        )}
-                        {rejectedRequests.length > 0 && (
-                            <>
-                                {!searchQuery.trim() && <div className="section-divider" />}
-                                <h3 className="section-title">Отклоненные заявки</h3>
-                                <div className="requests-section rejected-section">
-                                    {rejectedRequests.map(friend => (
-                                        <FriendItem 
-                                            key={friend.id} 
-                                            friend={friend} 
+                            {requestsFromme.length === 0 ? (
+                                <div className="empty-state">
+                                    {!searchQuery.trim() && (
+                                        <>
+                                            <h3 className="section-title">Ожидающие</h3>
+                                            <img
+                                                className="no-friends-image"
+                                                src="/no-friends.png"
+                                                alt="Нет друзей"
+                                            />
+                                            <p>{currentEmptyFilterMessage}</p>
+                                        </>
+                                    )}
+                                </div>
+                            ) : (
+                                <>
+                                    <h3 className="section-title">Ожидающие</h3>
+                                    {requestsFromme.map(friend =>
+                                        <FriendItem
+                                            key={friend.id}
+                                            friend={friend}
                                             onClick={() => handleFriendClick(friend)}
                                         />
-                                    ))}
-                                </div>
-                            </>
-                        )}
-                    </>
-                ): (filteredFriends.map(friend =>
-                       <FriendItem 
-                            key={friend.id} 
-                            friend={friend} 
+                                    )}
+                                </>
+                            )}
+                            {rejectedRequests.length > 0 && (
+                                <>
+                                    {!searchQuery.trim() && <div className="section-divider" />}
+                                    <h3 className="section-title">Отклоненные заявки</h3>
+                                    <div className="requests-section rejected-section">
+                                        {rejectedRequests.map(friend => (
+                                            <FriendItem
+                                                key={friend.id}
+                                                friend={friend}
+                                                onClick={() => handleFriendClick(friend)}
+                                            />
+                                        ))}
+                                    </div>
+                                </>
+                            )}
+                        </>
+                    ) : (filteredFriends.map(friend =>
+                        <FriendItem
+                            key={friend.id}
+                            friend={friend}
                             onClick={() => handleFriendClick(friend)}
                         />
-                        )
+                    )
                     )}
-                    </div>
                 </div>
+            </div>
 
             {selectedFriendForModal && (
                 <FriendDetails

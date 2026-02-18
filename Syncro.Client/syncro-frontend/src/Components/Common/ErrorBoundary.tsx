@@ -1,4 +1,5 @@
 import React from 'react';
+import '../../Styles/Errors.css'
 
 type Props = {
     children: React.ReactNode;
@@ -25,7 +26,7 @@ class ErrorBoundary extends React.Component<Props, State> {
 
     render() {
         if (this.state.hasError) {
-            return <div style={{ padding: 12, color: 'var(--text-color, #000)' }}>Не удалось отобразить сообщение.</div>;
+            return <div className="error-display-message">Не удалось отобразить сообщение.</div>;
         }
         return this.props.children as React.ReactElement;
     }

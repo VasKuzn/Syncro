@@ -77,20 +77,20 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
     const handleConfirmLogout = async () => {
         try {
             setIsLoggingOut(true);
-            
+
             await logoutUser();
-            
+
             localStorage.clear();
             sessionStorage.clear();
-            
+
             document.cookie.split(";").forEach(cookie => {
                 const eqPos = cookie.indexOf("=");
                 const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
                 document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
             });
-            
+
             window.location.href = '/login';
-            
+
         } catch (error) {
             console.error('Logout failed:', error);
             localStorage.clear();
@@ -245,16 +245,12 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
                     </div>
                 </div>
 
-                <div style={{ marginTop: '50px', paddingTop: '20px', borderTop: '1px solid #2D3748' }}>
+                <div className="settings-divider">
                     <div className="setting">
-                        <button 
+                        <button
                             type="button"
-                            className="setting-button"
+                            className="setting-button sb-red"
                             onClick={handleLogoutClick}
-                            style={{
-                                backgroundColor: '#ef4444',
-                                animation: 'none'
-                            }}
                         >
                             Выйти из аккаунта
                         </button>
@@ -263,11 +259,11 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
             </form>
 
             <input
+                className="file-input-display-none"
                 type="file"
                 ref={fileInputRef}
                 onChange={handleFileInputChange}
                 accept="image/*"
-                style={{ display: 'none' }}
             />
 
             {showAvatarModal && (
@@ -292,12 +288,12 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
                         </div>
                         <div className="logout-modal-content">
                             <p>Вы уверены, что хотите выполнить полный выход из аккаунта?</p>
-                            <p style={{ fontSize: '14px', color: '#9ca3af', marginTop: '10px' }}>
+                            <p className="logout-modal-text">
                                 После выхода вы будете перенаправлены на страницу входа.
                             </p>
                         </div>
                         <div className="logout-modal-actions">
-                            <button 
+                            <button
                                 type="button"
                                 className="logout-modal-btn logout-modal-btn-cancel"
                                 onClick={handleCancelLogout}
@@ -305,7 +301,7 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
                             >
                                 Отмена
                             </button>
-                            <button 
+                            <button
                                 type="button"
                                 className="logout-modal-btn logout-modal-btn-confirm"
                                 onClick={handleConfirmLogout}

@@ -62,7 +62,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordComponentProps> = ({
                         </div>
                     </form>
                 )}
-                <button className="reset-password-submit" onClick={e => navigate("/login")} style={{ marginTop: '20px' }}>
+                <button className="reset-password-submit" onClick={e => navigate("/login")}>
                     Назад🤨
                 </button>
             </div>

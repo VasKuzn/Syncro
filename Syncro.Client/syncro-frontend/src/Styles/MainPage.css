@@ -324,6 +324,11 @@ body {
     -ms-overflow-style: none;
 }
 
+.no-friends-image {
+    width: 60px;
+    height: 60px;
+}
+
 .friends-list::-webkit-scrollbar {
     display: none;
     width: 0;
@@ -365,6 +370,22 @@ body {
     width: 25px;
     margin-right: 7px;
     filter: invert(60%) sepia(85%) saturate(771%) hue-rotate(138deg) brightness(87%) contrast(95%);
+}
+
+.clear-search-btn {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    color: #666;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .friend-item {
@@ -933,7 +954,7 @@ body {
 
 /* Стиль для запрета скролла */
 body.modal-open {
-  overflow: hidden;
+    overflow: hidden;
 }
 
 /* Стили для вкладки Заявки мне */
@@ -941,7 +962,7 @@ body.modal-open {
     font-size: medium;
     color: #a1a1aa;
     margin: 15px 0 10px 10px;
-} 
+}
 
 .section-divider {
     height: 2px;

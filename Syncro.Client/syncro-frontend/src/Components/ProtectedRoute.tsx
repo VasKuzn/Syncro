@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { fetchCurrentUser } from '../Services/MainFormService'; // Ваша функция проверки пользователя
+import { fetchCurrentUser } from '../Services/MainFormService';
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
@@ -14,14 +14,11 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                // Пытаемся получить текущего пользователя через ваш API
                 const userId = await fetchCurrentUser();
-                
+
                 if (userId) {
-                    // Если получили ID пользователя - авторизован
                     setIsAuthenticated(true);
                 } else {
-                    // Если не получили - не авторизован
                     setIsAuthenticated(false);
                 }
             } catch (error) {
@@ -36,7 +33,10 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     }, []);
 
     if (isChecking) {
-        return <div>Loading...</div>; 
+        return <div className="messages-decrypting-overlay">
+            <div className="messages-decrypting-spinner"></div>
+            <div className="messages-decrypting-text">Загрузка...</div>
+        </div>;
     }
 
     if (!isAuthenticated) {
