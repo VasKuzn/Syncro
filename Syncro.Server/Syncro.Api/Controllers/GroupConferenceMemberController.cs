@@ -85,6 +85,7 @@ namespace Syncro.Api.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        [ValidateAntiForgeryToken]
         [HttpPost]
         //[Authorize]
         public async Task<ActionResult<GroupConferenceMemberModel>> CreateGroupConferenceMember([FromBody] GroupConferenceMemberModel groupConferenceMember)
@@ -107,6 +108,7 @@ namespace Syncro.Api.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        [ValidateAntiForgeryToken]
         [HttpPut]
         //[Authorize]
         public async Task<IActionResult> UpdateGroupConferenceMember(Guid id, [FromBody] ConferenceMemberModelDTO conferenceMemberDto)
@@ -133,6 +135,7 @@ namespace Syncro.Api.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        [ValidateAntiForgeryToken]
         [HttpDelete]
         //[Authorize]
         public async Task<IActionResult> DeleteGroupConferenceMember(Guid id)

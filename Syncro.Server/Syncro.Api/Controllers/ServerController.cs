@@ -43,6 +43,7 @@ namespace Syncro.Api.Controllers
             }
         }
 
+        [ValidateAntiForgeryToken]
         [HttpPost]
         public async Task<ActionResult<ServerModel>> CreateServer([FromBody] ServerModel server)
         {
@@ -82,6 +83,7 @@ namespace Syncro.Api.Controllers
             }
         }
 
+        [ValidateAntiForgeryToken]
         [HttpPut("{id}")]
         public async Task<ActionResult<ServerModel>> UpdateServer(
             Guid id,

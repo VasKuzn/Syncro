@@ -13,6 +13,7 @@ namespace Syncro.Api.Controllers
             _permissionsService = permissionsService;
         }
 
+        [ValidateAntiForgeryToken]
         [HttpPost]
         public async Task<ActionResult<SectorPermissionsModel>> GrantPermission(
             Guid serverId, Guid sectorId, [FromBody] SectorPermissionsModel permission)
@@ -66,6 +67,7 @@ namespace Syncro.Api.Controllers
             }
         }
 
+        [ValidateAntiForgeryToken]
         [HttpDelete("{permissionId}")]
         public async Task<IActionResult> RevokePermission(
             Guid serverId, Guid sectorId, Guid permissionId)

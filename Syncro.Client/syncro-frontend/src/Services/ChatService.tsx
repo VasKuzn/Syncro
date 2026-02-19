@@ -1,11 +1,14 @@
 import { PersonalMessageData } from "../Types/ChatTypes";
 import { encryptionService } from "./EncryptionService";
+import { getCsrfToken } from '../lib/csrfToken';
 
 export const createMessage = async (message: PersonalMessageData) => {
+    const csrfToken = getCsrfToken();
     const response = await fetch('http://localhost:5232/api/messages', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken || ''
         },
         credentials: 'include',
         body: JSON.stringify(message)
@@ -78,6 +81,7 @@ export const uploadMediaMessage = async (
         isEncrypted?: boolean;
     }
 ) => {
+    const csrfToken = getCsrfToken();
     const formData = new FormData();
     formData.append('file', data.file);
     formData.append('messageId', messageId);
@@ -88,6 +92,10 @@ export const uploadMediaMessage = async (
 
     const response = await fetch(`http://localhost:5232/api/storage/${data.personalConferenceId}/${data.accountId}/${messageId}/media`, {
         method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken || ''
+        },
         credentials: 'include',
         body: formData,
     });

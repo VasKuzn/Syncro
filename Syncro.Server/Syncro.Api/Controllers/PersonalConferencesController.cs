@@ -62,6 +62,7 @@ namespace Syncro.Api.Controllers
             }
         }
         // POST: api/personalconference
+        [ValidateAntiForgeryToken]
         [HttpPost]
         //[Authorize]
         public async Task<ActionResult<PersonalConferenceModel>> CreatePersonalConference(
@@ -92,6 +93,7 @@ namespace Syncro.Api.Controllers
             }
         }
         // DELETE: api/personalconferences/{id}
+        [ValidateAntiForgeryToken]
         [HttpDelete("{id}")]
         //[Authorize]
         public async Task<IActionResult> DeletePersonalConference(Guid id)

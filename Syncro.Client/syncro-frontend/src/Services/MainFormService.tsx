@@ -3,6 +3,7 @@ import { FriendRequest, Friend } from "../Types/FriendType";
 import { FriendList } from "../Types/FriendListType";
 import { PersonalConference } from "../Types/ChatTypes";
 import { UserInfo } from "../Types/UserInfo";
+import { getCsrfToken } from '../lib/csrfToken';
 
 //Friend Components Methods
 export const getUserByNickname = async (nickname: string) => {
@@ -27,10 +28,12 @@ export const getUserByNickname = async (nickname: string) => {
 };
 
 export async function sendFriendRequest(request: FriendRequest): Promise<void> {
+    const csrfToken = getCsrfToken();
     const response = await fetch("http://localhost:5232/api/Friends", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
+            'X-CSRF-TOKEN': csrfToken || ''
         },
         body: JSON.stringify(request),
         credentials: "include",
@@ -43,10 +46,12 @@ export async function sendFriendRequest(request: FriendRequest): Promise<void> {
 }
 
 export async function updateFriendStatus(id: string, status: number): Promise<void> {
+    const csrfToken = getCsrfToken();
     const response = await fetch(`http://localhost:5232/api/Friends/${id}/status`, {
         method: "PATCH",
         headers: {
             "Content-Type": "application/json",
+            'X-CSRF-TOKEN': csrfToken || '',
         },
         body: JSON.stringify({ status }),
         credentials: "include",
@@ -59,8 +64,13 @@ export async function updateFriendStatus(id: string, status: number): Promise<vo
 }
 
 export async function deleteFriendship(friendshipId: string): Promise<void> {
+    const csrfToken = getCsrfToken();
     const response = await fetch(`http://localhost:5232/api/Friends/${friendshipId}`, {
         method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+            'X-CSRF-TOKEN': csrfToken || '',
+        },
         credentials: "include"
     });
 
@@ -126,6 +136,7 @@ export const getFriends = async (userId: string | null) => {
 };
 
 export const getPersonalConference = async (userId: string | null, friendId: string | null): Promise<string> => {
+    const csrfToken = getCsrfToken();
     try {
         const response = await fetch(`http://localhost:5232/api/personalconference/${userId}/getbyaccount`, {
             credentials: 'include'
@@ -159,6 +170,7 @@ export const getPersonalConference = async (userId: string | null, friendId: str
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken || '',
             },
             credentials: 'include',
             body: JSON.stringify(newConference)
@@ -243,9 +255,14 @@ export async function getUserInfo(id: string | null): Promise<UserInfo | null> {
 }
 
 export const markMessagesAsRead = async (personalConferenceId: string) => {
+    const csrfToken = getCsrfToken();
     try {
         const response = await fetch(`http://localhost:5232/api/messages/read/all?personalConferenceId=${personalConferenceId}`, {
             method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                'X-CSRF-TOKEN': csrfToken || '',
+            },
         });
         if (!response.ok) {
             const errorText = await response.text();

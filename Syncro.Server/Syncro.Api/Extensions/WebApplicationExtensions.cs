@@ -17,6 +17,16 @@ namespace Syncro.Api.Extensions
 
             //app.UseHttpsRedirection();
             app.UseCors("FrontendPolicy");
+
+            app.UseCookiePolicy(new CookiePolicyOptions
+            {
+                MinimumSameSitePolicy = SameSiteMode.Strict,
+                Secure = CookieSecurePolicy.SameAsRequest,
+            });
+
+            app.UseRouting();
+            app.UseAntiforgery();
+
             app.UseAuthentication();
             app.UseAuthorization();
             var excludedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -31,12 +41,6 @@ namespace Syncro.Api.Extensions
             string cspPolicy = "default - src 'self'; script - src 'self'; style - src 'self'; img - src 'self' data: https:; font - src 'self'; connect - src 'self'; frame - ancestors 'none'; base - uri 'self'; form - action 'self'";
             app.UseMiddleware<CspMiddleware>(cspPolicy);
             app.UseMiddleware<AntiDirectAccessMiddleware>(excludedPaths);
-            app.UseCookiePolicy(new CookiePolicyOptions
-            {
-                MinimumSameSitePolicy = SameSiteMode.Strict,
-                HttpOnly = HttpOnlyPolicy.Always,
-                Secure = CookieSecurePolicy.Always,
-            });
 
         }
         public static void ConfigureEndpoints(this WebApplication app)

@@ -1,5 +1,6 @@
 // Services/EncryptionService.ts
 import { PersonalMessageData } from '../Types/ChatTypes';
+import { getCsrfToken } from '../lib/csrfToken';
 
 interface DecryptionResult {
     success: boolean;
@@ -15,9 +16,14 @@ class EncryptionService {
     }
 
     async generateKeys(userId: string): Promise<boolean> {
+        const csrfToken = getCsrfToken();
         try {
             const response = await fetch(`${this.baseUrl}/keys/${userId}/generate`, {
-                method: 'POST'
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken || ''
+                },
             });
             return response.ok;
         } catch (error) {
@@ -43,10 +49,14 @@ class EncryptionService {
 
 
     async initializeSession(userId: string, contactId: string, contactPublicKey: string): Promise<boolean> {
+        const csrfToken = getCsrfToken();
         try {
             const response = await fetch(`${this.baseUrl}/sessions/initialize`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken || ''
+                },
                 body: JSON.stringify({
                     userId,
                     contactId,
@@ -65,13 +75,14 @@ class EncryptionService {
         metadataJson: string,
         senderId: string
     ): Promise<DecryptionResult | null> {
+        const csrfToken = getCsrfToken();
         try {
-
             const response = await fetch(`${this.baseUrl}/decrypt`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken || ''
                 },
                 body: JSON.stringify({
                     encryptedBase64,

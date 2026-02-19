@@ -63,6 +63,7 @@ namespace Syncro.Api.Controllers
             }
         }
         // POST: api/messages
+        [ValidateAntiForgeryToken]
         [HttpPost]
         //[Authorize]
         public async Task<ActionResult<AccountModel>> CreateMessage([FromBody] MessageModel account)
@@ -88,6 +89,7 @@ namespace Syncro.Api.Controllers
             }
         }
         // PUT api/messages/{id}
+        [ValidateAntiForgeryToken]
         [HttpPut("text/{id}")]
         //[Authorize]
         public async Task<ActionResult<MessageModel>> UpdateMessageText(Guid id, [FromBody] MessageDTO messageDto)
@@ -111,6 +113,7 @@ namespace Syncro.Api.Controllers
             }
         }
         // PUT api/messages/{id}/read
+        [ValidateAntiForgeryToken]
         [HttpPut("{id}/read")]
         [ProducesResponseType(typeof(MessageModel), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -133,6 +136,7 @@ namespace Syncro.Api.Controllers
         }
 
         // PUT api/messages/read/all
+        [ValidateAntiForgeryToken]
         [HttpPut("read/all")]
         [ProducesResponseType(typeof(IEnumerable<MessageModel>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -154,6 +158,7 @@ namespace Syncro.Api.Controllers
         }
 
         // PUT api/messages/{id}/pin
+        [ValidateAntiForgeryToken]
         [HttpPut("{id}/pin")]
         [ProducesResponseType(typeof(MessageModel), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -176,6 +181,7 @@ namespace Syncro.Api.Controllers
         }
 
         // PUT api/messages/{id}/reference
+        [ValidateAntiForgeryToken]
         [HttpPut("{id}/reference")]
         [ProducesResponseType(typeof(MessageModel), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -204,6 +210,7 @@ namespace Syncro.Api.Controllers
 
 
         // DELETE: api/messages/{id}
+        [ValidateAntiForgeryToken]
         [HttpDelete("{id}")]
         //[Authorize]
         public async Task<IActionResult> DeleteMessage(Guid id)

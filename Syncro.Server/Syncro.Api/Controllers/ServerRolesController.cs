@@ -43,6 +43,7 @@ namespace Syncro.Api.Controllers
             }
         }
 
+        [ValidateAntiForgeryToken]
         [HttpPost]
         public async Task<ActionResult<RolesModel>> CreateRole(
             Guid serverId,
@@ -67,6 +68,7 @@ namespace Syncro.Api.Controllers
             }
         }
 
+        [ValidateAntiForgeryToken]
         [HttpDelete("{roleId}")]
         public async Task<IActionResult> DeleteRole(Guid serverId, Guid roleId)
         {
@@ -85,6 +87,7 @@ namespace Syncro.Api.Controllers
             }
         }
 
+        [ValidateAntiForgeryToken]
         [HttpPut("{roleId}")]
         public async Task<ActionResult<RolesModel>> UpdateRole(
             Guid serverId,
@@ -110,6 +113,7 @@ namespace Syncro.Api.Controllers
             }
         }
 
+        [ValidateAntiForgeryToken]
         [HttpPatch("{roleId}/position")]
         public async Task<ActionResult<RolesModel>> UpdateRolePosition(
             Guid serverId,

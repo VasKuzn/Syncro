@@ -10,6 +10,23 @@ builder.Services.AddInfrastructureServices(configuration);
 //PRESENTATION LAYER все web сервисы - контроллеры, signalr, authentication... 
 builder.Services.AddWebServices(configuration);
 
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "X-CSRF-TOKEN";
+    options.Cookie.Name = "csrf-token";
+    options.Cookie.SameSite = SameSiteMode.Strict;
+
+    options.SuppressXFrameOptionsHeader = false;
+
+    if (builder.Environment.IsDevelopment())
+    {
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    }
+    else
+    {
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    }
+});
 // обработчики исключений
 builder.Services.AddErrorHandlers(configuration);
 

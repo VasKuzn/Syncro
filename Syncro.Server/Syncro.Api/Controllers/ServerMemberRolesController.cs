@@ -30,6 +30,7 @@ namespace Syncro.Api.Controllers
             }
         }
 
+        [ValidateAntiForgeryToken]
         [HttpPost]
         public async Task<ActionResult<ServerMemberRoles>> AssignRoleToMember(
             Guid serverId, Guid accountId, [FromBody] ServerMemberRoles memberRole)
@@ -55,6 +56,7 @@ namespace Syncro.Api.Controllers
             }
         }
 
+        [ValidateAntiForgeryToken]
         [HttpDelete("{roleId}")]
         public async Task<IActionResult> RemoveRoleFromMember(
             Guid serverId, Guid accountId, Guid roleId)
@@ -79,6 +81,7 @@ namespace Syncro.Api.Controllers
             }
         }
 
+        [ValidateAntiForgeryToken]
         [HttpDelete]
         public async Task<IActionResult> RemoveAllRolesFromMember(
             Guid serverId, Guid accountId)

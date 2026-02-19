@@ -43,6 +43,7 @@ namespace Syncro.Api.Controllers
             }
         }
 
+        [ValidateAntiForgeryToken]
         [HttpPost]
         public async Task<ActionResult<ServerMemberModel>> CreateMember(
             Guid serverId,
@@ -67,6 +68,7 @@ namespace Syncro.Api.Controllers
             }
         }
 
+        [ValidateAntiForgeryToken]
         [HttpDelete("{memberId}")]
         public async Task<IActionResult> DeleteMember(Guid serverId, Guid memberId)
         {
@@ -85,6 +87,7 @@ namespace Syncro.Api.Controllers
             }
         }
 
+        [ValidateAntiForgeryToken]
         [HttpPut("{memberId}")]
         public async Task<ActionResult<ServerMemberModel>> UpdateMember(
             Guid serverId,
@@ -110,6 +113,7 @@ namespace Syncro.Api.Controllers
             }
         }
 
+        [ValidateAntiForgeryToken]
         [HttpPost("{memberId}/ban")]
         public async Task<ActionResult<ServerMemberModel>> BanMember(
             Guid serverId,
@@ -135,6 +139,7 @@ namespace Syncro.Api.Controllers
             }
         }
 
+        [ValidateAntiForgeryToken]
         [HttpPost("{memberId}/unban")]
         public async Task<ActionResult<ServerMemberModel>> UnbanMember(Guid serverId, Guid memberId)
         {

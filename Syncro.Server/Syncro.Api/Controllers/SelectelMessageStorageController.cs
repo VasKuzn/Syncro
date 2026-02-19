@@ -13,6 +13,7 @@ namespace Syncro.Api.Controllers
             _messagesHub = messagesHub;
         }
 
+        [ValidateAntiForgeryToken]
         [HttpPost("{personalConferenceId}/{accountId}/{messageId}/media")]
         public async Task<IActionResult> UploadMessageMedia(
             Guid personalConferenceId,

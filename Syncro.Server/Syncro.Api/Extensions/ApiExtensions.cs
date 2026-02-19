@@ -56,7 +56,7 @@ namespace Syncro.Api.Extensions
         }
         public static void AddWebControllers(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddControllers();
+            services.AddControllersWithViews();
             services.AddEndpointsApiExplorer();
             services.AddSignalR();
         }

@@ -43,6 +43,7 @@ namespace Syncro.Api.Controllers
             }
         }
 
+        [ValidateAntiForgeryToken]
         [HttpPost]
         public async Task<ActionResult<SectorModel>> CreateSector(
             Guid serverId,
@@ -67,6 +68,7 @@ namespace Syncro.Api.Controllers
             }
         }
 
+        [ValidateAntiForgeryToken]
         [HttpDelete("{sectorId}")]
         public async Task<IActionResult> DeleteSector(Guid serverId, Guid sectorId)
         {
@@ -85,6 +87,7 @@ namespace Syncro.Api.Controllers
             }
         }
 
+        [ValidateAntiForgeryToken]
         [HttpPut("{sectorId}")]
         public async Task<ActionResult<SectorModel>> UpdateSector(
             Guid serverId,

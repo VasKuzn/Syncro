@@ -76,6 +76,7 @@ namespace Syncro.Api.Controllers
         }
 
         // POST: api/friends
+        [ValidateAntiForgeryToken]
         [HttpPost]
         //[Authorize]
         public async Task<ActionResult<FriendsModel>> CreateFriends([FromBody] FriendsModel friends)
@@ -112,6 +113,7 @@ namespace Syncro.Api.Controllers
         }
 
         // DELETE: api/friends/{id}
+        [ValidateAntiForgeryToken]
         [HttpDelete("{id}")]
         //[Authorize]
         public async Task<IActionResult> DeleteFriends(Guid id)
@@ -140,6 +142,7 @@ namespace Syncro.Api.Controllers
         }
 
         // PATCH: api/friends/{id}/status
+        [ValidateAntiForgeryToken]
         [HttpPatch("{id}/status")]
         //[Authorize]
         public async Task<ActionResult<FriendsModel>> UpdateFriendsStatus(Guid id, [FromBody] FriendsStatusUpdateRequest statusUpdate)

@@ -13,6 +13,7 @@ namespace Syncro.Api.Controllers
             _groupRoleService = groupRoleService;
         }
 
+        [ValidateAntiForgeryToken]
         [HttpPost]
         [ProducesResponseType(typeof(ConferenceRolesModel), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -64,6 +65,7 @@ namespace Syncro.Api.Controllers
             }
         }
 
+        [ValidateAntiForgeryToken]
         [HttpPut("{conferenceRoleId}/permissions")]
         [ProducesResponseType(typeof(ConferenceRolesModel), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -91,6 +93,7 @@ namespace Syncro.Api.Controllers
             }
         }
 
+        [ValidateAntiForgeryToken]
         [HttpDelete("{conferenceRoleId}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

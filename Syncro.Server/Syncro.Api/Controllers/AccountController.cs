@@ -151,6 +151,7 @@ namespace Syncro.Api.Controllers
         }
 
         // PUT: api/accounts/{id}
+        [ValidateAntiForgeryToken]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAccount(Guid id, [FromBody] AccountModelDTO accountDto)
         {
@@ -174,6 +175,7 @@ namespace Syncro.Api.Controllers
         }
 
         // DELETE: api/accounts/{id}
+        [ValidateAntiForgeryToken]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAccount(Guid id)
         {
@@ -265,6 +267,7 @@ namespace Syncro.Api.Controllers
             }
         }
         // POST: api/accounts/personal_info/{id} - создание персональной информации при ее отсутствии(для тех у кого раньше не было, для разрабов в основе) 
+        [ValidateAntiForgeryToken]
         [HttpPost("personal_info/{id}")]
         public async Task<ActionResult<PersonalAccountInfoModel>> CreatePersonalAccountInfoAsync(Guid id)
         {
@@ -280,6 +283,7 @@ namespace Syncro.Api.Controllers
         }
 
         // PUT: обновление personal account info по id
+        [ValidateAntiForgeryToken]
         [HttpPut("personal_info/{id}")]
         public async Task<IActionResult> UpdatePersonalAccountInfo(Guid id, [FromBody] PersonalAccountInfoModelDTO infoDto)
         {
@@ -303,6 +307,7 @@ namespace Syncro.Api.Controllers
         }
 
         // DELETE: удаление personal account info по id
+        [ValidateAntiForgeryToken]
         [HttpDelete("personal_info/{id}")]
         public async Task<IActionResult> DeletePersonalAccountInfo(Guid id)
         {
@@ -355,6 +360,7 @@ namespace Syncro.Api.Controllers
         }
 
         //PUT: api/accounts/full_account_info/{id} - запрос для обновления всей инфы пользователя
+        [ValidateAntiForgeryToken]
         [HttpPut("full_account_info/{id}")]
         public async Task<IActionResult> UpdateAccountWithPersonalInfoAsync(Guid id, [FromForm] AccountWithPersonalInfoModel model)
         {
@@ -570,7 +576,7 @@ namespace Syncro.Api.Controllers
             }
         }
 
-         // POST: api/accounts/logout
+        // POST: api/accounts/logout
         [HttpPost("logout")]
         [Authorize]
         public async Task<IActionResult> Logout()
@@ -583,27 +589,29 @@ namespace Syncro.Api.Controllers
                     Secure = true,
                     SameSite = SameSiteMode.Strict
                 });
-                
+
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                
+
                 if (Guid.TryParse(userId, out var accountId))
                 {
                     await _accountService.Logout(accountId);
                 }
-                
-                return Ok(new { 
-                    Success = true, 
-                    Message = "Logged out successfully" 
+
+                return Ok(new
+                {
+                    Success = true,
+                    Message = "Logged out successfully"
                 });
             }
             catch (Exception ex)
             {
                 Response.Cookies.Delete("access-token");
-                
-                return StatusCode(500, new { 
-                    Success = false, 
+
+                return StatusCode(500, new
+                {
+                    Success = false,
                     Error = "Internal server error",
-                    Message = ex.Message 
+                    Message = ex.Message
                 });
             }
         }

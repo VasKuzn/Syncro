@@ -31,6 +31,7 @@ namespace Syncro.Api.Controllers
             }
         }
 
+        [ValidateAntiForgeryToken]
         [HttpPost("keys/{userId}/generate")]
         public async Task<ActionResult> GenerateKeys(Guid userId)
         {
@@ -46,6 +47,7 @@ namespace Syncro.Api.Controllers
             }
         }
 
+        [ValidateAntiForgeryToken]
         [HttpPost("sessions/initialize")]
         public async Task<ActionResult> InitializeSession([FromBody] InitializeSessionRequest request)
         {
@@ -83,6 +85,7 @@ namespace Syncro.Api.Controllers
                 return StatusCode(500, "Error checking session");
             }
         }
+        [ValidateAntiForgeryToken]
         [HttpPost("groups/{groupId}/keys")]
         public async Task<ActionResult> CreateGroupSession(
             Guid groupId,
@@ -104,6 +107,7 @@ namespace Syncro.Api.Controllers
                 return StatusCode(500, "Error creating group session");
             }
         }
+        [ValidateAntiForgeryToken]
         [HttpPost("encrypt")]
         public async Task<ActionResult> EncryptMessage([FromBody] EncryptRequest request)
         {
@@ -131,7 +135,7 @@ namespace Syncro.Api.Controllers
                 return BadRequest(new { Error = ex.Message, Details = ex.StackTrace });
             }
         }
-
+        [ValidateAntiForgeryToken]
         [HttpPost("decrypt")]
         public async Task<ActionResult> DecryptMessage([FromBody] DecryptRequest request)
         {

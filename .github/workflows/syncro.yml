@@ -4,13 +4,13 @@ on:
   workflow_dispatch
 
 env:
-  SERVER_HOST: 213.189.201.21
+  SERVER_HOST: 5.53.124.148
   SERVER_USER: root
   SERVER_PATH: /root/github-test
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v3
