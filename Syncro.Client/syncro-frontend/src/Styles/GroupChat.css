@@ -1,5 +1,5 @@
 /* Модальное окно создания группы */
-.modal-overlay {
+.create-group-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -31,13 +31,13 @@
   font-weight: 600;
 }
 
-.modal-subtitle {
+.create-group-modal .modal-subtitle {
   font-size: 14px;
   color: #a0a4b8;
   margin-bottom: 24px;
 }
 
-.group-name-input {
+.create-group-modal .group-name-input {
   width: 100%;
   padding: 14px 16px;
   background-color: #0f1122;
@@ -50,21 +50,21 @@
   transition: all 0.3s ease;
 }
 
-.group-name-input:focus {
+.create-group-modal .group-name-input:focus {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
-.group-name-input::placeholder {
+.create-group-modal .group-name-input::placeholder {
   color: #6b7280;
 }
 
-.search-friends {
+.create-group-modal .search-friends {
   margin-bottom: 16px;
 }
 
-.search-friends input {
+.create-group-modal .search-friends input {
   width: 100%;
   padding: 12px 14px;
   background-color: #0f1122;
@@ -76,13 +76,13 @@
   transition: all 0.3s ease;
 }
 
-.search-friends input:focus {
+.create-group-modal .search-friends input:focus {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
-.friends-list {
+.create-group-modal .friends-list {
   max-height: 300px;
   overflow-y: auto;
   margin-bottom: 24px;
@@ -92,20 +92,20 @@
   padding: 8px;
 }
 
-.friends-list::-webkit-scrollbar {
+.create-group-modal .friends-list::-webkit-scrollbar {
   width: 6px;
 }
 
-.friends-list::-webkit-scrollbar-track {
+.create-group-modal .friends-list::-webkit-scrollbar-track {
   background: #0f1122;
 }
 
-.friends-list::-webkit-scrollbar-thumb {
+.create-group-modal .friends-list::-webkit-scrollbar-thumb {
   background: #2a2c3e;
   border-radius: 3px;
 }
 
-.friend-item {
+.create-group-modal .friend-item {
   display: flex;
   align-items: center;
   padding: 10px;
@@ -116,16 +116,16 @@
   border: 2px solid transparent;
 }
 
-.friend-item:hover {
+.create-group-modal .friend-item:hover {
   background-color: #1a1c30;
   border-color: #3b82f6;
 }
 
-.friend-item.selected {
+.create-group-modal .friend-item.selected {
   background: linear-gradient(135deg, #3b82f6, #2563eb);
 }
 
-.friend-item img {
+.create-group-modal .friend-item img {
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -134,28 +134,28 @@
   border: 2px solid #2a2c3e;
 }
 
-.friend-item span {
+.create-group-modal .friend-item span {
   flex: 1;
   color: #d5d6da;
   font-size: 14px;
   font-weight: 500;
 }
 
-.friend-item .checkmark {
+.create-group-modal .friend-item .checkmark {
   color: #ffffff;
   font-weight: 600;
   font-size: 18px;
   margin-right: 8px;
 }
 
-.modal-actions {
+.create-group-modal .modal-actions {
   display: flex;
   gap: 12px;
   justify-content: flex-end;
 }
 
-.cancel-btn,
-.create-btn {
+.create-group-modal .cancel-btn,
+.create-group-modal .create-btn {
   padding: 12px 24px;
   border: none;
   border-radius: 8px;
@@ -169,39 +169,39 @@
   justify-content: center;
 }
 
-.cancel-btn {
+.create-group-modal .cancel-btn {
   background-color: #2a2c3e;
   color: #a0a4b8;
   border: 2px solid transparent;
 }
 
-.cancel-btn:hover:not(:disabled) {
+.create-group-modal .cancel-btn:hover:not(:disabled) {
   background-color: #3a3c4e;
   color: #ffffff;
   transform: translateY(-1px);
 }
 
-.create-btn {
+.create-group-modal .create-btn {
   background: linear-gradient(135deg, #3b82f6, #2563eb);
   color: white;
   border: 2px solid transparent;
 }
 
-.create-btn:hover:not(:disabled) {
+.create-group-modal .create-btn:hover:not(:disabled) {
   background: linear-gradient(135deg, #2563eb, #1d4ed8);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
-.create-btn:disabled,
-.cancel-btn:disabled {
+.create-group-modal .create-btn:disabled,
+.create-group-modal .cancel-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none !important;
 }
 
 /* Спиннер загрузки */
-.create-spinner {
+.create-group-modal .create-spinner {
   width: 20px;
   height: 20px;
   border: 3px solid rgba(255, 255, 255, 0.3);
@@ -235,46 +235,38 @@
   }
 }
 
-/* Адаптивность */
+/* Адаптивность для модалки */
 @media (max-width: 768px) {
-  .group-chats {
-    width: 280px;
-  }
-
   .create-group-modal {
     width: 90%;
     padding: 24px;
   }
 
-  .group-name-input {
+  .create-group-modal .group-name-input {
     padding: 12px 14px;
   }
 
-  .friend-item {
+  .create-group-modal .friend-item {
     padding: 8px;
   }
 
-  .friend-item img {
+  .create-group-modal .friend-item img {
     width: 32px;
     height: 32px;
   }
 }
 
 @media (max-width: 480px) {
-  .group-chats {
-    width: 100%;
-  }
-
   .create-group-modal {
     padding: 20px;
   }
 
-  .modal-actions {
+  .create-group-modal .modal-actions {
     flex-direction: column;
   }
 
-  .cancel-btn,
-  .create-btn {
+  .create-group-modal .cancel-btn,
+  .create-group-modal .create-btn {
     width: 100%;
   }
 }

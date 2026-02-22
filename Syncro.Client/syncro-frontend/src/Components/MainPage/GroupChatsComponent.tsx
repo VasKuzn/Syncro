@@ -6,7 +6,8 @@ import * as signalR from "@microsoft/signalr";
 import { useNavigate } from "react-router-dom";
 import { UserInfo } from "../../Types/UserInfo";
 import { Friend } from '../../Types/FriendType';
-import CreateGroupModal, {  } from '../GroupChat/CreateGroupModal';
+import CreateGroupModal from '../GroupChat/CreateGroupModal';
+import '../../Styles/GroupChat.css';
 
 const GroupChatsComponent = () => {
     const [groups, setGroups] = useState<GroupConf[]>([]);
@@ -43,7 +44,7 @@ const GroupChatsComponent = () => {
         }
 
         return newConnection;
-    }, [getGroups]);
+    }, []);
 
     const refreshGroupsData = useCallback(async (userId: string) => {
         setLoading(true);
@@ -56,9 +57,55 @@ const GroupChatsComponent = () => {
         } finally {
             setLoading(false);
         }
-    }, [getGroups]);
+    }, []);
 
-        useEffect(() => {
+    // Функция для загрузки детальной информации о друзьях
+    const loadFriendDetails = useCallback(async (friendshipList: any[], userId: string) => {
+        const friendsList: Friend[] = [];
+        
+        for (const f of friendshipList) {
+            // Берем только подтвержденных друзей (status = 1)
+            if (f.status === 1) {
+                // Определяем ID друга (не текущий пользователь)
+                const friendId = f.userWhoSent === userId ? f.userWhoRecieved : f.userWhoSent;
+                
+                try {
+                    // Загружаем полную информацию о друге
+                    const response = await fetch(`http://localhost:5232/api/accounts/${friendId}`, {
+                        credentials: 'include'
+                    });
+                    
+                    if (response.ok) {
+                        const friendData = await response.json();
+                        
+                        friendsList.push({
+                            id: friendId,
+                            nickname: friendData.nickname || 'Без имени',
+                            avatar: friendData.avatar || null,
+                            email: friendData.email,
+                            phonenumber: friendData.phonenumber,
+                            firstname: friendData.firstname,
+                            lastname: friendData.lastname,
+                            isOnline: friendData.isOnline || false,
+                            status: f.status,
+                            userWhoReceived: f.userWhoRecieved,
+                            userWhoSent: f.userWhoSent,
+                            friendShipId: f.id,
+                            friendsSince: new Date(f.friendsSince),
+                            unreadCount: 0
+                        });
+                    }
+                } catch (error) {
+                    console.error(`Ошибка загрузки друга ${friendId}:`, error);
+                }
+            }
+        }
+        
+        console.log('Детальная информация о друзьях:', friendsList);
+        return friendsList;
+    }, []);
+
+    useEffect(() => {
         let isMounted = true;
 
         const loadData = async () => {
@@ -68,14 +115,19 @@ const GroupChatsComponent = () => {
                 if (isMounted && userId) {
                     setCurrentUserId(userId);  // сохраняем ID отдельно
                     
-                    // Потом получаем полную информацию
+                    // Потом получаем полную информацию о текущем пользователе
                     const userData = await getUserInfo(userId);
                     setCurrentUser(userData);
 
-                    // Загружаем друзей
+                    // Загружаем связи дружбы
                     try {
                         const friendsData = await getFriends(userId);
-                        setFriends(friendsData);
+                        console.log('Загруженные связи дружбы:', friendsData);
+                        
+                        // Преобразуем в список друзей с полной информацией
+                        const friendsList = await loadFriendDetails(friendsData, userId);
+                        setFriends(friendsList);
+                        
                     } catch (error) {
                         console.error("Ошибка загрузки друзей:", error);
                     }
@@ -94,48 +146,53 @@ const GroupChatsComponent = () => {
             isMounted = false;
             connection?.stop();
         };
-    }, [refreshGroupsData, initSignalR]);
-    const avatarUrl = currentUser?.avatar || "/logo.png";
+    }, [refreshGroupsData, initSignalR, loadFriendDetails]);
+
     if (loading) return <div></div>;
     if (error) return <div></div>;
 
-return (
-    <div className="group-chats-container">
-        <div className="group-chats">
-            <div className="main-logo">
-                <img src="/logo-icon-transparent.png" alt="Syncro logo" width="35" height="35" onClick={e => navigate("/main")} />
+    return (
+        <div className="group-chats-container">
+            <div className="group-chats">
+                <div className="main-logo">
+                    <img 
+                        src="/logo-icon-transparent.png" 
+                        alt="Syncro logo" 
+                        width="35" 
+                        height="35" 
+                        onClick={() => navigate("/main")} 
+                    />
+                </div>
+                <div className="chat-separator"></div>
+                <div className="group-chat-list">
+                    {groups.map(group => (
+                        <div key={group.id} className="group-chat-item">
+                            {group.conferenceName}
+                        </div>
+                    ))}
+                </div>
+                <div 
+                    className="group-chat-item add"
+                    onClick={() => {
+                        console.log('Клик по +');
+                        setShowCreateModal(true);
+                    }}
+                >
+                    <span className="add-icon">+</span>
+                </div>
             </div>
-            <div className="chat-separator"></div>
-            <div className="group-chat-list">
-                {groups.map(group => (
-                    <div key={group.id} className="group-chat-item">
-                        {group.conferenceName}
-                    </div>
-                ))}
-            </div>
-            <div 
-                className="group-chat-item add"
-                onClick={() => {
-                    console.log('Клик по +');
-                    setShowCreateModal(true);
-                }}
-            >
-                <span className="add-icon">+</span>
-            </div>
+            
+            {showCreateModal && (
+                <CreateGroupModal
+                    isOpen={showCreateModal}
+                    onClose={() => setShowCreateModal(false)}
+                    friends={friends}
+                    onGroupCreated={(groupId) => navigate(`/group-chat/${groupId}`)}
+                    currentUserId={currentUserId}
+                />
+            )}
         </div>
-        
-        {/* МОДАЛКА ДОЛЖНА БЫТЬ ЗДЕСЬ - ВНУТРИ RETURN */}
-        {showCreateModal && (
-            <CreateGroupModal
-                isOpen={showCreateModal}
-                onClose={() => setShowCreateModal(false)}
-                friends={friends}
-                onGroupCreated={(groupId) => navigate(`/group-chat/${groupId}`)}
-                currentUserId={currentUserId}
-            />
-        )}
-    </div>
-);
+    );
 };
 
 export default GroupChatsComponent;

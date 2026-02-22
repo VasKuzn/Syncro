@@ -104,7 +104,7 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
     );
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
+        <div className="create-group-modal-overlay" onClick={onClose}>
             <div className="create-group-modal" onClick={e => e.stopPropagation()}>
                 <h2>Создать групповой чат</h2>
                 
