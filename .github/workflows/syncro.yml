@@ -1,12 +1,15 @@
 name: Deploy
 
 on:
-  workflow_dispatch
+  push:
+    branches:
+      - master
+  workflow_dispatch:
 
 env:
   SERVER_HOST: 5.53.124.148
   SERVER_USER: root
-  SERVER_PATH: /root/github-test
+  SERVER_PATH: /root/syncro
 
 jobs:
   build-and-deploy:
@@ -21,39 +24,39 @@ jobs:
         with:
           key: "${{ secrets.MY_KEY }}"
           known_hosts: "just-a-placeholder-so-we-dont-get-errors"
+      
       - name: Add server to known_hosts
         run: ssh-keyscan -H ${{ env.SERVER_HOST }} >> ~/.ssh/known_hosts
 
-      # Установка .NET 9 SDK
-      - name: Setup .NET 9 SDK
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: '9.0.202'
-
-      # Установка Node.js
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '23.8.0'
-
-      # Сборка backend
-      - name: Publish .NET Backend
-        working-directory: Syncro.Server/SyncroBackend
-        run: dotnet publish SyncroBackend.csproj -C Release -o publish
-
-      # Сборка frontend
-      - name: Build Frontend
-        working-directory: Syncro.Client/syncro-frontend
-        run: |
-          npm ci
-          npm run build
-
-      # Деплой на сервер
-      - name: Deploy to Server
+      # Копирование кода на сервер
+      - name: Deploy code to server
         run: |
           rsync -avz \
             --delete \
-            --exclude='.git*' \
-            Syncro.Server/SyncroBackend/dist/ \
-            Syncro.Client/syncro-frontend/build/ \
-            ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }}:${{ env.SERVER_PATH }}
+            --exclude='.git' \
+            --exclude='.gitignore' \
+            --exclude='node_modules' \
+            --exclude='dist' \
+            --exclude='bin' \
+            --exclude='obj' \
+            --exclude='.vs' \
+            --exclude='.env' \
+            --exclude='appsettings.*.json' \
+            --exclude='password.txt' \
+            ./ \
+            ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }}:${{ env.SERVER_PATH }}/
+
+      # Построение и запуск docker контейнеров
+      - name: Build and run Docker containers
+        run: |
+          ssh ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }} \
+            "cd ${{ env.SERVER_PATH }} && \
+             docker-compose down || true && \
+             docker-compose up -d --build"
+
+      # Вывод статуса контейнеров
+      - name: Check container status
+        run: |
+          ssh ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }} \
+            "cd ${{ env.SERVER_PATH }} && \
+             docker-compose ps"

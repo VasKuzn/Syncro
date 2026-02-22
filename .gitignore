@@ -571,4 +571,9 @@ dist-ssr
 
 password.txt
 
+# Environment files
+.env
+.env.local
+.env.*.local
+
 # End of https://www.toptal.com/developers/gitignore/api/csharp,aspnetcore,dotnetcore
