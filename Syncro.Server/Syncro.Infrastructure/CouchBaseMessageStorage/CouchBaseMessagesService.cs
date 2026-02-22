@@ -148,6 +148,42 @@ namespace Syncro.Infrastructure.CouchBaseMessageStorage
             }
         }
 
+        public async Task<List<MessageModel>> GetAllMessagesByGroupConferenceAsync(Guid groupConferenceId)
+        {
+            if (groupConferenceId == Guid.Empty)
+            {
+                throw new ArgumentException("Group conference ID cannot be empty", nameof(groupConferenceId));
+            }
+
+            try
+            {
+                var query = $@"
+                    SELECT m.* 
+                    FROM `{_bucketName}`.`{_scopeName}`.`{_collectionName}` m 
+                    WHERE m.type = 'message' 
+                    AND m.groupConferenceId = $groupConferenceId 
+                    ORDER BY m.messageDateSent ASC";
+
+                var parameters = new QueryOptions()
+                    .Parameter("groupConferenceId", groupConferenceId);
+
+                var result = await _cluster.QueryAsync<MessageModel>(query, parameters);
+
+                var messages = new List<MessageModel>();
+                await foreach (var row in result)
+                {
+                    messages.Add(row);
+                }
+
+                return messages;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting messages by group conference: {ex}");
+                throw;
+            }
+        }
+
         private async Task DecryptMessageContentAsync(MessageModel message)
         {
             try

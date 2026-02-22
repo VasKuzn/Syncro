@@ -222,5 +222,19 @@ namespace Syncro.Api.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
+    [HttpGet("bygroupconference")]
+    public async Task<IActionResult> GetMessagesByGroupConference([FromQuery] Guid groupConferenceId)
+    {
+        try
+        {
+            var messages = await _messageService.GetAllMessagesByGroupConferenceAsync(groupConferenceId);
+            return Ok(messages);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
+    }
     }
 }
