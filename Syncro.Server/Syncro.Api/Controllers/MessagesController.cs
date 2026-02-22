@@ -31,11 +31,21 @@ namespace Syncro.Api.Controllers
         }
         // GET: api/messages/{id}/bypersonalconference
         [HttpGet("bypersonalconference")]
-        public async Task<ActionResult<IEnumerable<MessageModel>>> GetAllMessagesByPersonalConference(Guid personalConferenceId)
+        public async Task<ActionResult<IEnumerable<MessageModel>>> GetAllMessagesByPersonalConference(Guid personalConferenceId, [FromQuery] int? limit = null, [FromQuery] int? offset = null)
         {
             try
             {
-                var messages = await _messageService.GetAllMessagesByPersonalConferenceAsync(personalConferenceId);
+                IEnumerable<MessageModel> messages;
+
+                if (limit.HasValue && offset.HasValue)
+                {
+                    messages = await _messageService.GetAllMessagesByPersonalConferenceAsync(personalConferenceId, limit.Value, offset.Value);
+                }
+                else
+                {
+                    messages = await _messageService.GetAllMessagesByPersonalConferenceAsync(personalConferenceId);
+                }
+
                 return Ok(messages);
             }
             catch (Exception ex)

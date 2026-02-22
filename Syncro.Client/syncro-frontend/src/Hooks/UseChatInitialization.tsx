@@ -8,7 +8,7 @@ import { getPersonalConferenceById } from '../Services/ChatService';
 import { useLocation } from 'react-router-dom';
 import { encryptionService } from '../Services/EncryptionService';
 
-export const useChatInitialization = () => {
+export const useChatInitialization = (baseUrl: string, csrfToken: string | null) => {
     const [friends, setFriends] = useState<Friend[]>([]);
     const [personalConference, setPersonalConference] = useState<string | null>(null);
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -18,16 +18,16 @@ export const useChatInitialization = () => {
     const location = useLocation();
 
     const initializeUser = useCallback(async () => {
-        const userId = await fetchCurrentUser();
+        const userId = await fetchCurrentUser(baseUrl);
         if (!userId) return;
 
         setCurrentUserId(userId);
         encryptionService.setCurrentUserId(userId);
 
         try {
-            const publicKey = await encryptionService.getPublicKey(userId);
+            const publicKey = await encryptionService.getPublicKey(baseUrl, userId);
             if (!publicKey) {
-                await encryptionService.generateKeys(userId);
+                await encryptionService.generateKeys(baseUrl, userId, csrfToken);
             }
         } catch (error) {
             console.warn('Failed to initialize user encryption:', error);
@@ -49,7 +49,7 @@ export const useChatInitialization = () => {
         const fetchCurrentUserData = async () => {
             if (!currentUserId) return;
             try {
-                const currentUserData = await fetchUserById(currentUserId);
+                const currentUserData = await fetchUserById(baseUrl, currentUserId);
                 setCurrentUser(currentUserData);
             } catch (err) {
                 console.error('Failed to load current user', err);
@@ -62,11 +62,11 @@ export const useChatInitialization = () => {
         const fetchConferenceAndFriend = async () => {
             if (!personalConference || !currentUserId) return;
             try {
-                const conf = await getPersonalConferenceById(personalConference);
+                const conf = await getPersonalConferenceById(baseUrl, personalConference);
                 const friendId = String(conf.user1).toLowerCase() === String(currentUserId).toLowerCase()
                     ? conf.user2
                     : conf.user1;
-                const friendData = await fetchUserById(friendId);
+                const friendData = await fetchUserById(baseUrl, friendId);
                 setCurrentFriend(friendData);
             } catch (err) {
                 console.error('Failed to load conference or friend', err);
@@ -79,7 +79,7 @@ export const useChatInitialization = () => {
         const initializeEncryption = async () => {
             if (currentFriend?.id && currentUserId) {
                 try {
-                    const success = await initializeEncryptionWithFriend(currentFriend.id, currentUserId);
+                    const success = await initializeEncryptionWithFriend(baseUrl, currentFriend.id, currentUserId, csrfToken);
                     setEncryptionSessionReady(success);
                 } catch (error) {
                     console.error('Error initializing encryption with friend:', error);

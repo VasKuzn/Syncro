@@ -1,5 +1,6 @@
 import * as signalR from "@microsoft/signalr";
 import { HubConnectionState } from "@microsoft/signalr";
+import { config } from '../Config';
 
 type MessageCallback = (message: any) => void;
 
@@ -11,7 +12,7 @@ class MessageHub {
         if (this.connection) return this.connection;
 
         this.connection = new signalR.HubConnectionBuilder()
-            .withUrl("http://localhost:5232/personalmessageshub", {
+            .withUrl(`${config.apiUrl}/personalmessageshub`, {
                 withCredentials: true,
                 skipNegotiation: true,
                 transport: signalR.HttpTransportType.WebSockets

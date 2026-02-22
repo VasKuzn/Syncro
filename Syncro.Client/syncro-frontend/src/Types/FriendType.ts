@@ -22,7 +22,7 @@ export interface ShortFriend {
     email: string;
     firstname: string;
     lastname: string;
-    phonenumber:string;
+    phonenumber: string;
     avatar: string;
     friendShipId: string;
 }
@@ -33,6 +33,8 @@ export interface FriendProps {
     friends: Friend[];
     setFriends: React.Dispatch<React.SetStateAction<Friend[]>>;
     onFriendAdded?: () => void;
+    baseUrl: string;
+    csrfToken: string | null;
 }
 
 export interface FriendRequest {
@@ -48,9 +50,11 @@ export interface FriendDetailsProps {
     setFriends: React.Dispatch<React.SetStateAction<Friend[]>>;
     onAccept?: (friend: Friend) => void;
     onCancel?: (friend: Friend) => void;
-    filter?: FriendFilterTypes; 
-    isOpen?: boolean; 
-    onClose?: () => void; 
+    filter?: FriendFilterTypes;
+    isOpen?: boolean;
+    onClose?: () => void;
+    baseUrl: string;
+    csrfToken: string | null;
 }
 
 export interface AccountActivity {

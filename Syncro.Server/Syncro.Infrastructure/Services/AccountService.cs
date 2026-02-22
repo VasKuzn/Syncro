@@ -71,7 +71,6 @@ namespace Syncro.Infrastructure.Services
         public async Task<AccountModel> UpdateAccountAsync(Guid accountId, AccountModelDTO accountDto)
         {
             var existingAccount = await _accountRepository.GetAccountByIdAsync(accountId);
-
             existingAccount.nickname = accountDto.nickname;
             existingAccount.password = accountDto.password;
             existingAccount.email = accountDto.email;
@@ -88,7 +87,6 @@ namespace Syncro.Infrastructure.Services
             {
                 existingAccount.avatar = accountDto.avatar;
             }
-
             return await _accountRepository.UpdateAccountAsync(existingAccount);
         }
 
@@ -153,14 +151,14 @@ namespace Syncro.Infrastructure.Services
         public async Task<AccountModel> ResetPassword(Guid accountId, string password)
         {
             var existingAccount = await _accountRepository.GetAccountByIdAsync(accountId);
-            
+
             existingAccount.password = password;
 
             return await _accountRepository.UpdateAccountAsync(existingAccount);
         }
 
-        
-         public async Task<Result<bool>> Logout(Guid accountId)
+
+        public async Task<Result<bool>> Logout(Guid accountId)
         {
             try
             {

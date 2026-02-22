@@ -4,7 +4,7 @@ const BodyComponent = () => {
     const navigate = useNavigate();
     return (
         <section className="landing-main">
-            <h1>STAY SYNCHRONIZED<br />WITH YOUR BUDDIES</h1>
+            <h1 className="old-font">STAY SYNCHRONIZED<br />WITH YOUR BUDDIES</h1>
             <p>
                 Syncro is a great place to meet up with friends or just to create a global
                 community &#129315; Make your own space for conversations! Games! Hobbies!

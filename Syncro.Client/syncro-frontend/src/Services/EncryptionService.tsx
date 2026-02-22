@@ -1,6 +1,5 @@
 // Services/EncryptionService.ts
 import { PersonalMessageData } from '../Types/ChatTypes';
-import { getCsrfToken } from '../lib/csrfToken';
 
 interface DecryptionResult {
     success: boolean;
@@ -9,21 +8,20 @@ interface DecryptionResult {
 }
 
 class EncryptionService {
-    private baseUrl = 'http://localhost:5232/api/encryption';
 
     setCurrentUserId(_userId: string) {
         // No-op: kept for compatibility
     }
 
-    async generateKeys(userId: string): Promise<boolean> {
-        const csrfToken = getCsrfToken();
+    async generateKeys(baseUrl: string, userId: string, csrfToken: string | null): Promise<boolean> {
         try {
-            const response = await fetch(`${this.baseUrl}/keys/${userId}/generate`, {
+            const response = await fetch(`${baseUrl}/api/encryption/keys/${userId}/generate`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': csrfToken || ''
                 },
+                credentials: 'include'
             });
             return response.ok;
         } catch (error) {
@@ -32,9 +30,9 @@ class EncryptionService {
         }
     }
 
-    async getPublicKey(userId: string): Promise<string | null> {
+    async getPublicKey(baseUrl: string, userId: string): Promise<string | null> {
         try {
-            const response = await fetch(`${this.baseUrl}/keys/${userId}`);
+            const response = await fetch(`${baseUrl}/api/encryption/keys/${userId}`);
             if (response.ok) {
                 const data = await response.json();
                 return data.publicKey;
@@ -48,10 +46,9 @@ class EncryptionService {
 
 
 
-    async initializeSession(userId: string, contactId: string, contactPublicKey: string): Promise<boolean> {
-        const csrfToken = getCsrfToken();
+    async initializeSession(baseUrl: string, userId: string, contactId: string, contactPublicKey: string, csrfToken: string | null): Promise<boolean> {
         try {
-            const response = await fetch(`${this.baseUrl}/sessions/initialize`, {
+            const response = await fetch(`${baseUrl}/api/encryption/sessions/initialize`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -61,7 +58,8 @@ class EncryptionService {
                     userId,
                     contactId,
                     contactPublicKey
-                })
+                }),
+                credentials: 'include'
             });
             return response.ok;
         } catch (error) {
@@ -71,13 +69,14 @@ class EncryptionService {
     }
 
     async decryptMessage(
+        baseUrl: string,
         encryptedBase64: string,
         metadataJson: string,
-        senderId: string
+        senderId: string,
+        csrfToken: string | null
     ): Promise<DecryptionResult | null> {
-        const csrfToken = getCsrfToken();
         try {
-            const response = await fetch(`${this.baseUrl}/decrypt`, {
+            const response = await fetch(`${baseUrl}/api/encryption/decrypt`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -114,7 +113,7 @@ class EncryptionService {
         }
     }
 
-    async autoDecryptMessage(message: PersonalMessageData, senderId: string | null): Promise<PersonalMessageData> {
+    async autoDecryptMessage(baseUrl: string, message: PersonalMessageData, senderId: string | null, csrfToken: string | null): Promise<PersonalMessageData> {
         if (!message.isEncrypted || !message.encryptionMetadata || !message.messageContent) {
             return message;
         }
@@ -177,9 +176,11 @@ class EncryptionService {
             }
 
             const decryptionResult = await this.decryptMessage(
+                baseUrl,
                 cleanBase64,
                 metadataString,
-                senderId || ''
+                senderId || '',
+                csrfToken
             );
 
             if (decryptionResult?.success) {
@@ -204,9 +205,9 @@ class EncryptionService {
         }
     }
 
-    async hasSession(userId: string, contactId: string): Promise<boolean> {
+    async hasSession(baseUrl: string, userId: string, contactId: string): Promise<boolean> {
         try {
-            const response = await fetch(`${this.baseUrl}/sessions/check/${userId}/${contactId}`, {
+            const response = await fetch(`${baseUrl}/api/encryption/sessions/check/${userId}/${contactId}`, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' },
             });

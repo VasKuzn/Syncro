@@ -31,6 +31,14 @@
 
 * {
     box-sizing: border-box;
+    font-family: "Jost", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 600;
+    font-style: normal;
+}
+
+.old-font {
+    box-sizing: border-box;
     font-family: "Noto Sans", sans-serif;
     font-optical-sizing: auto;
     font-weight: 600;

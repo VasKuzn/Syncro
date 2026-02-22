@@ -12,7 +12,9 @@ export const FriendDetails = ({
   onCancel,
   filter = 'all',
   isOpen,
-  onClose
+  onClose,
+  baseUrl,
+  csrfToken
 }: FriendDetailsProps & {
   filter?: string;
   isOpen: boolean;
@@ -64,8 +66,8 @@ export const FriendDetails = ({
     if (!friend) return;
 
     try {
-      const currentUserId = await fetchCurrentUser();
-      const personalConferenceId = await getPersonalConference(currentUserId, friend.id);
+      const currentUserId = await fetchCurrentUser(baseUrl);
+      const personalConferenceId = await getPersonalConference(currentUserId, friend.id, baseUrl, csrfToken);
 
       handleClose();
 
@@ -82,7 +84,7 @@ export const FriendDetails = ({
           const { messageHub } = await import("../../Hubs/MessageHub");
           await messageHub.init();
           await messageHub.subscribeToConference(personalConferenceId);
-          await markMessagesAsRead(personalConferenceId);
+          await markMessagesAsRead(personalConferenceId, baseUrl, csrfToken);
 
           setFriends(prev =>
             prev.map(f =>

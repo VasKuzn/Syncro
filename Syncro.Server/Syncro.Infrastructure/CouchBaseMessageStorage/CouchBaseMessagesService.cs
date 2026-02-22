@@ -126,7 +126,7 @@ namespace Syncro.Infrastructure.CouchBaseMessageStorage
             FROM `{_bucketName}`.`{_scopeName}`.`{_collectionName}` m 
             WHERE m.type = 'message' 
             AND m.personalConferenceId = $personalConferenceId 
-            ORDER BY m.messageDateSent ASC";
+            ORDER BY m.messageDateSent DESC";
 
                 var parameters = new QueryOptions()
                     .Parameter("personalConferenceId", personalConferenceId);
@@ -144,6 +144,50 @@ namespace Syncro.Infrastructure.CouchBaseMessageStorage
             catch (Exception ex)
             {
                 Console.WriteLine($"Error getting messages by personal conference: {ex}");
+                throw;
+            }
+        }
+
+        public async Task<List<MessageModel>> GetAllMessagesByPersonalConferenceAsync(Guid personalConferenceId, int limit, int offset)
+        {
+            if (personalConferenceId == Guid.Empty)
+            {
+                throw new ArgumentException("Personal conference ID cannot be empty", nameof(personalConferenceId));
+            }
+
+            if (limit <= 0 || offset < 0)
+            {
+                throw new ArgumentException("Limit must be greater than 0 and offset must be greater than or equal to 0");
+            }
+
+            try
+            {
+                var query = $@"
+            SELECT m.* 
+            FROM `{_bucketName}`.`{_scopeName}`.`{_collectionName}` m 
+            WHERE m.type = 'message' 
+            AND m.personalConferenceId = $personalConferenceId 
+            ORDER BY m.messageDateSent DESC
+            LIMIT $limit OFFSET $offset";
+
+                var parameters = new QueryOptions()
+                    .Parameter("personalConferenceId", personalConferenceId)
+                    .Parameter("limit", limit)
+                    .Parameter("offset", offset);
+
+                var result = await _cluster.QueryAsync<MessageModel>(query, parameters);
+
+                var messages = new List<MessageModel>();
+                await foreach (var row in result)
+                {
+                    messages.Add(row);
+                }
+
+                return messages;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting messages by personal conference with pagination: {ex}");
                 throw;
             }
         }

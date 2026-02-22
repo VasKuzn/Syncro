@@ -1,5 +1,5 @@
-export const sendResetEmail = async (email: string) => {
-    const response = await fetch(`http://localhost:5232/api/accounts/forget_password`, {
+export const sendResetEmail = async (email: string, baseUrl: string) => {
+    const response = await fetch(`${baseUrl}/api/accounts/forget_password`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

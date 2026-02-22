@@ -41,15 +41,6 @@ public class AntiDirectAccessMiddleware
             return;
         }
 
-        // Если Sec-Fetch заголовков нет (старые браузеры) — проверяем X-Requested-With, TODO - пока не реализовано
-        if (!context.Request.Headers.TryGetValue("X-Requested-With", out var xrwValue) ||
-            xrwValue != "XMLHttpRequest")
-        {
-            context.Response.StatusCode = StatusCodes.Status403Forbidden;
-            await context.Response.WriteAsync("Direct access to API is forbidden.");
-            return;
-        }
-
         await _next(context);
     }
 }

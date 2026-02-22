@@ -4,7 +4,8 @@ import { PersonalMessageData } from '../Types/ChatTypes';
 
 const usePersonalMessagesHub = (
     personalConferenceId: string | null,
-    onMessageReceived: (message: PersonalMessageData) => void
+    onMessageReceived: (message: PersonalMessageData) => void,
+    baseUrl: string
 ) => {
     const connectionRef = useRef<HubConnection | null>(null);
     const onMessageReceivedRef = useRef(onMessageReceived);
@@ -23,7 +24,7 @@ const usePersonalMessagesHub = (
             }
 
             const connection = new HubConnectionBuilder()
-                .withUrl('http://localhost:5232/personalMessagesHub')
+                .withUrl(`${baseUrl}/personalMessagesHub`)
                 .configureLogging(LogLevel.Warning)
                 .withAutomaticReconnect()
                 .build();

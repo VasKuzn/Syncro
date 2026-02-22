@@ -6,6 +6,7 @@ import { Friend, AccountActivity } from "../Types/FriendType";
 import { fetchCurrentUser, getFriends, loadFriendInfo, getUserInfo } from "../Services/MainFormService"
 import { AnimatePresence, motion } from "framer-motion";
 import { ShortUserInfo } from "../Types/UserInfo";
+import { useCsrf } from '../Contexts/CsrfProvider';
 
 const Main = () => {
     const [friends, setFriends] = useState<Friend[]>([]);
@@ -14,10 +15,21 @@ const Main = () => {
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
     const [userInfo, setCurrentUserInfo] = useState<ShortUserInfo>();
     const [messageConnection, setMessageConnection] = useState<signalR.HubConnection | null>(null);
+    const { baseUrl, csrfToken } = useCsrf();
+
+
+    //КОСТЫЛЬ: Кто пофиксит - сделаю абалденный подарок
+    useEffect(() => {
+        const hasReloaded = sessionStorage.getItem('hasReloaded');
+        if (!hasReloaded) {
+            sessionStorage.setItem('hasReloaded', 'true');
+            window.location.reload();
+        }
+    }, []);
 
     const initSignalR = useCallback(async (userId: string | null) => {
         const newConnection = new signalR.HubConnectionBuilder()
-            .withUrl("http://localhost:5232/friendshub",
+            .withUrl(`${baseUrl}/friendshub`,
                 {
                     withCredentials: true,
                     skipNegotiation: true,
@@ -50,7 +62,7 @@ const Main = () => {
 
         try {
             const accConnection = new signalR.HubConnectionBuilder()
-                .withUrl("http://localhost:5232/accountshub", { withCredentials: true, skipNegotiation: true, transport: signalR.HttpTransportType.WebSockets })
+                .withUrl(`${baseUrl}/accountshub`, { withCredentials: true, skipNegotiation: true, transport: signalR.HttpTransportType.WebSockets })
                 .configureLogging(signalR.LogLevel.Information)
                 .build();
 
@@ -74,7 +86,7 @@ const Main = () => {
 
         try {
             const msgConnection = new signalR.HubConnectionBuilder()
-                .withUrl("http://localhost:5232/personalmessageshub",
+                .withUrl(`${baseUrl}/personalmessageshub`,
                     {
                         withCredentials: true,
                         skipNegotiation: true,
@@ -101,8 +113,8 @@ const Main = () => {
 
     const refreshFriendsData = useCallback(async (userId: string | null) => {
         try {
-            const friendsList = await getFriends(userId);
-            const friends = await loadFriendInfo(friendsList, userId);
+            const friendsList = await getFriends(userId, baseUrl);
+            const friends = await loadFriendInfo(friendsList, userId, baseUrl);
             setFriends(friends);
         } catch (error) {
             console.error("Ошибка обновления друзей:", error);
@@ -114,13 +126,13 @@ const Main = () => {
 
         const loadData = async () => {
             try {
-                const userId = await fetchCurrentUser();
+                const userId = await fetchCurrentUser(baseUrl);
                 setCurrentUserId(userId);
                 if (isMounted) {
                     await refreshFriendsData(userId);
                     await initSignalR(userId);
                 }
-                const info = await getUserInfo(userId)
+                const info = await getUserInfo(userId, baseUrl)
                 if (info) {
                     setCurrentUserInfo({ avatar: info.avatar, nickname: info.nickname, isOnline: true })
                 }
@@ -154,6 +166,8 @@ const Main = () => {
                     avatar={userInfo?.avatar}
                     isOnline={userInfo?.isOnline}
                     setFriends={setFriends}
+                    baseUrl={baseUrl}
+                    csrfToken={csrfToken}
                 />
             </motion.div>
         </AnimatePresence>

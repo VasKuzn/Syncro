@@ -3,11 +3,10 @@ import { useState, useRef, useEffect } from "react";
 import { getUserByNickname, fetchCurrentUser, sendFriendRequest, updateFriendStatus, deleteFriendship } from "../../Services/MainFormService";
 import { FriendDetails } from "./FriendDetails";
 import { emptyFilterMessages } from "../../Constants/FriendFilterMessages";
-import { motion } from 'framer-motion';
 import loadingIcon from '../../assets/usersicon.svg';
 import FriendItem from "./FriendItem";
 
-const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) => {
+const FriendsComponent = ({ friends, onFriendAdded, setFriends, baseUrl, csrfToken }: FriendProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const [notification, setNotification] = useState<{ message: string, isError: boolean } | null>(null);
     const [filter, setFilter] = useState<FriendFilterTypes>('all');
@@ -28,7 +27,7 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
 
     useEffect(() => {
         const loadCurrentUser = async () => {
-            const id = await fetchCurrentUser();
+            const id = await fetchCurrentUser(baseUrl);
             setCurrentUserId(id);
         };
         loadCurrentUser();
@@ -45,12 +44,12 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
             setIsLoading(true);
             setNotification(null);
 
-            const user = await getUserByNickname(nickname);
+            const user = await getUserByNickname(nickname, baseUrl);
             if (!user || !user.id) {
                 throw new Error("Пользователь не найден");
             }
 
-            const currentUserId = await fetchCurrentUser();
+            const currentUserId = await fetchCurrentUser(baseUrl);
             if (!currentUserId) throw new Error("Не удалось получить ID текущего пользователя");
 
             const existingFriend = friends.find(f =>
@@ -59,7 +58,7 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
 
             // Заявка была отклонена или получена
             if (existingFriend && existingFriend.userWhoReceived === currentUserId && (existingFriend.status === 2 || existingFriend.status === 0)) {
-                await updateFriendStatus(existingFriend.friendShipId, 1);
+                await updateFriendStatus(existingFriend.friendShipId, 1, baseUrl, csrfToken);
 
                 setFriends(prev => prev.map(f =>
                     f.id === existingFriend.id
@@ -93,7 +92,7 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
                     friendsSince: timestamp.toISOString()
                 };
 
-                await sendFriendRequest(request);
+                await sendFriendRequest(request, baseUrl, csrfToken);
 
                 if (addFriendInputRef.current) {
                     addFriendInputRef.current.value = '';
@@ -129,7 +128,7 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
     const handleAccept = async (friend: Friend) => {
         try {
             setIsLoading(true);
-            await updateFriendStatus(friend.friendShipId, 1);
+            await updateFriendStatus(friend.friendShipId, 1, baseUrl, csrfToken);
 
             setFriends(prevFriends =>
                 prevFriends.map(f =>
@@ -155,7 +154,7 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
     const handleDecline = async (friend: Friend) => {
         try {
             setIsLoading(true);
-            await updateFriendStatus(friend.friendShipId, 2);
+            await updateFriendStatus(friend.friendShipId, 2, baseUrl, csrfToken);
 
             setFriends(prevFriends =>
                 prevFriends.map(f =>
@@ -181,7 +180,7 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
     const handleCancelRequest = async (friend: Friend) => {
         try {
             setIsLoading(true);
-            await deleteFriendship(friend.friendShipId);
+            await deleteFriendship(friend.friendShipId, baseUrl, csrfToken);
 
             setFriends(prevFriends =>
                 prevFriends.filter(f => f.friendShipId !== friend.friendShipId)
@@ -204,7 +203,7 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
     const handleDeleteFriend = async (friend: Friend) => {
         try {
             setIsLoading(true);
-            await deleteFriendship(friend.friendShipId);
+            await deleteFriendship(friend.friendShipId, baseUrl, csrfToken);
 
             setFriends(prevFriends =>
                 prevFriends.filter(f => f.friendShipId !== friend.friendShipId)
@@ -447,6 +446,8 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends }: FriendProps) =
                         setIsModalOpen(false);
                         setTimeout(() => setSelectedFriendForModal(null), 300);
                     }}
+                    baseUrl={baseUrl}
+                    csrfToken={csrfToken}
                 />
             )}
         </div>

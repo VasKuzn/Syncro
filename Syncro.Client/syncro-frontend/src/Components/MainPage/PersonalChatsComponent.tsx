@@ -2,13 +2,13 @@ import { fetchCurrentUser, getPersonalConference, markMessagesAsRead } from "../
 import { FriendProps } from "../../Types/FriendType";
 import { useNavigate } from 'react-router-dom';
 
-const PersonalChatsComponent = ({ friends, setFriends }: FriendProps) => {
+const PersonalChatsComponent = ({ friends, setFriends, baseUrl, csrfToken }: FriendProps) => {
     const navigate = useNavigate();
 
     const handleChatClick = async (friend: any) => {
         try {
-            const currentUserId = await fetchCurrentUser();
-            const personalConferenceId = await getPersonalConference(currentUserId, friend.id);
+            const currentUserId = await fetchCurrentUser(baseUrl);
+            const personalConferenceId = await getPersonalConference(currentUserId, friend.id, baseUrl, csrfToken);
 
             // Немедленная навигация
             navigate("/chat", {
@@ -25,7 +25,7 @@ const PersonalChatsComponent = ({ friends, setFriends }: FriendProps) => {
                     const { messageHub } = await import("../../Hubs/MessageHub");
                     await messageHub.init();
                     await messageHub.subscribeToConference(personalConferenceId);
-                    await markMessagesAsRead(personalConferenceId);
+                    await markMessagesAsRead(personalConferenceId, baseUrl, csrfToken);
 
                     setFriends(prev =>
                         prev.map(f =>

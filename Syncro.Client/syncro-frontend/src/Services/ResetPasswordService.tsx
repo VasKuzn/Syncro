@@ -1,5 +1,5 @@
-export const validateResetToken = async (token: string) => {
-    const response = await fetch(`http://localhost:5232/api/accounts/validate_reset_token/${token}`, {
+export const validateResetToken = async (token: string, baseUrl: string) => {
+    const response = await fetch(`${baseUrl}/api/accounts/validate_reset_token/${token}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -9,8 +9,8 @@ export const validateResetToken = async (token: string) => {
     return response;
 };
 
-export const resetPassword = async (token: string, newPassword: string, confirmPassword: string) => {
-    const response = await fetch(`http://localhost:5232/api/accounts/reset_password`, {
+export const resetPassword = async (token: string, newPassword: string, confirmPassword: string, baseUrl: string) => {
+    const response = await fetch(`${baseUrl}/api/accounts/reset_password`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

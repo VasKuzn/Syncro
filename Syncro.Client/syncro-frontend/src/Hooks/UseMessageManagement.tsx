@@ -4,15 +4,20 @@ import { getMessages, createMessage, uploadMediaMessage } from '../Services/Chat
 import usePersonalMessagesHub from './UsePersonalMessages';
 import { encryptionService } from '../Services/EncryptionService';
 
+const PAGE_LIMIT = 35;
+
 export const useMessageManagement = ({
     personalConference,
     currentUserId,
     currentUser,
     encryptionSessionReady
-}: UseMessageManagementProps) => {
+}: UseMessageManagementProps, baseUrl: string, csrfToken: string | null) => {
     const [messages, setMessages] = useState<PersonalMessageData[]>([]);
     const [isUploading, setIsUploading] = useState(false);
     const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+    const [isLoadingOlderMessages, setIsLoadingOlderMessages] = useState(false);
+    const [currentOffset, setCurrentOffset] = useState(0);
+    const [hasMoreMessages, setHasMoreMessages] = useState(true);
 
     const processedMessagesRef = useRef<Set<string>>(new Set());
     const shouldScrollToBottomRef = useRef(false);
@@ -32,7 +37,7 @@ export const useMessageManagement = ({
         }
 
         try {
-            const decrypted = await encryptionService.autoDecryptMessage(message, message.accountId);
+            const decrypted = await encryptionService.autoDecryptMessage(baseUrl, message, message.accountId, csrfToken);
             return {
                 ...decrypted,
                 encryptionMetadata: undefined,
@@ -65,7 +70,7 @@ export const useMessageManagement = ({
         try {
             setIsLoadingMessages(true);
             shouldScrollToBottomRef.current = true;
-            const loadedMessages = await getMessages(personalConference);
+            const loadedMessages = await getMessages(baseUrl, personalConference, PAGE_LIMIT, 0);
             processedMessagesRef.current.clear();
 
             const decryptedMessages = await Promise.all(
@@ -76,7 +81,9 @@ export const useMessageManagement = ({
                 )
             );
 
-            setMessages(decryptedMessages);
+            setMessages(decryptedMessages.reverse());
+            setCurrentOffset(PAGE_LIMIT);
+            setHasMoreMessages(loadedMessages.length === PAGE_LIMIT);
         } catch (error) {
             console.error('Failed to load messages:', error);
         } finally {
@@ -87,6 +94,63 @@ export const useMessageManagement = ({
     useEffect(() => {
         loadMessages();
     }, [loadMessages]);
+
+    const loadOlderMessages = useCallback(async (chatElement: HTMLDivElement) => {
+        if (!personalConference || !currentUserId || isLoadingOlderMessages || !hasMoreMessages) return;
+
+        try {
+            setIsLoadingOlderMessages(true);
+
+            const scrollTopBefore = chatElement.scrollTop;
+            const scrollHeightBefore = chatElement.scrollHeight;
+
+            const olderMessages = await getMessages(baseUrl, personalConference, PAGE_LIMIT, currentOffset);
+
+            if (olderMessages.length === 0) {
+                setHasMoreMessages(false);
+                return;
+            }
+
+            const decryptedMessages = await Promise.all(
+                olderMessages.map((message) =>
+                    message.isEncrypted && message.encryptionMetadata
+                        ? decryptSingleMessage(message, true)
+                        : Promise.resolve(message)
+                )
+            );
+
+            const reversedMessages = decryptedMessages.reverse();
+
+            setMessages(prev => {
+                const merged = [...reversedMessages, ...prev];
+
+                const uniqueMessages = Array.from(
+                    new Map(merged.map(m => [m.id, m])).values()
+                );
+
+                return uniqueMessages;
+            });
+
+            setCurrentOffset(prev => prev + PAGE_LIMIT);
+            setHasMoreMessages(olderMessages.length === PAGE_LIMIT);
+
+            requestAnimationFrame(() => {
+                const scrollHeightAfter = chatElement.scrollHeight;
+                const heightAdded = scrollHeightAfter - scrollHeightBefore;
+
+                chatElement.style.scrollBehavior = 'auto';
+                chatElement.scrollTop = scrollTopBefore + heightAdded;
+
+                setTimeout(() => {
+                    chatElement.style.scrollBehavior = 'smooth';
+                }, 50);
+            });
+        } catch (error) {
+            console.error('Failed to load older messages:', error);
+        } finally {
+            setIsLoadingOlderMessages(false);
+        }
+    }, [personalConference, currentUserId, currentOffset, isLoadingOlderMessages, hasMoreMessages, decryptSingleMessage]);
 
     const handleNewMessage = useCallback((message: PersonalMessageData) => {
         try {
@@ -120,7 +184,7 @@ export const useMessageManagement = ({
         }
     }, [currentUserId, decryptSingleMessage, updateMessage]);
 
-    usePersonalMessagesHub(personalConference, handleNewMessage);
+    usePersonalMessagesHub(personalConference, handleNewMessage, baseUrl);
 
     const handleSend = useCallback(async (text: string, media?: {
         file: File;
@@ -170,9 +234,9 @@ export const useMessageManagement = ({
                     accountNickname: currentUser?.nickname || null,
                     personalConferenceId: personalConference,
                     isEncrypted: encryptionSessionReady
-                });
+                }, baseUrl, csrfToken);
             } else {
-                await createMessage(messageData);
+                await createMessage(messageData, baseUrl, csrfToken);
             }
         } catch (error) {
             console.error('Failed to send message:', error);
@@ -187,7 +251,10 @@ export const useMessageManagement = ({
         setMessages,
         isUploading,
         isLoadingMessages,
+        isLoadingOlderMessages,
         loadMessages,
+        loadOlderMessages,
+        hasMoreMessages,
         handleSend,
         shouldScrollToBottomRef
     };

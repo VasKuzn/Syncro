@@ -6,7 +6,11 @@ import * as signalR from "@microsoft/signalr";
 import { useNavigate } from "react-router-dom";
 import { UserInfo } from "../../Types/UserInfo";
 
-const GroupChatsComponent = () => {
+interface GroupChatsComponentProps {
+    baseUrl: string;
+}
+
+const GroupChatsComponent = ({ baseUrl }: GroupChatsComponentProps) => {
     const [groups, setGroups] = useState<GroupConf[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -16,7 +20,7 @@ const GroupChatsComponent = () => {
 
     const initSignalR = useCallback(async (userId: string) => {
         const newConnection = new signalR.HubConnectionBuilder()
-            .withUrl("http://localhost:5232/groupshub", {
+            .withUrl(`${baseUrl}/groupshub`, {
                 withCredentials: true,
                 skipNegotiation: true,
                 transport: signalR.HttpTransportType.WebSockets
@@ -26,7 +30,7 @@ const GroupChatsComponent = () => {
 
         newConnection.on("GroupsUpdated", () => {
             console.log("Received groups update notification");
-            getGroups(userId).then(gcs => setGroups(gcs));
+            getGroups(userId, baseUrl).then(gcs => setGroups(gcs));
         });
 
         try {
@@ -43,7 +47,7 @@ const GroupChatsComponent = () => {
     const refreshGroupsData = useCallback(async (userId: string) => {
         setLoading(true);
         try {
-            const gcs = await getGroups(userId);
+            const gcs = await getGroups(userId, baseUrl);
             setGroups(gcs);
         } catch (error) {
             setError((error as NetworkError).message || 'Network error');
@@ -58,9 +62,9 @@ const GroupChatsComponent = () => {
 
         const loadData = async () => {
             try {
-                const userId = await fetchCurrentUser();
+                const userId = await fetchCurrentUser(baseUrl);
                 if (isMounted && userId) {
-                    const userData = await getUserInfo(userId);
+                    const userData = await getUserInfo(userId, baseUrl);
                     setCurrentUser(userData);
 
                     await refreshGroupsData(userId);

@@ -54,7 +54,7 @@ dotnet ef database update
 dotnet run               
 
 ```
-Теперь клиент доступен по адресу http://localhost:5173, сервер — https://localhost:5232 (или указанному в конфигурации).
+Теперь клиент доступен по адресу http://localhost:5173, сервер — http://localhost:5232 (или указанному в конфигурации).
 
 ## 📡 Технологии
 Frontend: React (TS), Vite

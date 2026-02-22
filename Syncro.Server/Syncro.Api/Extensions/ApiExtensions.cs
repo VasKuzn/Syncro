@@ -76,10 +76,9 @@ namespace Syncro.Api.Extensions
             {
                 options.AddPolicy("FrontendPolicy", policy =>
                 {
-                    policy.WithOrigins("https://your-frontend-domain.com", "http://localhost:5173")
+                    policy.WithOrigins(configuration["Frontend_Url:Url"])
                         .AllowAnyHeader()
                         .AllowAnyMethod()
-                        .SetIsOriginAllowed(_ => true)
                         .AllowCredentials();
                 });
             });

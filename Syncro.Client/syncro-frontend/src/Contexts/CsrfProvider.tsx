@@ -1,9 +1,10 @@
 // CsrfProvider.tsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { setCsrfToken } from '../lib/csrfToken';
+import { config } from '../Config';
 
 interface CsrfContextType {
     csrfToken: string | null;
+    baseUrl: string;
     refreshCsrfToken: () => Promise<void>;
 }
 
@@ -20,14 +21,16 @@ export const useCsrf = () => {
 export const CsrfProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [csrfToken, setCsrfTokenState] = useState<string | null>(null);
 
+    const baseUrl = config.apiUrl;
+
     const fetchCsrfToken = async () => {
         try {
-            const response = await fetch('http://localhost:5232/api/security/csrf-token', {
+            const response = await fetch(`${baseUrl}/api/security/csrf-token`, {
                 credentials: 'include'
             });
+
             const data = await response.json();
             setCsrfTokenState(data.token);
-            setCsrfToken(data.token);
         } catch (error) {
             console.error('Failed to fetch CSRF token:', error);
         }
@@ -38,7 +41,7 @@ export const CsrfProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     return (
-        <CsrfContext.Provider value={{ csrfToken, refreshCsrfToken: fetchCsrfToken }}>
+        <CsrfContext.Provider value={{ csrfToken, baseUrl, refreshCsrfToken: fetchCsrfToken }}>
             {children}
         </CsrfContext.Provider>
     );

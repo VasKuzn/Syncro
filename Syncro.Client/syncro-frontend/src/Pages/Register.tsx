@@ -10,11 +10,13 @@ import { useRegisterForm } from '../Hooks/UseRegisterForm';
 import { registerUser } from '../Services/RegistrationService';
 import { AnimatePresence, motion } from 'framer-motion';
 import ErrorNotification from '../Components/RegisterPage/ErrorNotification';
+import { useCsrf } from '../Contexts/CsrfProvider';
 
 import { getRegisterErrorMessage } from '../Utils/ErrorRegistrationHelper';
 
 const Register = () => {
     const navigate = useNavigate();
+    const { baseUrl } = useCsrf();
 
     const {
         formState,
@@ -39,7 +41,8 @@ const Register = () => {
                 formState.password,
                 formState.nickname,
                 formState.phone,
-                null
+                null,
+                baseUrl
             );
             setFormState(prev => ({ ...prev, showSuccess: true }));
         } catch (error: any) {

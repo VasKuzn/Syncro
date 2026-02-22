@@ -6,4 +6,6 @@ export interface MainProps {
     avatar?: string;
     isOnline?: boolean;
     setFriends?: (friends: Friend[]) => void;
+    baseUrl: string;
+    csrfToken: string | null;
 }

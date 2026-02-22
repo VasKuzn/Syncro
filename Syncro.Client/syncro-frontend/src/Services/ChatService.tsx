@@ -1,10 +1,8 @@
 import { PersonalMessageData } from "../Types/ChatTypes";
 import { encryptionService } from "./EncryptionService";
-import { getCsrfToken } from '../lib/csrfToken';
 
-export const createMessage = async (message: PersonalMessageData) => {
-    const csrfToken = getCsrfToken();
-    const response = await fetch('http://localhost:5232/api/messages', {
+export const createMessage = async (message: PersonalMessageData, baseUrl: string, csrfToken: string | null) => {
+    const response = await fetch(`${baseUrl}/api/messages`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -20,12 +18,19 @@ export const createMessage = async (message: PersonalMessageData) => {
 
     return await response.json();
 }
-export const getMessages = async (personalConferenceId: string | null) => {
+export const getMessages = async (baseUrl: string, personalConferenceId: string | null, limit?: number, offset?: number) => {
     if (!personalConferenceId) {
         return [];
     }
+
+    let url = `${baseUrl}/api/messages/bypersonalconference?personalConferenceId=${personalConferenceId}`;
+
+    if (limit !== undefined && offset !== undefined) {
+        url += `&limit=${limit}&offset=${offset}`;
+    }
+
     const response = await fetch(
-        `http://localhost:5232/api/messages/bypersonalconference?personalConferenceId=${personalConferenceId}`,
+        url,
         {
             method: 'GET',
             credentials: 'include',
@@ -44,25 +49,27 @@ export const getMessages = async (personalConferenceId: string | null) => {
     return messages;
 }
 
-export const initializeEncryptionWithFriend = async (friendId: string, currentUserId: string | null): Promise<boolean> => {
+export const initializeEncryptionWithFriend = async (baseUrl: string, friendId: string, currentUserId: string | null, csrfToken: string | null): Promise<boolean> => {
     try {
         if (!currentUserId) return false;
 
-        const friendPublicKey = await encryptionService.getPublicKey(friendId);
+        const friendPublicKey = await encryptionService.getPublicKey(baseUrl, friendId);
         if (!friendPublicKey) {
             console.warn('Friend public key not found');
             return false;
         }
 
-        const hasSession = await encryptionService.hasSession(currentUserId, friendId);
+        const hasSession = await encryptionService.hasSession(baseUrl, currentUserId, friendId);
         if (hasSession) {
             return true;
         }
 
         return await encryptionService.initializeSession(
+            baseUrl,
             currentUserId,
             friendId,
-            friendPublicKey
+            friendPublicKey,
+            csrfToken
         );
     } catch (error) {
         console.error('Error initializing encryption with friend:', error);
@@ -79,9 +86,9 @@ export const uploadMediaMessage = async (
         accountNickname: string | null;
         personalConferenceId: string;
         isEncrypted?: boolean;
-    }
+    },
+    baseUrl: string, csrfToken: string | null
 ) => {
-    const csrfToken = getCsrfToken();
     const formData = new FormData();
     formData.append('file', data.file);
     formData.append('messageId', messageId);
@@ -90,10 +97,9 @@ export const uploadMediaMessage = async (
     formData.append('accountNickname', data.accountNickname ?? '');
     formData.append('personalConferenceId', data.personalConferenceId);
 
-    const response = await fetch(`http://localhost:5232/api/storage/${data.personalConferenceId}/${data.accountId}/${messageId}/media`, {
+    const response = await fetch(`${baseUrl}/api/storage/${data.personalConferenceId}/${data.accountId}/${messageId}/media`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
             'X-CSRF-TOKEN': csrfToken || ''
         },
         credentials: 'include',
@@ -107,15 +113,15 @@ export const uploadMediaMessage = async (
     return await response.json();
 }
 
-export const getPersonalConferenceById = async (id: string) => {
-    const response = await fetch(`http://localhost:5232/api/personalconference/${id}`);
+export const getPersonalConferenceById = async (baseUrl: string, id: string) => {
+    const response = await fetch(`${baseUrl}/api/personalconference/${id}`);
     if (!response.ok) {
         throw new Error("Failed to fetch conference");
     }
     return await response.json();
 };
-export const fetchUserById = async (userId: string) => {
-    const res = await fetch(`http://localhost:5232/api/accounts/${userId}`);
+export const fetchUserById = async (baseUrl: string, userId: string) => {
+    const res = await fetch(`${baseUrl}/api/accounts/${userId}`);
     if (!res.ok) throw new Error('Failed to fetch user');
     return res.json();
 };

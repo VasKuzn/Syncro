@@ -5,8 +5,10 @@ import { ForgotPasswordFormData } from '../Types/ForgotPasswordTypes';
 import { EMAIL_REGEX } from '../Constants/LoginConsts';
 import '../Styles/ResetPassword.css';
 import { sendResetEmail } from '../Services/ForgotPasswordService';
+import { useCsrf } from '../Contexts/CsrfProvider';
 
 const ForgotPassword = () => {
+    const { baseUrl } = useCsrf();
     const [formData, setFormData] = useState<ForgotPasswordFormData>({
         email: '',
     });
@@ -50,7 +52,7 @@ const ForgotPassword = () => {
         setIsLoading(true);
 
         try {
-            const result = await sendResetEmail(formData.email);
+            const result = await sendResetEmail(formData.email, baseUrl);
 
             if (!result.ok) {
                 if (result.status === 404) {

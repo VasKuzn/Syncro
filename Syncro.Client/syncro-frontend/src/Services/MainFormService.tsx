@@ -3,12 +3,11 @@ import { FriendRequest, Friend } from "../Types/FriendType";
 import { FriendList } from "../Types/FriendListType";
 import { PersonalConference } from "../Types/ChatTypes";
 import { UserInfo } from "../Types/UserInfo";
-import { getCsrfToken } from '../lib/csrfToken';
 
 //Friend Components Methods
-export const getUserByNickname = async (nickname: string) => {
+export const getUserByNickname = async (nickname: string, baseUrl: string) => {
     try {
-        const response = await fetch(`http://localhost:5232/api/accounts/${nickname}/getnick`, {
+        const response = await fetch(`${baseUrl}/api/accounts/${nickname}/getnick`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -27,9 +26,8 @@ export const getUserByNickname = async (nickname: string) => {
     }
 };
 
-export async function sendFriendRequest(request: FriendRequest): Promise<void> {
-    const csrfToken = getCsrfToken();
-    const response = await fetch("http://localhost:5232/api/Friends", {
+export async function sendFriendRequest(request: FriendRequest, baseUrl: string, csrfToken: string | null): Promise<void> {
+    const response = await fetch(`${baseUrl}/api/Friends`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -45,9 +43,8 @@ export async function sendFriendRequest(request: FriendRequest): Promise<void> {
     }
 }
 
-export async function updateFriendStatus(id: string, status: number): Promise<void> {
-    const csrfToken = getCsrfToken();
-    const response = await fetch(`http://localhost:5232/api/Friends/${id}/status`, {
+export async function updateFriendStatus(id: string, status: number, baseUrl: string, csrfToken: string | null): Promise<void> {
+    const response = await fetch(`${baseUrl}/api/Friends/${id}/status`, {
         method: "PATCH",
         headers: {
             "Content-Type": "application/json",
@@ -63,9 +60,8 @@ export async function updateFriendStatus(id: string, status: number): Promise<vo
     }
 }
 
-export async function deleteFriendship(friendshipId: string): Promise<void> {
-    const csrfToken = getCsrfToken();
-    const response = await fetch(`http://localhost:5232/api/Friends/${friendshipId}`, {
+export async function deleteFriendship(friendshipId: string, baseUrl: string, csrfToken: string | null): Promise<void> {
+    const response = await fetch(`${baseUrl}/api/Friends/${friendshipId}`, {
         method: "DELETE",
         headers: {
             "Content-Type": "application/json",
@@ -82,10 +78,10 @@ export async function deleteFriendship(friendshipId: string): Promise<void> {
 
 // GroupChatsComponent Methods
 
-export const getGroups = async (userId: string) => {
+export const getGroups = async (userId: string, baseUrl: string) => {
     try {
         const response = await fetch(
-            `http://localhost:5232/api/groupconference/${userId}/getbyaccount`,
+            `${baseUrl}/api/groupconference/${userId}/getbyaccount`,
             {
                 method: 'GET',
                 headers: {
@@ -110,9 +106,9 @@ export const getGroups = async (userId: string) => {
 //
 
 // MainForm Methods
-export async function fetchCurrentUser(): Promise<string | null> {
+export async function fetchCurrentUser(baseUrl: string): Promise<string | null> {
     try {
-        const response = await fetch("http://localhost:5232/api/accounts/current", {
+        const response = await fetch(`${baseUrl}/api/accounts/current`, {
             credentials: "include",
         });
 
@@ -128,17 +124,19 @@ export async function fetchCurrentUser(): Promise<string | null> {
     }
 }
 
-export const getFriends = async (userId: string | null) => {
-    const response = await fetch(`http://localhost:5232/api/Friends/${userId}/getfriends`, {
+export const getFriends = async (userId: string | null, baseUrl: string) => {
+    const response = await fetch(`${baseUrl}/api/Friends/${userId}/getfriends`, {
         credentials: 'include'
     });
+    if (!response.ok) {
+        throw new Error('Friends are not found');
+    }
     return await response.json();
 };
 
-export const getPersonalConference = async (userId: string | null, friendId: string | null): Promise<string> => {
-    const csrfToken = getCsrfToken();
+export const getPersonalConference = async (userId: string | null, friendId: string | null, baseUrl: string, csrfToken: string | null): Promise<string> => {
     try {
-        const response = await fetch(`http://localhost:5232/api/personalconference/${userId}/getbyaccount`, {
+        const response = await fetch(`${baseUrl}/api/personalconference/${userId}/getbyaccount`, {
             credentials: 'include'
         });
 
@@ -166,7 +164,7 @@ export const getPersonalConference = async (userId: string | null, friendId: str
             lastActivity: new Date().toISOString(),
         };
 
-        const createResponse = await fetch('http://localhost:5232/api/personalconference', {
+        const createResponse = await fetch(`${baseUrl}/api/personalconference`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -190,7 +188,8 @@ export const getPersonalConference = async (userId: string | null, friendId: str
 
 export const loadFriendInfo = async (
     friendsList: FriendList[],
-    userId: string | null
+    userId: string | null,
+    baseUrl: string
 ): Promise<Friend[]> => {
     const loadedFriends: Friend[] = [];
 
@@ -200,7 +199,7 @@ export const loadFriendInfo = async (
                 ? friend.userWhoRecieved
                 : friend.userWhoSent;
 
-        const response = await fetch(`http://localhost:5232/api/accounts/${friendId}`, {
+        const response = await fetch(`${baseUrl}/api/accounts/${friendId}`, {
             credentials: "include",
         });
 
@@ -233,9 +232,9 @@ export const loadFriendInfo = async (
     return loadedFriends;
 }
 //
-export async function getUserInfo(id: string | null): Promise<UserInfo | null> {
+export async function getUserInfo(id: string | null, baseUrl: string): Promise<UserInfo | null> {
     try {
-        const response = await fetch(`http://localhost:5232/api/accounts/full_account_info/${id}`, {
+        const response = await fetch(`${baseUrl}/api/accounts/full_account_info/${id}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -254,15 +253,15 @@ export async function getUserInfo(id: string | null): Promise<UserInfo | null> {
     }
 }
 
-export const markMessagesAsRead = async (personalConferenceId: string) => {
-    const csrfToken = getCsrfToken();
+export const markMessagesAsRead = async (personalConferenceId: string, baseUrl: string, csrfToken: string | null) => {
     try {
-        const response = await fetch(`http://localhost:5232/api/messages/read/all?personalConferenceId=${personalConferenceId}`, {
+        const response = await fetch(`${baseUrl}/api/messages/read/all?personalConferenceId=${personalConferenceId}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
                 'X-CSRF-TOKEN': csrfToken || '',
             },
+            credentials: 'include'
         });
         if (!response.ok) {
             const errorText = await response.text();

@@ -15,16 +15,18 @@ namespace Syncro.Api.Controllers
         private readonly IPersonalAccountInfoService _infoService;
         private readonly DataBaseContext _context;
         private readonly ILogger<AccountController> _logger;
+        private readonly string _frontend_url;
 
         private readonly IEmailService _emailService;
 
-        public AccountController(IAccountService accountService, IPersonalAccountInfoService infoService, IEmailService emailService, DataBaseContext context, ILogger<AccountController> logger)
+        public AccountController(IConfiguration configuration, IAccountService accountService, IPersonalAccountInfoService infoService, IEmailService emailService, DataBaseContext context, ILogger<AccountController> logger)
         {
             _accountService = accountService;
             _infoService = infoService;
             _emailService = emailService;
             _context = context;
             _logger = logger;
+            _frontend_url = configuration["Frontend_Url:Url"];
         }
 
         // GET: api/accounts
@@ -364,10 +366,11 @@ namespace Syncro.Api.Controllers
         [HttpPut("full_account_info/{id}")]
         public async Task<IActionResult> UpdateAccountWithPersonalInfoAsync(Guid id, [FromForm] AccountWithPersonalInfoModel model)
         {
+            var cookie = Request.Headers["Cookie"].ToString();
+            var token = Request.Headers["X-CSRF-TOKEN"].ToString();
             try
             {
                 var countryUpdateResult = await _infoService.UpdatePersonalAccountCountryAsync(id, model.country);
-
                 var updatedAccount = new AccountModelDTO
                 {
                     nickname = model.nickname,
@@ -379,7 +382,6 @@ namespace Syncro.Api.Controllers
                     avatar = model.avatar,
                     AvatarFile = model.AvatarFile
                 };
-
                 var accountUpdateResult = await _accountService.UpdateAccountAsync(id, updatedAccount);
 
                 return Ok("Account and personal info updated!");
@@ -436,8 +438,7 @@ namespace Syncro.Api.Controllers
                 await _context.PasswordResetToken.AddAsync(resetToken);
                 await _context.SaveChangesAsync();
 
-                var frontendUrl = "http://localhost:5173";
-                var resetUrl = $"{frontendUrl}/reset_password?token={token}";
+                var resetUrl = $"{_frontend_url}/reset_password?token={token}";
 
                 var emailBody = $@"
                 <h2>Сброс пароля для Syncro</h2>

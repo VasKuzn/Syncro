@@ -5,9 +5,11 @@ import { ResetPasswordFormData } from '../Types/ResetPasswordTypes';
 import '../Styles/ResetPassword.css';
 import { validateResetToken, resetPassword } from '../Services/ResetPasswordService';
 import { validatePassword } from '../Utils/Validations';
+import { useCsrf } from '../Contexts/CsrfProvider';
 
 const ResetPassword = () => {
     const [searchParams] = useSearchParams();
+    const { baseUrl } = useCsrf();
     const navigate = useNavigate();
     const token = searchParams.get('token');
 
@@ -37,7 +39,7 @@ const ResetPassword = () => {
             }
 
             try {
-                const response = await validateResetToken(token);
+                const response = await validateResetToken(token, baseUrl);
 
                 if (response.ok) {
                     const data = await response.json();
@@ -104,7 +106,7 @@ const ResetPassword = () => {
         setIsLoading(true);
 
         try {
-            const result = await resetPassword(token, formData.newPassword, formData.confirmPassword);
+            const result = await resetPassword(token, formData.newPassword, formData.confirmPassword, baseUrl);
 
             if (!result.ok) {
                 const errorData = await result.json();

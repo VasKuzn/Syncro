@@ -47,6 +47,8 @@ export interface PersonalChatProps {
     nickname?: string;
     avatar?: string;
     isOnline?: boolean;
+    baseUrl: string;
+    csrfToken: string | null;
 }
 export interface MessageInputProps {
     onSend: (text: string, media?: {

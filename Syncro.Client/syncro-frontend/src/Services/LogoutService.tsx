@@ -1,8 +1,8 @@
 import { NetworkError } from "../Types/LoginTypes";
 
-export const logoutUser = async (): Promise<boolean> => {
+export const logoutUser = async (baseUrl: string): Promise<boolean> => {
     try {
-        const response = await fetch('http://localhost:5232/api/accounts/logout', {
+        const response = await fetch(`${baseUrl}/api/accounts/logout`, {
             method: 'POST',
             credentials: 'include',
             headers: {

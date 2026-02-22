@@ -15,7 +15,8 @@ const UseRtcConnection = ({
     onIceCandidateReceived,
     onCallEnded,
     onIncomingCall,
-}: UseRtcConnectionParams) => {
+}: UseRtcConnectionParams,
+    baseUrl: string) => {
     const connectionRef = useRef<HubConnection | null>(null);
     const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
     const localStreamRef = useRef<MediaStream | null>(null);
@@ -294,7 +295,7 @@ const UseRtcConnection = ({
 
             try {
                 const connection = new HubConnectionBuilder()
-                    .withUrl("http://localhost:5232/videochathub", {
+                    .withUrl(`${baseUrl}/videochathub`, {
                         transport: 1,
                         skipNegotiation: true,
                         withCredentials: true,

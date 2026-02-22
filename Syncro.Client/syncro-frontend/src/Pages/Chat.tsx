@@ -16,12 +16,14 @@ import callIcon from '../assets/callicon.svg';
 import loadingIcon from '../assets/loadingicon.svg';
 import searchIcon from '../assets/search3.png';
 import arrowDownIcon from '../assets/arrow-down.png';
+import { useCsrf } from '../Contexts/CsrfProvider';
 
 const ChatPage = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+  const { baseUrl, csrfToken } = useCsrf();
 
   const [showFriendProfile, setShowFriendProfile] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -36,7 +38,7 @@ const ChatPage = () => {
     currentUser,
     encryptionSessionReady,
     setEncryptionSessionReady
-  } = useChatInitialization();
+  } = useChatInitialization(baseUrl, csrfToken);
 
   const scrollToBottom = useCallback(() => {
     if (messagesEndRef.current) {
@@ -54,6 +56,8 @@ const ChatPage = () => {
     messages,
     isUploading,
     isLoadingMessages,
+    isLoadingOlderMessages,
+    loadOlderMessages,
     handleSend: sendMessage,
     shouldScrollToBottomRef
   } = useMessageManagement({
@@ -61,7 +65,7 @@ const ChatPage = () => {
     currentUserId,
     currentUser,
     encryptionSessionReady
-  });
+  }, baseUrl, csrfToken);
 
   const search = useChatSearch(messages);
 
@@ -80,7 +84,7 @@ const ChatPage = () => {
   } = useCallManagement({
     currentFriend,
     currentUserId
-  });
+  }, baseUrl);
 
   const [showScrollDownButton, setShowScrollDownButton] = useState(false);
 
@@ -90,10 +94,15 @@ const ChatPage = () => {
     const chat = chatRef.current;
     const isScrolledUp = chat.scrollHeight - chat.scrollTop - chat.clientHeight > 300;
     setShowScrollDownButton(isScrolledUp || search.isSearchActive);
-  }, [search.isSearchActive]);
+
+    const scrollThreshold = 200;
+    if (chat.scrollTop < scrollThreshold && !isLoadingOlderMessages) {
+      loadOlderMessages(chat);
+    }
+  }, [search.isSearchActive, isLoadingOlderMessages, loadOlderMessages]);
 
   useEffect(() => {
-    if (shouldScrollToBottomRef.current && !isLoadingMessages && messages.length > 0) {
+    if (shouldScrollToBottomRef.current && !isLoadingMessages && !isLoadingOlderMessages && messages.length > 0) {
       const timer = setTimeout(() => {
         scrollToBottomInstant();
         shouldScrollToBottomRef.current = false;
@@ -101,13 +110,13 @@ const ChatPage = () => {
 
       return () => clearTimeout(timer);
     }
-  }, [messages, isLoadingMessages, scrollToBottomInstant, shouldScrollToBottomRef]);
+  }, [messages, isLoadingMessages, isLoadingOlderMessages, scrollToBottomInstant, shouldScrollToBottomRef]);
 
   useEffect(() => {
     const chat = chatRef.current;
     if (chat) {
       const isAtBottom = chat.scrollHeight - chat.scrollTop - chat.clientHeight < 100;
-      if (isAtBottom && !search.isSearchActive) {
+      if (isAtBottom && !search.isSearchActive && !isLoadingOlderMessages) {
         const timer = setTimeout(() => {
           scrollToBottom();
         }, 100);
@@ -115,7 +124,7 @@ const ChatPage = () => {
         return () => clearTimeout(timer);
       }
     }
-  }, [messages, search.isSearchActive, scrollToBottom]);
+  }, [messages, search.isSearchActive, scrollToBottom, isLoadingOlderMessages]);
 
   useEffect(() => {
     const chat = chatRef.current;
@@ -351,6 +360,13 @@ const ChatPage = () => {
                 </div>
               )}
 
+              {isLoadingOlderMessages && (
+                <div className="messages-loading-older">
+                  <div className="messages-decrypting-spinner"></div>
+                  <div className="messages-decrypting-text">Загрузка истории...</div>
+                </div>
+              )}
+
               <AnimatePresence mode="popLayout">
                 {messages.map((msg, i) => (
                   <motion.div
@@ -429,6 +445,8 @@ const ChatPage = () => {
         avatar={currentUser?.avatar}
         isOnline={true}
         setFriends={setFriends}
+        baseUrl={baseUrl}
+        csrfToken={csrfToken}
       />
 
       <FriendProfileChat

@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Antiforgery;
+
 namespace Syncro.Api.Extensions
 {
     public static class WebApplicationExtensions
@@ -14,13 +16,15 @@ namespace Syncro.Api.Extensions
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+            else
+            {
+                app.UseHttpsRedirection();
+            }
 
-            //app.UseHttpsRedirection();
             app.UseCors("FrontendPolicy");
-
             app.UseCookiePolicy(new CookiePolicyOptions
             {
-                MinimumSameSitePolicy = SameSiteMode.Strict,
+                MinimumSameSitePolicy = SameSiteMode.Lax,
                 Secure = CookieSecurePolicy.SameAsRequest,
             });
 

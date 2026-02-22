@@ -9,9 +9,11 @@ import { useNavigate } from 'react-router-dom';
 import { loginUser } from '../Services/AuthService';
 import { useAuthForm } from '../Hooks/UseAuthForm';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useCsrf } from '../Contexts/CsrfProvider';
 
 const Login = () => {
     const navigate = useNavigate();
+    const { baseUrl } = useCsrf();
     const {
         formState,
         setFormState,
@@ -29,7 +31,7 @@ const Login = () => {
         setFormState(prev => ({ ...prev, isLoading: true }));
 
         try {
-            await loginUser(formState.emailOrPhone, formState.password);
+            await loginUser(formState.emailOrPhone, formState.password, baseUrl);
             navigate('/main');
         } catch (error) {
             console.error('Ошибка авторизации:', error);

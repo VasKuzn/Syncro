@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Linq;
+using libsignalservice.push.exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
@@ -67,6 +68,11 @@ namespace Syncro.Api.Hubs
 
                         await Task.WhenAll(notificationTasks);
                     }
+                    catch (NotFoundException) // Специфическое исключение
+                    {
+                        _logger.LogDebug("User {UserId} has no friends, skipping online notifications", userId);
+                        // Это нормальная ситуация, не логируем как ошибку
+                    }
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "Failed to get friends for user {UserId} during online notification", userId);
@@ -78,7 +84,17 @@ namespace Syncro.Api.Hubs
             {
                 try
                 {
-                    var friends = await _friendsService.GetFriendsByAccountAsync(callerGuid);
+                    List<FriendsModel> friends;
+                    try
+                    {
+                        friends = await _friendsService.GetFriendsByAccountAsync(callerGuid);
+                    }
+                    catch (NotFoundException)
+                    {
+                        _logger.LogDebug("User {UserId} has no friends, sending empty list", userId);
+                        await Clients.Caller.SendAsync("OnlineFriends", new List<string>());
+                        return;
+                    }
 
                     if (friends is { Count: > 0 })
                     {
@@ -126,7 +142,17 @@ namespace Syncro.Api.Hubs
                         {
                             try
                             {
-                                var friends = await _friendsService.GetFriendsByAccountAsync(userGuid);
+                                List<FriendsModel> friends;
+                                try
+                                {
+                                    friends = await _friendsService.GetFriendsByAccountAsync(userGuid);
+                                }
+                                catch (NotFoundException)
+                                {
+                                    _logger.LogDebug("User {UserId} has no friends, skipping offline notifications", userId);
+                                    return;
+                                }
+
                                 var friendIds = friends
                                     .Where(f => f.status == Syncro.Domain.Enums.FriendsStatusEnum.Accepted)
                                     .Select(f => f.userWhoSent == userGuid ? f.userWhoRecieved : f.userWhoSent)

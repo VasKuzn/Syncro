@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 interface EnhancedSettingsComponentProps extends SettingsComponentProps {
     onAvatarUpdate: (file: File) => void;
     currentAvatarFile?: File | null;
+    baseUrl: string;
 }
 
 const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
@@ -28,6 +29,7 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
     onSubmit,
     onChange,
     onAvatarUpdate,
+    baseUrl
 }) => {
     const [showAvatarModal, setShowAvatarModal] = useState(false);
     const [showAIModal, setShowAIModal] = useState(false);
@@ -78,7 +80,7 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
         try {
             setIsLoggingOut(true);
 
-            await logoutUser();
+            await logoutUser(baseUrl);
 
             localStorage.clear();
             sessionStorage.clear();

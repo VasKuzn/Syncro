@@ -1,3 +1,5 @@
+using libsignalservice.push.exceptions;
+
 namespace Syncro.Infrastructure.Repositories
 {
     public class FriendsRepository : IFriendsRepository
@@ -23,10 +25,9 @@ namespace Syncro.Infrastructure.Repositories
             var friends = await _context.friends
                 .Where(f => f.userWhoSent == Id || f.userWhoRecieved == Id)
                 .ToListAsync();
-
-            if (friends == null || !friends.Any())
+            if (friends.Count == 0 || !friends.Any() || friends is null)
             {
-                throw new ArgumentException("Friends are not found");
+                throw new NotFoundException("Friends are not found");
             }
 
             return friends;

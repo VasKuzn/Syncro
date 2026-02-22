@@ -12,6 +12,7 @@ namespace Syncro.Application.Interfaces.CouchBaseStorage
         Task<MessageModel> SetMessageReferenceAsync(Guid messageId, Guid referencedMessageId);
         Task<MessageModel> ToggleMessagePinAsync(Guid messageId);
         Task<List<MessageModel>> GetAllMessagesByPersonalConferenceAsync(Guid personalConferenceId);
+        Task<List<MessageModel>> GetAllMessagesByPersonalConferenceAsync(Guid personalConferenceId, int limit, int offset);
         Task<MessageModel> UpdateMessageAsync(MessageModel message);
     }
 }

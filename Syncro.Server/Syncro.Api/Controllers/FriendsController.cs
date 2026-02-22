@@ -1,3 +1,5 @@
+using libsignalservice.push.exceptions;
+
 namespace Syncro.Api.Controllers
 {
     [ApiController]
@@ -60,14 +62,18 @@ namespace Syncro.Api.Controllers
         {
             try
             {
-                var friend = await _friendsService.GetFriendsByAccountAsync(id);
+                var friends = await _friendsService.GetFriendsByAccountAsync(id);
 
-                if (friend == null)
+                if (friends.Count == 0)
                 {
-                    return StatusCode(404, $"Friend not found error: ID {id}");
+                    return StatusCode(404, $"Friends not found error: ID {id}");
                 }
 
-                return Ok(friend);
+                return Ok(friends);
+            }
+            catch (NotFoundException ex)
+            {
+                return StatusCode(404, $"Friends not found exception: {ex.Message}");
             }
             catch (Exception ex)
             {
