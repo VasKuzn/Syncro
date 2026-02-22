@@ -7,6 +7,7 @@ const SidebarComponent = ({ friends, nickname, avatar, isOnline, setFriends }: M
     return (
         <div className="sidebar-container">
             <GroupChatsComponent />
+            
             <div className="main-sidebar-content">
                 <div className="search-pm">
                     <button className="button-search-pm">

@@ -9,6 +9,8 @@ import Settings from "./Pages/Settings";
 import ResetPassword from "./Pages/ResetPassword";
 import ForgotPassword from "./Pages/ForgotPassword";
 import ProtectedRoute from "./Components/ProtectedRoute";
+import GroupChatPage from './Pages/GroupChatPage';
+import GroupChatsComponent from "./Components/MainPage/GroupChatsComponent";
 
 
 const App = () => {
@@ -36,6 +38,17 @@ const App = () => {
             <Settings />
           </ProtectedRoute>
         } />
+        <Route path="/group-chats" element={
+        <ProtectedRoute>
+            <GroupChatsComponent />
+        </ProtectedRoute>
+    } />
+    
+    <Route path="/group-chat/:groupId" element={
+        <ProtectedRoute>
+            <GroupChatPage />
+        </ProtectedRoute>
+    } />
       </Routes>
     </Router>
   );

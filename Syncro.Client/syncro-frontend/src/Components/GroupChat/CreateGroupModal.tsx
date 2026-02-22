@@ -49,55 +49,131 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
         );
     };
 
-    // Создать группу
-    const handleCreate = async () => {
-        // Проверяем: нужно название и хотя бы один друг
-        if (!groupName.trim() || selectedFriends.length === 0 || !currentUserId) return;
+// Создать группу
+const handleCreate = async () => {
+    console.log('1. Начинаем создание группы');
+    
+    if (!groupName.trim() || selectedFriends.length === 0 || !currentUserId) return;
 
-        setIsCreating(true);
-        try {
-            // 1. Создаем группу
-            const group = await createGroup({
-                conferenceName: groupName,
-                groupConferenceType: 0
-            });
+    setIsCreating(true);
+    try {
+        // 1. Создаем группу
+        console.log('2. Создаем группу');
+        const group = await createGroup({
+            conferenceName: groupName,
+            groupConferenceType: 0
+        });
 
-            console.log('Группа создана:', group);
+        console.log('3. Группа создана, ID:', group.id);
 
-            // 2. Добавляем текущего пользователя в группу (с ролью админа)
-            await addGroupMember({
-                accountId: currentUserId,
-                groupConferenceId: group.id,
-                joiningDate: new Date(),
-                roleId: '00000000-0000-0000-0000-000000000001' // временно, потом поправим
-            });
-
-            // 3. Добавляем всех выбранных друзей
-            for (const friendId of selectedFriends) {
-                await addGroupMember({
-                    accountId: friendId,
-                    groupConferenceId: group.id,
-                    joiningDate: new Date(),
-                    roleId: '00000000-0000-0000-0000-000000000002' // временно, потом поправим
-                });
-            }
-
-            // 4. Сообщаем, что группа создана и переходим в нее
-            onGroupCreated(group.id);
-            
-            // 5. Закрываем модалку и сбрасываем поля
-            onClose();
-            setGroupName('');
-            setSelectedFriends([]);
-            
-        } catch (error) {
-            console.error('Ошибка создания группы:', error);
-            alert('Не удалось создать группу');
-        } finally {
-            setIsCreating(false);
+        // 2. СОЗДАЕМ РОЛИ ДЛЯ ЭТОЙ ГРУППЫ
+        console.log('4. Создаем роли для группы');
+        
+        // Роль администратора
+        const adminRole = {
+            id: crypto.randomUUID(),
+            conferenceId: group.id,
+            rolePermissions: 127  // Administrator (все права)
+        };
+        
+        const adminResponse = await fetch('http://localhost:5232/api/grouprole', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(adminRole)
+        });
+        
+        if (!adminResponse.ok) {
+            throw new Error('Не удалось создать роль администратора');
         }
-    };
+        
+        const adminRoleData = await adminResponse.json();
+        console.log('Роль администратора создана:', adminRoleData);
 
+        // Роль обычного участника
+        const memberRole = {
+            id: crypto.randomUUID(),
+            conferenceId: group.id,
+            rolePermissions: 112  // BasicMessaging (только сообщения)
+        };
+        
+        const memberResponse = await fetch('http://localhost:5232/api/grouprole', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(memberRole)
+        });
+        
+        if (!memberResponse.ok) {
+            throw new Error('Не удалось создать роль участника');
+        }
+        
+        const memberRoleData = await memberResponse.json();
+        console.log('Роль участника создана:', memberRoleData);
+
+        // 3. ТЕПЕРЬ ДОБАВЛЯЕМ УЧАСТНИКОВ С РОЛЯМИ
+        console.log('5. Добавляем участников');
+        
+        // Добавляем создателя (админ)
+        const creatorMember = {
+            id: crypto.randomUUID(),
+            accountId: currentUserId,
+            groupConferenceId: group.id,
+            joiningDate: new Date().toISOString(),
+            groupConferenceNickname: null,
+            roleId: adminRoleData.id  // ID созданной админ-роли
+        };
+        
+        await fetch('http://localhost:5232/api/groupconferencemember', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(creatorMember)
+        });
+        
+        // Добавляем друзей (обычные участники)
+        for (const friendId of selectedFriends) {
+            const friendMember = {
+                id: crypto.randomUUID(),
+                accountId: friendId,
+                groupConferenceId: group.id,
+                joiningDate: new Date().toISOString(),
+                groupConferenceNickname: null,
+                roleId: memberRoleData.id  // ID созданной роли участника
+            };
+            
+            await fetch('http://localhost:5232/api/groupconferencemember', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(friendMember)
+            });
+            
+            console.log(`Друг ${friendId} добавлен`);
+        }
+
+        // 4. Переходим в группу
+        console.log('6. Переходим в группу');
+        onGroupCreated(group.id);
+        onClose();
+        setGroupName('');
+        setSelectedFriends([]);
+        
+    } catch (error) {
+        console.error('ОШИБКА:', error);
+        alert('Не удалось создать группу: ' + (error as Error).message);
+    } finally {
+        setIsCreating(false);
+    }
+};
     // Фильтруем друзей по поиску
     const filteredFriends = friends.filter(friend =>
         friend.nickname?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -136,7 +212,7 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
                             className={`friend-item ${selectedFriends.includes(friend.id) ? 'selected' : ''}`}
                             onClick={() => toggleFriend(friend.id)}
                         >
-                            <img src={friend.avatar || './logo.png'} alt={friend.nickname} />
+                            <img src={friend.avatar || "logo.png"} alt={friend.nickname} />
                             <span>{friend.nickname}</span>
                             {selectedFriends.includes(friend.id) && <span>✓</span>}
                         </div>

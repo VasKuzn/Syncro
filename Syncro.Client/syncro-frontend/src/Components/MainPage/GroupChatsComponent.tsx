@@ -81,7 +81,7 @@ const GroupChatsComponent = () => {
                         friendsList.push({
                             id: friendId,
                             nickname: friendData.nickname || 'Без имени',
-                            avatar: friendData.avatar || null,
+                            avatar: friendData.avatar || "logo.png",
                             email: friendData.email,
                             phonenumber: friendData.phonenumber,
                             firstname: friendData.firstname,
@@ -166,15 +166,51 @@ const GroupChatsComponent = () => {
                 <div className="chat-separator"></div>
                 <div className="group-chat-list">
                     {groups.map(group => (
-                        <div key={group.id} className="group-chat-item">
-                            {group.conferenceName}
-                        </div>
-                    ))}
+    <div 
+        key={group.id}
+        className="group-chat-item"
+        onClick={() => navigate(`/group-chat/${group.id}`)}
+    >
+        <div className="group-icon-wrapper">
+            <img 
+                src="/logo-icon-transparent.png" 
+                alt="group" 
+                className="group-icon"
+            />
+            <span 
+                className="group-name-tooltip"
+                ref={(el) => {
+                    if (el) {
+                        // Позиционируем тултип справа от иконки
+                        const rect = el.parentElement?.getBoundingClientRect();
+                        if (rect) {
+                            const tooltipWidth = el.offsetWidth;
+                            let left = rect.right + 10; // 10px отступ справа от иконки
+                            
+                            // Проверяем, не выходит ли за правый край
+                            const maxLeft = window.innerWidth - tooltipWidth - 10;
+                            if (left > maxLeft) {
+                                // Если не помещается справа, показываем слева
+                                left = rect.left - tooltipWidth - 10;
+                            }
+                            
+                            // Проверяем, не выходит ли за левый край
+                            if (left < 10) left = 10;
+                            
+                            el.style.left = `${left}px`;
+                        }
+                    }
+                }}
+            >
+                {group.conferenceName}
+            </span>
+        </div>
+    </div>
+))}
                 </div>
                 <div 
                     className="group-chat-item add"
                     onClick={() => {
-                        console.log('Клик по +');
                         setShowCreateModal(true);
                     }}
                 >

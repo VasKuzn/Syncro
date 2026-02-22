@@ -92,25 +92,48 @@ export const createGroup = async (data: {
     return await response.json();
 };
 
-// 6. ДОБАВИТЬ УЧАСТНИКА В ГРУППУ
 export const addGroupMember = async (data: {
     accountId: string,
     groupConferenceId: string,
     joiningDate: Date,
     roleId: string
 }) => {
-    const response = await fetch(`${API_URL}/groupconferencemember`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-    });
+    console.log('GroupService.addGroupMember: отправка данных', data);
     
-    if (!response.ok) {
-        throw new Error('Failed to add member');
+    // Максимально простой объект
+    const requestData = {
+        accountId: data.accountId,
+        groupConferenceId: data.groupConferenceId,
+        joiningDate: data.joiningDate.toISOString(),
+        roleId: data.roleId
+    };
+    
+    console.log('GroupService.addGroupMember: подготовленные данные', requestData);
+    
+    try {
+        const response = await fetch('http://localhost:5232/api/groupconferencemember', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData)
+        });
+        
+        console.log('GroupService.addGroupMember: статус ответа', response.status);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.log('GroupService.addGroupMember: тело ошибки', errorText);
+            throw new Error(`Failed to add member: ${response.status} ${errorText}`);
+        }
+        
+        const result = await response.json();
+        console.log('GroupService.addGroupMember: результат', result);
+        return result;
+        
+    } catch (error) {
+        console.error('GroupService.addGroupMember: исключение', error);
+        throw error;
     }
-    
-    return await response.json();
 };
