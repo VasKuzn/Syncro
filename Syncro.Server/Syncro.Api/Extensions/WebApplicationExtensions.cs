@@ -18,7 +18,13 @@ namespace Syncro.Api.Extensions
             }
             else
             {
-                app.UseHttpsRedirection();
+                // Production: nginx handles HTTPS (SSL termination)
+                // ForwardedHeaders middleware reads X-Forwarded-Proto and other headers from nginx
+                app.UseForwardedHeaders(new ForwardedHeadersOptions
+                {
+                    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor |
+                                       Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
+                });
             }
 
             app.UseCors("FrontendPolicy");
