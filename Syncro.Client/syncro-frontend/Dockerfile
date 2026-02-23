@@ -1,11 +1,19 @@
-# Frontend build stage
 FROM node:23.8.0-alpine AS build
+
+ARG VITE_API_URL
+ARG VITE_ENVIRONMENT
+ARG VITE_USE_HTTPS
+ARG VITE_WS_URL
+
+ENV VITE_API_URL=$VITE_API_URL \
+    VITE_ENVIRONMENT=$VITE_ENVIRONMENT \
+    VITE_USE_HTTPS=$VITE_USE_HTTPS \
+    VITE_WS_URL=$VITE_WS_URL
 
 WORKDIR /app
 
 COPY package*.json ./
 RUN npm ci --legacy-peer-deps
-
 COPY . .
 RUN npm run build:prod
 

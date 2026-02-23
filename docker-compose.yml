@@ -58,16 +58,21 @@ services:
       - syncro-network
 
   frontend:
-    build:
-      context: ./Syncro.Client/syncro-frontend
-      dockerfile: Dockerfile
-    container_name: syncro-frontend
-    ports:
-      - "${FRONTEND_PORT:-80}:80"
-    depends_on:
-      - backend
-    networks:
-      - syncro-network
+  build:
+    context: ./Syncro.Client/syncro-frontend
+    dockerfile: Dockerfile
+    args:
+      VITE_API_URL: ${VITE_API_URL:-https://syncro-test.ru}
+      VITE_ENVIRONMENT: ${VITE_ENVIRONMENT:-production}
+      VITE_USE_HTTPS: ${VITE_USE_HTTPS:-true}
+      VITE_WS_URL: ${VITE_WS_URL:-wss://syncro-test.ru}
+  container_name: syncro-frontend
+  ports:
+    - "${FRONTEND_PORT:-80}:80"
+  depends_on:
+    - backend
+  networks:
+    - syncro-network
 
 volumes:
   postgres_data:
