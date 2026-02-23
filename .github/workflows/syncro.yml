@@ -20,7 +20,7 @@ jobs:
 
       # Установка sshpass для пароль-based аутентификации
       - name: Install sshpass
-        run: apt-get update && apt-get install -y sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
 
       # Копирование кода на сервер
       - name: Deploy code to server
