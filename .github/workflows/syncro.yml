@@ -18,20 +18,16 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # Установка SSH-ключа
-      - name: Install SSH Key
-        uses: shimataro/ssh-key-action@v2.3.1
-        with:
-          key: "${{ secrets.MY_KEY }}"
-          known_hosts: "just-a-placeholder-so-we-dont-get-errors"
-      
-      - name: Add server to known_hosts
-        run: ssh-keyscan -H ${{ env.SERVER_HOST }} >> ~/.ssh/known_hosts
+      # Установка sshpass для пароль-based аутентификации
+      - name: Install sshpass
+        run: apt-get update && apt-get install -y sshpass
 
       # Копирование кода на сервер
       - name: Deploy code to server
+        env:
+          SSHPASS: ${{ secrets.SERVER_PASSWORD }}
         run: |
-          rsync -avz \
+          sshpass -e rsync -avz \
             --delete \
             --exclude='.git' \
             --exclude='.gitignore' \
@@ -43,20 +39,25 @@ jobs:
             --exclude='.env' \
             --exclude='appsettings.*.json' \
             --exclude='password.txt' \
+            -e "ssh -o StrictHostKeyChecking=no" \
             ./ \
             ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }}:${{ env.SERVER_PATH }}/
 
       # Построение и запуск docker контейнеров
       - name: Build and run Docker containers
+        env:
+          SSHPASS: ${{ secrets.SERVER_PASSWORD }}
         run: |
-          ssh ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }} \
+          sshpass -e ssh -o StrictHostKeyChecking=no ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }} \
             "cd ${{ env.SERVER_PATH }} && \
              docker-compose down || true && \
              docker-compose up -d --build"
 
       # Вывод статуса контейнеров
       - name: Check container status
+        env:
+          SSHPASS: ${{ secrets.SERVER_PASSWORD }}
         run: |
-          ssh ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }} \
+          sshpass -e ssh -o StrictHostKeyChecking=no ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }} \
             "cd ${{ env.SERVER_PATH }} && \
              docker-compose ps"
