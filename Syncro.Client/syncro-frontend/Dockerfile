@@ -10,7 +10,7 @@ COPY . .
 RUN npm run build:prod
 
 # Frontend serve stage with Nginx
-FROM nginx:latest-alpine
+FROM nginx:1.25-alpine
 
 RUN rm /etc/nginx/conf.d/default.conf
 COPY nginx.conf /etc/nginx/conf.d/default.conf
