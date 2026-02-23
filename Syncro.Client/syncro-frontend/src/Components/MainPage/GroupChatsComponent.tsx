@@ -22,7 +22,7 @@ const GroupChatsComponent = ({ baseUrl }: GroupChatsComponentProps) => {
         const newConnection = new signalR.HubConnectionBuilder()
             .withUrl(`${baseUrl}/groupshub`, {
                 withCredentials: true,
-                skipNegotiation: true,
+                //skipNegotiation: true,
                 transport: signalR.HttpTransportType.WebSockets
             })
             .configureLogging(signalR.LogLevel.Information)

@@ -297,7 +297,7 @@ const UseRtcConnection = ({
                 const connection = new HubConnectionBuilder()
                     .withUrl(`${baseUrl}/videochathub`, {
                         transport: 1,
-                        skipNegotiation: true,
+                        //skipNegotiation: true,
                         withCredentials: true,
                     })
                     .configureLogging(LogLevel.Warning)

@@ -14,7 +14,7 @@ class MessageHub {
         this.connection = new signalR.HubConnectionBuilder()
             .withUrl(`${config.apiUrl}/personalmessageshub`, {
                 withCredentials: true,
-                skipNegotiation: true,
+                //skipNegotiation: true,
                 transport: signalR.HttpTransportType.WebSockets
             })
             .configureLogging(signalR.LogLevel.Information)

@@ -32,7 +32,7 @@ const Main = () => {
             .withUrl(`${baseUrl}/friendshub`,
                 {
                     withCredentials: true,
-                    skipNegotiation: true,
+                    //skipNegotiation: true,
                     transport: signalR.HttpTransportType.WebSockets
                 })
             .configureLogging(signalR.LogLevel.Information)
@@ -62,7 +62,12 @@ const Main = () => {
 
         try {
             const accConnection = new signalR.HubConnectionBuilder()
-                .withUrl(`${baseUrl}/accountshub`, { withCredentials: true, skipNegotiation: true, transport: signalR.HttpTransportType.WebSockets })
+                .withUrl(`${baseUrl}/accountshub`,
+                    {
+                        withCredentials: true,
+                        //skipNegotiation: true, 
+                        //transport: signalR.HttpTransportType.WebSockets 
+                    })
                 .configureLogging(signalR.LogLevel.Information)
                 .build();
 
@@ -89,8 +94,8 @@ const Main = () => {
                 .withUrl(`${baseUrl}/personalmessageshub`,
                     {
                         withCredentials: true,
-                        skipNegotiation: true,
-                        transport: signalR.HttpTransportType.WebSockets
+                        //skipNegotiation: true,
+                        //transport: signalR.HttpTransportType.WebSockets
                     })
                 .configureLogging(signalR.LogLevel.Information)
                 .build();
