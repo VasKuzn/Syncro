@@ -50,8 +50,8 @@ jobs:
         run: |
           sshpass -e ssh -o StrictHostKeyChecking=no ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }} \
             "cd ${{ env.SERVER_PATH }} && \
-             docker-compose down || true && \
-             docker-compose up -d --build"
+             docker compose down || true && \
+             docker compose up -d --build"
 
       # Вывод статуса контейнеров
       - name: Check container status
@@ -60,4 +60,4 @@ jobs:
         run: |
           sshpass -e ssh -o StrictHostKeyChecking=no ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }} \
             "cd ${{ env.SERVER_PATH }} && \
-             docker-compose ps"
+             docker compose ps"
