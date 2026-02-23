@@ -12,8 +12,8 @@ using Syncro.Infrastructure.Data.DataBaseContext;
 namespace Syncro.Infrastructure.Migrations
 {
     [DbContext(typeof(DataBaseContext))]
-    [Migration("20251126183818_ClearedUnusedColumns")]
-    partial class ClearedUnusedColumns
+    [Migration("20260223172519_InitialUpdate")]
+    partial class InitialUpdate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -172,6 +172,40 @@ namespace Syncro.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("GroupConferences", (string)null);
+                });
+
+            modelBuilder.Entity("Syncro.Domain.Models.PasswordResetTokenModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsUsed")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PasswordResetToken", (string)null);
                 });
 
             modelBuilder.Entity("Syncro.Domain.Models.PersonalAccountInfoModel", b =>
@@ -441,6 +475,114 @@ namespace Syncro.Infrastructure.Migrations
                     b.HasIndex("ownerId");
 
                     b.ToTable("Servers", (string)null);
+                });
+
+            modelBuilder.Entity("Syncro.Infrastructure.Encryption.Models.EncryptionSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("ContactId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp");
+
+                    b.Property<DateTime?>("LastUsed")
+                        .HasColumnType("timestamp");
+
+                    b.Property<string>("SessionData")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "ContactId")
+                        .IsUnique();
+
+                    b.ToTable("EncryptionSessions", (string)null);
+                });
+
+            modelBuilder.Entity("Syncro.Infrastructure.Encryption.Models.GroupEncryptionKey", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<int>("ChainId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp");
+
+                    b.Property<Guid>("CreatorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DistributionMessage")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("GroupConferenceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("SenderKey")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GroupConferenceId");
+
+                    b.HasIndex("GroupConferenceId", "IsActive");
+
+                    b.ToTable("GroupEncryptionKeys", (string)null);
+                });
+
+            modelBuilder.Entity("Syncro.Infrastructure.Encryption.Models.UserEncryptionKey", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("IdentityKey")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("timestamp");
+
+                    b.Property<string>("OneTimePreKeys")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PublicKey")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("SignedPreKey")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("UserEncryptionKeys", (string)null);
                 });
 
             modelBuilder.Entity("Syncro.Domain.Models.ConferenceRolesModel", b =>
