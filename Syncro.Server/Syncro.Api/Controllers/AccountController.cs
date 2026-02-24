@@ -250,7 +250,7 @@ namespace Syncro.Api.Controllers
             }
         }
 
-        // GET: получение personal account info по id
+        // GET: api/accounts/personal_info/{id} получение personal account info по id
         [HttpGet("personal_info/{id}")]
         public async Task<ActionResult<PersonalAccountInfoModel>> GetPersonalAccountInfoById(Guid id)
         {
