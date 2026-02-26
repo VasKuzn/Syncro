@@ -7,15 +7,19 @@ namespace Syncro.Api.Controllers
         private readonly IFriendsService _friendsService;
         private readonly IHubContext<FriendsHub> _hubContext;
         private readonly ILogger<FriendsController> _logger;
+        private readonly IOnlineNotificationsService _onlineNotificationsService;
 
         public FriendsController(
             IFriendsService friendsService,
             IHubContext<FriendsHub> hubContext,
-            ILogger<FriendsController> logger)
+            ILogger<FriendsController> logger,
+            IOnlineNotificationsService onlineNotificationsService
+            )
         {
             _friendsService = friendsService;
             _hubContext = hubContext;
             _logger = logger;
+            _onlineNotificationsService = onlineNotificationsService;
         }
 
         // GET: api/friends
@@ -178,6 +182,24 @@ namespace Syncro.Api.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to send friends update notification to user {UserId}", userId);
+            }
+        }
+
+        // GET: api/friends/
+        [HttpGet("GetAllNotifications/{userId}")]
+        public async Task<ActionResult<List<string>>> GetAllOnlineNotificationsTestAsync(Guid userId)
+        {
+            try
+            {
+                List<string> notifications = new List<string>();
+
+                notifications = await _onlineNotificationsService.GetAllOnlineNotificationsTest(userId);
+
+                return Ok(notifications);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
     }

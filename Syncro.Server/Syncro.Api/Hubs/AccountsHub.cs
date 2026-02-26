@@ -12,14 +12,17 @@ namespace Syncro.Api.Hubs
         private readonly IFriendsService _friendsService;
         private readonly IHubContext<FriendsHub> _friendsHubContext;
 
+        private readonly IOnlineNotificationsService _onlineNotificationsService;
+
         private static readonly ConcurrentDictionary<string, string> _connectionToUser = new();
         private static readonly ConcurrentDictionary<string, int> _userConnectionCounts = new();
 
-        public AccountsHub(ILogger<AccountsHub> logger, IFriendsService friendsService, IHubContext<FriendsHub> friendsHubContext)
+        public AccountsHub(ILogger<AccountsHub> logger, IFriendsService friendsService, IHubContext<FriendsHub> friendsHubContext, IOnlineNotificationsService onlineNotificationsService)
         {
             _logger = logger;
             _friendsService = friendsService;
             _friendsHubContext = friendsHubContext;
+            _onlineNotificationsService = onlineNotificationsService;
         }
 
         public async Task Register(string userId)
@@ -71,6 +74,8 @@ namespace Syncro.Api.Hubs
                     {
                         _logger.LogError(ex, "Failed to get friends for user {UserId} during online notification", userId);
                     }
+
+                    await _onlineNotificationsService.SendOnlineNotificationsAsync(userGuid, true);
                 }
             }
 
@@ -141,6 +146,8 @@ namespace Syncro.Api.Hubs
                                         Timestamp = DateTime.UtcNow
                                     });
                                 }
+
+                                await _onlineNotificationsService.SendOnlineNotificationsAsync(userGuid, false);
                             }
                             catch (Exception ex)
                             {

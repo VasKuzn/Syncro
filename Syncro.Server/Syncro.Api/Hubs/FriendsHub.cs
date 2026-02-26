@@ -24,5 +24,12 @@ namespace Syncro.Api.Hubs
             _logger.LogInformation($"Client disconnected: {Context.ConnectionId}");
             await base.OnDisconnectedAsync(exception);
         }
+
+        public override async Task OnConnectedAsync()
+        {
+            _logger.LogInformation($"Client connected: {Context.ConnectionId}");
+            
+            await base.OnConnectedAsync();
+        }
     }
 }

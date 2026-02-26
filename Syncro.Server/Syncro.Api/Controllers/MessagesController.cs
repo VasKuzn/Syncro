@@ -9,10 +9,13 @@ namespace Syncro.Api.Controllers
         private readonly ICouchBaseMessagesService _messageService;
         private readonly IHubContext<PersonalMessagesHub> _messagesHub;
 
-        public MessagesController(ICouchBaseMessagesService messageService, IHubContext<PersonalMessagesHub> messagesHub)
+        private readonly IMessageNotificationsService _messageNotificationsService;
+
+        public MessagesController(ICouchBaseMessagesService messageService, IHubContext<PersonalMessagesHub> messagesHub, IMessageNotificationsService messageNotificationsService)
         {
             _messageService = messageService;
             _messagesHub = messagesHub;
+            _messageNotificationsService = messageNotificationsService;
         }
 
         // GET: api/messages
@@ -76,6 +79,9 @@ namespace Syncro.Api.Controllers
                     await _messagesHub.Clients.Group($"personalconference-{createdMessage.personalConferenceId}").SendAsync("ReceivePersonalMessage", createdMessage);
                 }
                 //
+
+                await _messageNotificationsService.SendMessageNotificationsAsync(createdMessage);
+
                 return CreatedAtAction(nameof(GetMessageById), new { id = createdMessage.Id }, createdMessage);
             }
             catch (ArgumentException ex)
@@ -216,6 +222,24 @@ namespace Syncro.Api.Controllers
                     return StatusCode(404, $"Message not found error: ID {id}");
                 }
                 return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        // GET: api/messages/
+        [HttpGet("GetAllNotifications/{userId}")]
+        public async Task<ActionResult<List<string>>> GetAllMessagesNotificationsTestAsync(Guid userId)
+        {
+            try
+            {
+                List<string> notifications = new List<string>();
+
+                notifications = await _messageNotificationsService.GetAllMessageNotificationsTest(userId);
+
+                return Ok(notifications);
             }
             catch (Exception ex)
             {
