@@ -29,6 +29,44 @@ const VideoCall: React.FC<VideoCallProps> = ({
   const [speaking, setSpeaking] = useState(false);
   const currentVideoTrackRef = useRef<MediaStreamTrack | undefined>(null);
 
+  // Очистка srcObject при размонтировании
+  useEffect(() => {
+    return () => {
+      [localVideoRef, localScreenRef, remoteVideoRef, remoteScreenRef].forEach(ref => {
+        if (ref.current) {
+          ref.current.srcObject = null;
+        }
+      });
+    };
+  }, []);
+
+  // Эффект для перезапуска локального видео при включении камеры
+  useEffect(() => {
+    if (localVideoOn && localStream && localVideoRef.current) {
+      // Небольшая задержка, чтобы дать время треку включиться
+      const timer = setTimeout(() => {
+        const videoEl = localVideoRef.current;
+        if (!videoEl) return;
+
+        // Если srcObject не совпадает, устанавливаем заново
+        if (videoEl.srcObject !== localStream) {
+          videoEl.srcObject = localStream;
+        } else {
+          // Если совпадает, делаем сброс: null -> поток
+          videoEl.srcObject = null;
+          videoEl.srcObject = localStream;
+        }
+
+        // Пытаемся воспроизвести видео
+        videoEl.play().catch(err => {
+          console.error("Failed to play local video after toggle:", err);
+        });
+      }, 50);
+
+      return () => clearTimeout(timer);
+    }
+  }, [localVideoOn, localStream]);
+
   useEffect(() => {
     console.log("Remote stream changed in VideoCall:", remoteStream);
 
@@ -65,7 +103,7 @@ const VideoCall: React.FC<VideoCallProps> = ({
           .catch(err => console.error("Failed to play remote video:", err));
       }
     }
-  }, [remoteStream, remoteVideoRef.current]);
+  }, [remoteStream]);
 
   const handleRemoteVideoLoaded = () => {
     console.log("Remote video loadedmetadata");
@@ -246,7 +284,7 @@ const VideoCall: React.FC<VideoCallProps> = ({
   const handleToggleMic = () => {
     if (localStream) {
       const audioTracks = localStream.getAudioTracks();
-      audioTracks.forEach((track: MediaStreamTrack) => { // Добавлен тип
+      audioTracks.forEach((track: MediaStreamTrack) => {
         track.enabled = !track.enabled;
       });
       setMicOn(!micOn);
@@ -256,7 +294,7 @@ const VideoCall: React.FC<VideoCallProps> = ({
   const handleToggleCamera = () => {
     if (localStream) {
       const videoTracks = localStream.getVideoTracks();
-      videoTracks.forEach((track: MediaStreamTrack) => { // Добавлен тип
+      videoTracks.forEach((track: MediaStreamTrack) => {
         track.enabled = !track.enabled;
       });
       setLocalVideoOn(!localVideoOn);
@@ -314,7 +352,7 @@ const VideoCall: React.FC<VideoCallProps> = ({
               playsInline
               ref={remoteVideoRef}
               className="video-stream"
-              onLoadedMetadata={handleRemoteVideoLoaded} //e.currentTarget.play()} //{() => console.log("Remote video metadata loaded")}
+              onLoadedMetadata={handleRemoteVideoLoaded}
               onCanPlay={() => {
                 console.log("Remote video can play");
                 setRemoteVideoOn(true);

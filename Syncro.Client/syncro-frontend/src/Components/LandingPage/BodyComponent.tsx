@@ -7,7 +7,7 @@ const BodyComponent = () => {
             <h1 className="old-font">STAY SYNCHRONIZED<br />WITH YOUR BUDDIES</h1>
             <p>
                 Syncro is a great place to meet up with friends or just to create a global
-                community &#129315; Make your own space for conversations! Games! Hobbies!
+                community! Make your own space for conversations! Games! Hobbies!
             </p>
             <button className="primary-button" onClick={() => navigate("/login")}>
                 Open Syncro in a browser

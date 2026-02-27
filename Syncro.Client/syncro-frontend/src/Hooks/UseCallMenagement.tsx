@@ -54,6 +54,8 @@ export const useCallManagement = ({ currentFriend, currentUserId }: UseCallManag
             localStreamRef.current = null;
         }
         remoteStreamRef.current = null;
+        setLocalStream(null);
+        setRemoteStream(null);
     }, [currentFriend?.id, rtcConnection]);
 
     const handleStartCall = useCallback(async () => {
@@ -72,7 +74,10 @@ export const useCallManagement = ({ currentFriend, currentUserId }: UseCallManag
 
     const handleAcceptCall = useCallback(async () => {
         try {
+            // Сначала получаем локальный поток
             await rtcConnection.getLocalStream();
+            // Затем принимаем звонок (отправляем ответ с добавленными треками)
+            await rtcConnection.acceptCall();
             setShowCallModal(false);
             setInCall(true);
             setIncomingCall(false);
@@ -83,6 +88,7 @@ export const useCallManagement = ({ currentFriend, currentUserId }: UseCallManag
 
     const handleRejectCall = useCallback(() => {
         if (callInitiator) {
+            rtcConnection.rejectCall();
             rtcConnection.endCall(callInitiator);
         }
         setShowCallModal(false);

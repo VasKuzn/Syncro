@@ -155,34 +155,73 @@ const UseRtcConnection = ({
         }
     }, [initializePeerConnection, isConnected]);
 
-    const handleReceiveOffer = useCallback(async (senderId: string, offerString: string) => {
+    // Новый метод для принятия звонка (вызывается после получения локального потока)
+    const acceptCall = useCallback(async () => {
+        if (!pendingOfferRef.current) {
+            console.error("No pending offer to accept");
+            return;
+        }
+
+        const { senderId, offer } = pendingOfferRef.current;
         resetCallState();
 
         try {
-            console.log("Received offer from:", senderId);
-
-            onIncomingCall?.(senderId);
-
+            // Создаём PeerConnection, если его ещё нет (но он должен быть новым)
             const peerConnection = initializePeerConnection(senderId);
 
+            // Добавляем локальные треки (они уже должны быть получены через getLocalStream)
             if (localStreamRef.current) {
                 localStreamRef.current.getTracks().forEach(track => {
                     peerConnection.addTrack(track, localStreamRef.current!);
                 });
             }
 
-            const offer = JSON.parse(offerString) as RTCSessionDescriptionInit;
+            // Устанавливаем удалённое описание из сохранённого оффера
             await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
 
+            // Применяем накопленные ICE-кандидаты
+            for (const ice of pendingIceCandidatesRef.current) {
+                await peerConnection.addIceCandidate(new RTCIceCandidate(ice));
+            }
+            pendingIceCandidatesRef.current = [];
+
+            // Создаём ответ
             const answer = await peerConnection.createAnswer();
             await peerConnection.setLocalDescription(answer);
             await connectionRef.current?.invoke("SendAnswer", senderId, JSON.stringify(answer));
 
             console.log("Answer sent to:", senderId);
+            pendingOfferRef.current = null; // очищаем после успешного ответа
+        } catch (err) {
+            console.error("Error accepting call:", err);
+        }
+    }, [initializePeerConnection]);
+
+    // Метод для отклонения звонка (очищает pendingOffer)
+    const rejectCall = useCallback(() => {
+        if (pendingOfferRef.current) {
+            console.log("Rejecting call from:", pendingOfferRef.current.senderId);
+            // Можно отправить уведомление об отклонении, если нужно
+            pendingOfferRef.current = null;
+        }
+        pendingIceCandidatesRef.current = [];
+    }, []);
+
+    const handleReceiveOffer = useCallback(async (senderId: string, offerString: string) => {
+        resetCallState();
+
+        try {
+            console.log("Received offer from:", senderId);
+            // Сохраняем оффер, но НЕ создаём PeerConnection и НЕ отправляем ответ
+            const offer = JSON.parse(offerString) as RTCSessionDescriptionInit;
+            pendingOfferRef.current = { senderId, offer };
+
+            // Уведомляем UI о входящем звонке
+            onIncomingCall?.(senderId);
         } catch (err) {
             console.error("Error handling offer:", err);
         }
-    }, [initializePeerConnection, onIncomingCall]);
+    }, [onIncomingCall]);
 
     const handleReceiveAnswer = useCallback(async (answerInit: RTCSessionDescriptionInit) => {
         try {
@@ -283,6 +322,10 @@ const UseRtcConnection = ({
             if (connectionRef.current?.state === "Connected") {
                 await connectionRef.current.invoke("EndCall", receiverId);
             }
+
+            // Очищаем pending данные
+            pendingOfferRef.current = null;
+            pendingIceCandidatesRef.current = [];
         } catch (err) {
             console.error("Error ending call:", err);
         }
@@ -297,7 +340,6 @@ const UseRtcConnection = ({
                 const connection = new HubConnectionBuilder()
                     .withUrl(`${baseUrl}/videochathub`, {
                         transport: 1,
-                        //skipNegotiation: true,
                         withCredentials: true,
                     })
                     .configureLogging(LogLevel.Warning)
@@ -327,9 +369,11 @@ const UseRtcConnection = ({
                         peerConnectionRef.current = null;
                     }
                     onCallEnded?.("");
+                    // Очищаем pending данные
+                    pendingOfferRef.current = null;
+                    pendingIceCandidatesRef.current = [];
                 });
 
-                // Обработчики состояния подключения
                 connection.onclose((error) => {
                     console.warn("SignalR connection closed:", error);
                     setIsConnected(false);
@@ -345,7 +389,6 @@ const UseRtcConnection = ({
                     setIsConnected(true);
                 });
 
-                // Начинаем подключение
                 await connection.start();
                 connectionRef.current = connection;
                 setIsConnected(true);
@@ -377,7 +420,6 @@ const UseRtcConnection = ({
         };
     }, []);
 
-    // Функция для принудительной проверки состояния
     const checkConnectionStatus = useCallback(() => {
         if (connectionRef.current) {
             console.log("SignalR Status:", {
@@ -390,12 +432,10 @@ const UseRtcConnection = ({
         return false;
     }, []);
 
-
     return {
         createOffer,
-        handleReceiveOffer,
-        handleReceiveAnswer,
-        handleIceCandidate,
+        acceptCall,
+        rejectCall,
         getLocalStream,
         endCall: endCallInternal,
         replaceVideoTrack,
