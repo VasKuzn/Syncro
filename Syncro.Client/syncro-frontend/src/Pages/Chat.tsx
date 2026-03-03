@@ -165,9 +165,12 @@ const ChatPage = () => {
     mediaType: string;
     fileName: string;
   }) => {
-    await sendMessage(text, media);
+    // Очищаем значение немедленно, не дожидаясь завершения отправки
     setMessageInputValue('');
     setShowEmojiPicker(false);
+
+    // Отправляем сообщение асинхронно
+    await sendMessage(text, media);
   }, [sendMessage]);
 
 
@@ -275,12 +278,10 @@ const ChatPage = () => {
                     {rtcConnection.isConnected ? (
                       <>
                         <img className='call-state-img' src={callIcon} alt="Вызов" width="16" height="16" />
-                        Начать звонок
                       </>
                     ) : (
                       <>
                         <img className='loading-state-img' src={loadingIcon} alt="Подключение" width="16" height="16" />
-                        Подключение...
                       </>
                     )}
                   </motion.button>

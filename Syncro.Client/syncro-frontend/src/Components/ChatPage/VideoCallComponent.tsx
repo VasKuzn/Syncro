@@ -28,6 +28,7 @@ const VideoCall: React.FC<VideoCallProps> = ({
 
   const [speaking, setSpeaking] = useState(false);
   const currentVideoTrackRef = useRef<MediaStreamTrack | undefined>(null);
+  const screenStreamRef = useRef<MediaStream | null>(null);
 
   // Очистка srcObject при размонтировании
   useEffect(() => {
@@ -178,14 +179,24 @@ const VideoCall: React.FC<VideoCallProps> = ({
   // Обновляем состояние когда приходят потоки
   useEffect(() => {
     if (localStream) {
-      setLocalVideoOn(true);
+      // Проверяем наличие видео трека и не включен ли экран
+      const videoTrack = localStream.getVideoTracks()[0];
+      if (videoTrack && !localScreenOn) {
+        setLocalVideoOn(videoTrack.enabled && videoTrack.readyState === 'live');
+      }
       console.log("Local stream available, tracks:", localStream.getTracks().length);
     }
     if (remoteStream) {
-      setRemoteVideoOn(true);
+      // Проверяем наличие видео трека и не включена ли демонстрация экрана удаленного пользователя
+      const videoTrack = remoteStream.getVideoTracks()[0];
+      const isScreenShare = videoTrack?.label.toLowerCase().includes('screen') ||
+        videoTrack?.label.toLowerCase().includes('display');
+      if (!isScreenShare && videoTrack) {
+        setRemoteVideoOn(videoTrack.enabled && videoTrack.readyState === 'live');
+      }
       console.log("Remote stream available, tracks:", remoteStream.getTracks().length);
     }
-  }, [localStream, remoteStream]);
+  }, [localStream, remoteStream, localScreenOn]);
 
   // Устанавливаем srcObject для видео элементов
   useEffect(() => {
@@ -198,6 +209,32 @@ const VideoCall: React.FC<VideoCallProps> = ({
       remoteVideoRef.current.srcObject = remoteStream;
     }
   }, [localStream, remoteStream]);
+
+  // Отдельный эффект для управления экраном
+  useEffect(() => {
+    if (localScreenOn && screenStreamRef.current && localScreenRef.current) {
+      localScreenRef.current.srcObject = screenStreamRef.current;
+
+      // Пытаемся воспроизвести с задержкой
+      const playTimer = setTimeout(() => {
+        if (localScreenRef.current) {
+          localScreenRef.current.play()
+            .then(() => console.log("Screen video playing successfully"))
+            .catch(err => {
+              console.error("Failed to play screen:", err);
+              // Пробуем ещё раз
+              setTimeout(() => {
+                localScreenRef.current?.play().catch(e => console.error("Retry failed:", e));
+              }, 500);
+            });
+        }
+      }, 100);
+
+      return () => clearTimeout(playTimer);
+    } else if (!localScreenOn && localScreenRef.current) {
+      localScreenRef.current.srcObject = null;
+    }
+  }, [localScreenOn]);
 
   // Обработчик для отслеживания состояния видео треков
   useEffect(() => {
@@ -216,39 +253,67 @@ const VideoCall: React.FC<VideoCallProps> = ({
     }
   }, [localStream]);
 
+  // Отслеживание демонстрации экрана удаленного пользователя по label видео трека
+  useEffect(() => {
+    if (remoteStream) {
+      const videoTracks = remoteStream.getVideoTracks();
+      if (videoTracks.length > 0) {
+        const videoTrack = videoTracks[0];
+        // Проверяем label трека - браузер добавляет "screen" при getDisplayMedia()
+        const isScreenShare = videoTrack.label.toLowerCase().includes('screen') ||
+          videoTrack.label.toLowerCase().includes('display');
+        setRemoteScreenOn(isScreenShare);
+        setRemoteVideoOn(!isScreenShare);
+      }
+    }
+  }, [remoteStream]);
+
   const handleToggleScreenShare = async () => {
     if (!localScreenOn) {
       try {
         const screenStream = await navigator.mediaDevices.getDisplayMedia({
           video: true,
-          audio: true
+          audio: false
         });
 
         const screenVideoTrack = screenStream.getVideoTracks()[0];
-        const currentVideoTrack = localStream?.getVideoTracks()[0]; // Сохраняем камеру
+        if (!screenVideoTrack) {
+          return;
+        }
+
+        const currentVideoTrack = localStream?.getVideoTracks()[0];
         currentVideoTrackRef.current = currentVideoTrack;
 
-        if (screenVideoTrack) {
-          replaceVideoTrack(screenVideoTrack);
 
-          if (localStream && currentVideoTrack) {
-            localStream.removeTrack(currentVideoTrack);
-            localStream.addTrack(screenVideoTrack);
+        // Сохраняем поток в ref
+        screenStreamRef.current = screenStream;
 
-            if (localVideoRef.current) {
-              localVideoRef.current.srcObject = localStream;
-            }
-          }
+        // Заменяем трек в RTC соединении
+        replaceVideoTrack(screenVideoTrack);
 
-          setLocalScreenOn(true);
-          setLocalVideoOn(true);
-
-          screenVideoTrack.onended = () => {
-            handleStopScreenShare();
-          };
+        // Добавляем трек экрана к localStream
+        if (localStream && currentVideoTrack) {
+          localStream.removeTrack(currentVideoTrack);
+          localStream.addTrack(screenVideoTrack);
+          console.log("Added screen track to local stream");
         }
-      } catch (err) {
-        console.error("Screen share failed:", err);
+
+        setLocalScreenOn(true);
+        setLocalVideoOn(false);
+
+        // Обработчик конца демонстрации
+        screenVideoTrack.onended = () => {
+          console.log("Screen sharing ended by user");
+          handleStopScreenShare();
+        };
+
+        console.log("Screen share started successfully");
+      } catch (err: any) {
+        console.error("Screen share failed:", {
+          message: err.message,
+          name: err.name,
+          code: err.code
+        });
       }
     } else {
       handleStopScreenShare();
@@ -256,29 +321,58 @@ const VideoCall: React.FC<VideoCallProps> = ({
   };
 
   const handleStopScreenShare = async () => {
-    if (localScreenRef.current?.srcObject) {
-      const stream = localScreenRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach(track => track.stop());
-    }
+    try {
+      console.log("Stopping screen share...");
 
-    if (currentVideoTrackRef.current) {
-      replaceVideoTrack(currentVideoTrackRef.current);  // Восстанавливаем камеру
+      // Останавливаем поток экрана
+      if (screenStreamRef.current) {
+        screenStreamRef.current.getTracks().forEach(track => {
+          console.log("Stopping track:", track.kind, track.label);
+          track.stop();
+        });
+        screenStreamRef.current = null;
+      }
 
-      if (localStream) {
-        const screenTrack = localStream.getVideoTracks().find(track => track.kind === 'video');
-        if (screenTrack) {
-          localStream.removeTrack(screenTrack);
-        }
-        localStream.addTrack(currentVideoTrackRef.current);
+      // Восстанавливаем камеру
+      if (currentVideoTrackRef.current && localStream) {
+        const cameraTrack = currentVideoTrackRef.current;
 
+        console.log("Restoring camera track:", cameraTrack.label);
+
+        // Убираем все видео треки из потока
+        const videoTracks = localStream.getVideoTracks();
+        videoTracks.forEach(track => {
+          console.log("Removing track:", track.kind, track.label);
+          localStream.removeTrack(track);
+        });
+
+        // Добавляем трек камеры обратно
+        localStream.addTrack(cameraTrack);
+        console.log("Added camera track back to local stream");
+
+        // Заменяем трек в RTC соединении
+        replaceVideoTrack(cameraTrack);
+
+        // Включаем трек камеры
+        cameraTrack.enabled = true;
+
+        // Обновляем видео элемент камеры
         if (localVideoRef.current) {
+          localVideoRef.current.srcObject = null;
           localVideoRef.current.srcObject = localStream;
+          localVideoRef.current.play().catch(err => {
+            console.warn("Could not autoplay video:", err);
+          });
+          console.log("Camera video element updated");
         }
       }
-    }
 
-    setLocalScreenOn(false);
-    setLocalVideoOn(true);
+      setLocalScreenOn(false);
+      setLocalVideoOn(false);
+      console.log("Screen share stopped successfully");
+    } catch (err) {
+      console.error("Error stopping screen share:", err);
+    }
   };
 
   const handleToggleMic = () => {
@@ -292,6 +386,12 @@ const VideoCall: React.FC<VideoCallProps> = ({
   };
 
   const handleToggleCamera = () => {
+    // Если экран включен, не позволяем переключать "камеру" (это экран)
+    if (localScreenOn) {
+      console.log("Cannot toggle camera while screen sharing is active");
+      return;
+    }
+
     if (localStream) {
       const videoTracks = localStream.getVideoTracks();
       videoTracks.forEach((track: MediaStreamTrack) => {
@@ -316,7 +416,32 @@ const VideoCall: React.FC<VideoCallProps> = ({
         {/* Локальное видео */}
         <div className={`video-box ${expandedWindow === "localVideo" ? "main" : "side"} ${speaking ? "speaking" : ""}`}
           onClick={() => setExpandedWindow("localVideo")}>
-          {localVideoOn && localStream ? (
+          {localScreenOn ? (
+            <video
+              autoPlay
+              muted
+              playsInline
+              ref={localScreenRef}
+              className="video-stream"
+              onLoadedMetadata={() => {
+                console.log("Screen loadedmetadata");
+                if (localScreenRef.current) {
+                  localScreenRef.current.play().catch(err => {
+                    console.error("Failed to play on loadedmetadata:", err);
+                  });
+                }
+              }}
+              onCanPlay={() => {
+                console.log("Screen can play");
+              }}
+              onPlay={() => console.log("Screen started playing")}
+              onError={(e) => {
+                console.error("Screen video error:", e);
+                const target = e.target as HTMLVideoElement;
+                console.error("Screen error details:", target.error);
+              }}
+            />
+          ) : localVideoOn && localStream ? (
             <video
               autoPlay
               muted
@@ -335,8 +460,6 @@ const VideoCall: React.FC<VideoCallProps> = ({
                 console.error("Error details:", target.error);
               }}
             />
-          ) : localScreenOn ? (
-            <video autoPlay muted playsInline ref={localScreenRef} className="video-stream" />
           ) : (
             <img src={localAvatarUrl} className="video-avatar" alt="Local user" />
           )}
@@ -345,7 +468,9 @@ const VideoCall: React.FC<VideoCallProps> = ({
         {/* Удаленное видео */}
         <div className={`video-box ${expandedWindow === "remoteVideo" ? "main" : "side"} ${speaking ? "speaking" : ""}`}
           onClick={() => setExpandedWindow("remoteVideo")}>
-          {remoteVideoOn && remoteStream ? (
+          {remoteScreenOn ? (
+            <video autoPlay playsInline ref={remoteScreenRef} className="video-stream" />
+          ) : remoteVideoOn && remoteStream ? (
             <video
               autoPlay
               muted={false}
@@ -364,8 +489,6 @@ const VideoCall: React.FC<VideoCallProps> = ({
                 console.error("Error details:", target.error);
               }}
             />
-          ) : remoteScreenOn ? (
-            <video autoPlay playsInline ref={remoteScreenRef} className="video-stream" />
           ) : (
             <img src={remoteAvatarUrl} className="video-avatar" alt="Remote user" />
           )}

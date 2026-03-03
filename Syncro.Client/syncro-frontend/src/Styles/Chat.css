@@ -387,6 +387,7 @@ video::-webkit-media-controls-panel {
 }
 
 .call-button {
+  /*
   display: flex;
   background: #4a8cff;
   flex-shrink: 0;
@@ -397,10 +398,23 @@ video::-webkit-media-controls-panel {
   margin: 2px;
   cursor: pointer;
   transition: 0.2s;
+  */
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid #374151;
+  background: #4a8cff;
+  cursor: pointer;
+  display: flex;
+  margin-right: 10px;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+
 }
 
 .call-button:hover {
-  background: #357ae8;
+  border: 3px solid #374151;
 }
 
 .call-modal {
@@ -840,12 +854,11 @@ video::-webkit-media-controls-panel {
 
 .call-state-img,
 .loading-state-img {
-  margin-right: 8px;
   vertical-align: middle;
 }
 
 .call-state-img {
-  filter: invert(70%) sepia(85%) saturate(771%) hue-rotate(138deg) brightness(87%) contrast(95%);
+  filter: invert(70%) sepia(85%) saturate(771%) hue-rotate(138deg) brightness(100%) contrast(100%);
 }
 
 .send-state-img {
@@ -1194,10 +1207,6 @@ video::-webkit-media-controls-panel {
     gap: 8px;
   }
 
-  .search-button {
-    width: 36px;
-    height: 36px;
-  }
 }
 
 .messages-decrypting-overlay {

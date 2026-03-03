@@ -21,7 +21,6 @@ const UseRtcConnection = ({
     const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
     const localStreamRef = useRef<MediaStream | null>(null);
     const remoteStreamRef = useRef<MediaStream | null>(null);
-    const [remoteStreamState, setRemoteStreamState] = useState<MediaStream | null>(null);
     const isCallEndingRef = useRef(false);
     const pendingOfferRef = useRef<{ senderId: string; offer: RTCSessionDescriptionInit; } | null>(null);
     const pendingIceCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
@@ -66,14 +65,6 @@ const UseRtcConnection = ({
 
         const peerConnection = new RTCPeerConnection(ICE_SERVERS);
 
-        peerConnection.addTransceiver('video', {
-            direction: 'sendrecv',
-        });
-
-        peerConnection.addTransceiver('audio', {
-            direction: 'sendrecv',
-        });
-
         peerConnection.onicecandidate = (event: RTCPeerConnectionIceEvent) => {
             if (!event.candidate) return;
 
@@ -105,7 +96,6 @@ const UseRtcConnection = ({
             }
             const updatedStream = new MediaStream(remoteStreamRef.current.getTracks());
 
-            setRemoteStreamState(updatedStream);
             onRemoteStream?.(updatedStream);
         };
 
@@ -137,9 +127,15 @@ const UseRtcConnection = ({
 
             if (localStreamRef.current) {
                 localStreamRef.current.getTracks().forEach(track => {
-                    peerConnection.addTrack(track, localStreamRef.current!);
+                    if (!peerConnection.getSenders().find(s => s.track?.id === track.id)) {
+                        peerConnection.addTrack(track, localStreamRef.current!);
+                        console.log(`Added ${track.kind} track to peer connection`);
+                    }
                 });
             }
+
+            // Небольшая задержка для синхронизации
+            await new Promise(resolve => setTimeout(resolve, 50));
 
             const offer = await peerConnection.createOffer({
                 offerToReceiveAudio: true,
@@ -172,9 +168,15 @@ const UseRtcConnection = ({
             // Добавляем локальные треки (они уже должны быть получены через getLocalStream)
             if (localStreamRef.current) {
                 localStreamRef.current.getTracks().forEach(track => {
-                    peerConnection.addTrack(track, localStreamRef.current!);
+                    if (!peerConnection.getSenders().find(s => s.track?.id === track.id)) {
+                        peerConnection.addTrack(track, localStreamRef.current!);
+                        console.log(`Added ${track.kind} track to peer connection (answer)`);
+                    }
                 });
             }
+
+            // Небольшая задержка для синхронизации
+            await new Promise(resolve => setTimeout(resolve, 50));
 
             // Устанавливаем удалённое описание из сохранённого оффера
             await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
@@ -292,13 +294,22 @@ const UseRtcConnection = ({
         }
     }, [onLocalStream]);
 
-    const replaceVideoTrack = (track: MediaStreamTrack) => {
+    const replaceVideoTrack = useCallback((track: MediaStreamTrack) => {
         const sender = peerConnectionRef.current
             ?.getSenders()
             .find(s => s.track?.kind === "video");
 
-        sender?.replaceTrack(track);
-    };
+        if (sender) {
+            sender.replaceTrack(track).catch(err => {
+                console.error("Error replacing video track:", err);
+            });
+        } else {
+            console.warn("No video sender found, adding track instead");
+            if (peerConnectionRef.current && localStreamRef.current) {
+                peerConnectionRef.current.addTrack(track, localStreamRef.current);
+            }
+        }
+    }, []);
 
     const endCallInternal = useCallback(async (receiverId: string) => {
         if (isCallEndingRef.current) {

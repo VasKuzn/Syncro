@@ -31,9 +31,10 @@ const MessageInput = ({
         mediaType: selectedFile.type,
         mediaUrl: filePreview || ""
       } : undefined);
-      onValueChange("");
+      // Очищаем локальное состояние файла
       setSelectedFile(null);
       setFilePreview(null);
+      // ВАЖНО: Не очищаем 'value' здесь! Это должен сделать родительский компонент
     }
   };
 
