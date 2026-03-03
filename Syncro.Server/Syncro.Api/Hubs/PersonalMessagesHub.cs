@@ -21,6 +21,18 @@ namespace Syncro.Api.Hubs
             _logger.LogInformation($"User {Context.ConnectionId} unsubscribed from personal conference {personalConferenceId}");
         }
 
+        public async Task SendTyping(Guid personalConferenceId, string userNickname)
+        {
+            await Clients.GroupExcept($"personalconference-{personalConferenceId}", Context.ConnectionId)
+                .SendAsync("UserTyping", userNickname);
+        }
+
+        public async Task StopTyping(Guid personalConferenceId)
+        {
+            await Clients.GroupExcept($"personalconference-{personalConferenceId}", Context.ConnectionId)
+                .SendAsync("UserStoppedTyping");
+        }
+
         public override async Task OnConnectedAsync()
         {
             _logger.LogInformation($"Client connected: {Context.ConnectionId}");

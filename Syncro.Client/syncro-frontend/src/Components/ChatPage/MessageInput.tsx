@@ -12,16 +12,22 @@ const MessageInput = ({
   value,
   onValueChange,
   onToggleEmojiPicker,
-  showEmojiPicker
+  showEmojiPicker,
+  onTyping,
+  onStopTyping
 }: MessageInputProps & {
   value: string;
   onValueChange: (value: string) => void;
   onToggleEmojiPicker: () => void;
   showEmojiPicker: boolean;
+  onTyping?: () => void;
+  onStopTyping?: () => void;
 }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isTypingRef = useRef(false);
 
   const handleSend = () => {
     if ((value.trim() || selectedFile) && !disabled) {
@@ -70,11 +76,53 @@ const MessageInput = ({
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    onValueChange(newValue);
+
+    if (newValue.trim().length > 0) {
+      if (!isTypingRef.current) {
+        isTypingRef.current = true;
+        onTyping?.();
+      }
+
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+
+      typingTimeoutRef.current = setTimeout(() => {
+        isTypingRef.current = false;
+        onStopTyping?.();
+      }, 3000);
+    } else {
+      if (isTypingRef.current) {
+        isTypingRef.current = false;
+        if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current);
+        }
+        onStopTyping?.();
+      }
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !disabled) {
       handleSend();
+      isTypingRef.current = false;
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      onStopTyping?.();
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className={`message-input-container ${disabled ? 'disabled' : ''}`}>
@@ -113,7 +161,7 @@ const MessageInput = ({
         className="message-input-field"
         placeholder="Type a message..."
         value={value}
-        onChange={(e) => onValueChange(e.target.value)}
+        onChange={handleInputChange}
         onKeyDown={handleKeyDown}
         disabled={isUploading || disabled}
       />

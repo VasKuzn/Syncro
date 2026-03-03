@@ -12,6 +12,7 @@ import { useChatInitialization } from '../Hooks/UseChatInitialization';
 import { useCallManagement } from '../Hooks/UseCallMenagement';
 import { useMessageManagement } from '../Hooks/UseMessageManagement';
 import { useChatSearch } from '../Hooks/UseChatSearch';
+import { messageHub } from '../Hubs/MessageHub';
 import callIcon from '../assets/callicon.svg';
 import loadingIcon from '../assets/loadingicon.svg';
 import searchIcon from '../assets/search3.png';
@@ -28,6 +29,10 @@ const ChatPage = () => {
   const [showFriendProfile, setShowFriendProfile] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [messageInputValue, setMessageInputValue] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingFriendNickname, setTypingFriendNickname] = useState<string | null>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const currentUserNicknameRef = useRef<string | null>(null);
 
   const {
     friends,
@@ -39,6 +44,82 @@ const ChatPage = () => {
     encryptionSessionReady,
     setEncryptionSessionReady
   } = useChatInitialization(baseUrl, csrfToken);
+
+  useEffect(() => {
+    currentUserNicknameRef.current = currentUser?.nickname || null;
+  }, [currentUser?.nickname]);
+
+  useEffect(() => {
+    const initHub = async () => {
+      try {
+        const conn = await messageHub.init();
+        if (personalConference && conn) {
+          setTimeout(() => {
+            messageHub.subscribeToConference(personalConference);
+          }, 100);
+        }
+      } catch (error) {
+        console.error('Failed to initialize messageHub:', error);
+      }
+    };
+
+    if (personalConference) {
+      initHub();
+    }
+  }, [personalConference]);
+
+  useEffect(() => {
+    const handleUserTyping = (nickname: string) => {
+      if (nickname !== currentUserNicknameRef.current) {
+        setTypingFriendNickname(nickname);
+        setIsTyping(true);
+
+        if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current);
+        }
+
+        typingTimeoutRef.current = setTimeout(() => {
+          setIsTyping(false);
+          setTypingFriendNickname(null);
+        }, 5000);
+      }
+    };
+
+    const handleUserStoppedTyping = () => {
+      setIsTyping(false);
+      setTypingFriendNickname(null);
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+
+    messageHub.onUserTyping(handleUserTyping);
+    messageHub.onUserStoppedTyping(handleUserStoppedTyping);
+
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleInputTyping = useCallback(async () => {
+    if (!personalConference || !currentUser?.nickname) return;
+    try {
+      await messageHub.sendTyping(personalConference, currentUser.nickname);
+    } catch (error) {
+      console.error('Failed to send typing notification:', error);
+    }
+  }, [personalConference, currentUser?.nickname]);
+
+  const handleInputStopTyping = useCallback(async () => {
+    if (!personalConference) return;
+    try {
+      await messageHub.stopTyping(personalConference);
+    } catch (error) {
+      console.error('Failed to send stop typing notification:', error);
+    }
+  }, [personalConference]);
 
   const scrollToBottom = useCallback(() => {
     if (messagesEndRef.current) {
@@ -418,6 +499,26 @@ const ChatPage = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.3 }}
             >
+              <AnimatePresence>
+                {isTyping && typingFriendNickname && (
+                  <motion.div
+                    className="typing-indicator"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <span className="typing-nickname">{typingFriendNickname}</span>
+                    <span className="typing-text"> typing</span>
+                    <span className="typing-dots">
+                      <span>.</span>
+                      <span>.</span>
+                      <span>.</span>
+                    </span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <MessageInput
                 onSend={handleSend}
                 isUploading={isUploading}
@@ -425,6 +526,8 @@ const ChatPage = () => {
                 onValueChange={setMessageInputValue}
                 onToggleEmojiPicker={() => setShowEmojiPicker(!showEmojiPicker)}
                 showEmojiPicker={showEmojiPicker}
+                onTyping={handleInputTyping}
+                onStopTyping={handleInputStopTyping}
               />
               {showEmojiPicker && (
                 <motion.div

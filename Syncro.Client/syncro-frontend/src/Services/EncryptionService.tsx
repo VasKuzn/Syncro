@@ -121,7 +121,6 @@ class EncryptionService {
         try {
             const isLikelyBase64 = this.isValidBase64(message.messageContent);
             if (!isLikelyBase64) {
-                console.warn('Message content is not base64, treating as plaintext despite isEncrypted flag');
                 return {
                     ...message,
                     isEncrypted: false,
@@ -130,7 +129,6 @@ class EncryptionService {
             }
 
             if (message.messageContent.length < 4) {
-                console.warn('Message too short to be encrypted, treating as plaintext');
                 return {
                     ...message,
                     isEncrypted: false,
@@ -146,7 +144,6 @@ class EncryptionService {
             try {
                 atob(cleanBase64);
             } catch {
-                console.warn('Invalid base64 format, treating as plaintext');
                 return {
                     ...message,
                     isEncrypted: false,
@@ -160,18 +157,15 @@ class EncryptionService {
                 try {
                     JSON.parse(metadataString);
                 } catch {
-                    console.warn('Invalid encryption metadata format (string)');
                     throw new Error('Invalid metadata format');
                 }
             } else if (typeof message.encryptionMetadata === 'object' && message.encryptionMetadata !== null) {
                 try {
                     metadataString = JSON.stringify(message.encryptionMetadata);
                 } catch {
-                    console.warn('Failed to stringify encryption metadata object');
                     throw new Error('Invalid metadata format');
                 }
             } else {
-                console.warn('Invalid encryption metadata type');
                 throw new Error('Invalid metadata type');
             }
 

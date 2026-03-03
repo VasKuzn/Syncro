@@ -230,6 +230,67 @@
   display: none;
 }
 
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  margin: 0 16px 8px 16px;
+  background-color: rgba(99, 102, 241, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  font-size: 0.875rem;
+  color: #94A3B8;
+}
+
+.typing-nickname {
+  font-weight: 600;
+  color: #6366F1;
+}
+
+.typing-text {
+  color: #94A3B8;
+}
+
+.typing-dots {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 2px;
+}
+
+.typing-dots span {
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  background-color: #6366F1;
+  border-radius: 50%;
+  animation: typing-animation 1.4s infinite;
+}
+
+.typing-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing-animation {
+
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+
+  30% {
+    opacity: 1;
+    transform: translateY(-8px);
+  }
+}
+
 @media (max-width: 768px) {
   .sidebar-container {
     min-width: 280px;

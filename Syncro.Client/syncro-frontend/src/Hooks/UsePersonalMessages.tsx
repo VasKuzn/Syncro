@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
+import { HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
 import { PersonalMessageData } from '../Types/ChatTypes';
 
 const usePersonalMessagesHub = (
@@ -25,7 +25,6 @@ const usePersonalMessagesHub = (
 
             const connection = new HubConnectionBuilder()
                 .withUrl(`${baseUrl}/personalMessagesHub`)
-                .configureLogging(LogLevel.Warning)
                 .withAutomaticReconnect()
                 .build();
 
@@ -53,7 +52,7 @@ const usePersonalMessagesHub = (
                     .catch(console.error);
             }
         };
-    }, [personalConferenceId]);
+    }, [personalConferenceId, baseUrl]);
 
     return null;
 };
