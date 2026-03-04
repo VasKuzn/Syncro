@@ -23,7 +23,6 @@ const Settings = () => {
         emailField,
         phoneField,
         countryField,
-        passwordField,
         validateForm
     } = useSettingsForm();
 
@@ -50,12 +49,17 @@ const Settings = () => {
 
         try {
             const userData = new FormData()
-            userData.append("nickname", formState.nickname)
-            userData.append("firstname", formState.firstname)
-            userData.append("lastname", formState.lastname)
-            userData.append("email", formState.email)
-            userData.append("phonenumber", formState.phonenumber)
-            userData.append("password", formState.password)
+            Object.entries(formState).forEach(([key, value]) => {
+                if (value !== null && value !== '' && key !== 'password') {
+                    console.log(key, value.toString())
+                    userData.append(key, value.toString())
+                }
+            })
+            // userData.append("nickname", formState.nickname)
+            // userData.append("firstname", formState.firstname)
+            // userData.append("lastname", formState.lastname)
+            // userData.append("email", formState.email)
+            // userData.append("phonenumber", formState.phonenumber)
 
             if (avatarFile) {
                 userData.append("AvatarFile", avatarFile, avatarFile.name);
@@ -98,11 +102,10 @@ const Settings = () => {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 1, ease: "easeInOut" }}
             >
-                <SidebarComponent />
+                <SidebarComponent/>
                 <SettingsComponent
                     nickname={formState.nickname}
                     email={formState.email}
-                    password={formState.password}
                     firstname={formState.firstname}
                     lastname={formState.lastname}
                     phonenumber={formState.phonenumber}
@@ -114,7 +117,6 @@ const Settings = () => {
                     emailField={emailField}
                     phoneField={phoneField}
                     countryField={countryField}
-                    passwordField={passwordField}
                     onSubmit={e => handleSubmit(e)}
                     onChange={e => handleChange(e)}
                     onAvatarUpdate={handleAvatarUpdate}
