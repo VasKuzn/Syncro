@@ -1,9 +1,9 @@
 # 🎧 Syncro
-Syncro — это аналог Discord на ранней стадии разработки. Приложение позволяет пользователям общаться в персональных и групповых конференциях, обмениваться сообщениями и управлять своей учетной записью.
+Syncro — это аналог Discord на ранней стадии разработки. Приложение позволяет пользователям общаться в персональных и групповых конференциях, совершать звонки обмениваться сообщениями и управлять своей учетной записью, а также добавлять друзей!
 
 ## Текущий стек:
 
-⚛️ React (TypeScript), Vite, .NET 9.0, Entity Framework, SignalR, JWT, S3 хранилище для медиа-файлов
+⚛️ React (TypeScript), Vite, .NET 9.0, Entity Framework(PostgreSQL), SignalR, JWT, S3 хранилище для медиа-файлов, CouchBase для сообщений пользователей
 
 🧪 Статус: Активная разработка
 
@@ -15,32 +15,39 @@ Syncro — это аналог Discord на ранней стадии разра
 
 📋 Главное меню с навигацией по конференциям и друзьям!
 
+🚨 Добавление друзей, создание чатов
+
+🙌 CSRF, XSS защита, настроенная CORS политика, HTTPS
+
+🛠️ Звонки друзьям! Beta version
+
+🤕 Восстановление аккаунта через сброс пароля с письмом на почту!
+
 ## 🔮 В планах:
 Система серверов (аналог Discord серверов)
 
-Голосовая и видеосвязь
-
-Демонстрация экрана
-
 UI/UX polishing и мобильная адаптация
+
+Добавление шифрования в группы(signal protocol / новые протоколы)
 
 ## 🚀 Быстрый старт
 📦 Требования
 
-Node.js (используется через nvm)
+Node.js 23.8.0 и выше (используется через nvm)
 
 .NET 9.0 SDK
 
-PostgreSQL
+PostgreSQL 15.0 и выше
 
 ## 🧰 Установка
+
 1. Клонируйте репозиторий
 
 2. Настройка фронтенда
 
 ```bash
 
-cd Syncro.Client
+cd Syncro.Client/syncro-frontend
 npm install
 npm run dev
 
@@ -48,20 +55,15 @@ npm run dev
 3. Настройка бэкенда
 ```bash
 
-cd Syncro.Server
+cd Syncro.Server/Syncro.Api
 dotnet restore
-dotnet ef database update
 dotnet run               
 
 ```
 Теперь клиент доступен по адресу http://localhost:5173, сервер — http://localhost:5232 (или указанному в конфигурации).
 
-## 📡 Технологии
-Frontend: React (TS), Vite
+## 🤯 Доступ к развернутому приложению
 
-Backend: .NET 9.0, Entity Framework Core, SignalR
+Приложение развернуто на инфраструктуре Selectel. 
 
-Auth: JWT (Access/Refresh tokens)
-
-Real-Time: SignalR
-
+Ссылка для доступа: https://syncro-test.ru
