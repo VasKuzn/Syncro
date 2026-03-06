@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import UseRtcConnection from './UseRtcConnection';
 import { UseCallManagementProps } from '../Types/ChatTypes';
 
-export const useCallManagement = ({ currentFriend, currentUserId }: UseCallManagementProps, baseUrl: string) => {
+export const useCallManagement = ({ currentFriend }: UseCallManagementProps, baseUrl: string) => {
     const [showCallModal, setShowCallModal] = useState(false);
     const [inCall, setInCall] = useState(false);
     const [incomingCall, setIncomingCall] = useState(false);
@@ -16,8 +16,8 @@ export const useCallManagement = ({ currentFriend, currentUserId }: UseCallManag
     const rtcConnection = UseRtcConnection({
         onRemoteStream: (stream: MediaStream) => {
             console.log("Remote stream received");
-            remoteStreamRef.current = new MediaStream(stream.getTracks());
-            setRemoteStream(new MediaStream(stream.getTracks()));
+            remoteStreamRef.current = stream;
+            setRemoteStream(stream);
         },
         onLocalStream: (stream: MediaStream) => {
             console.log("Local stream received");
@@ -74,9 +74,7 @@ export const useCallManagement = ({ currentFriend, currentUserId }: UseCallManag
 
     const handleAcceptCall = useCallback(async () => {
         try {
-            // Сначала получаем локальный поток
             await rtcConnection.getLocalStream();
-            // Затем принимаем звонок (отправляем ответ с добавленными треками)
             await rtcConnection.acceptCall();
             setShowCallModal(false);
             setInCall(true);
