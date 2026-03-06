@@ -341,7 +341,7 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends, baseUrl, csrfTok
                             <span className="button-loader" />
                             Отправка...
                         </>
-                    ) : 'Добавить в друзья'}
+                    ) : 'Отправить запрос дружбы'}
                 </button>
             </div>
 

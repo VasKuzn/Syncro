@@ -96,7 +96,7 @@ body {
 .profile-panel {
     height: 70px;
     background-color: #1a2438ab;
-    border-radius: 35px;
+    border-radius: 30px;
     display: flex;
     align-items: center;
     justify-content: left;
@@ -232,6 +232,7 @@ body {
     outline: none;
     border: none;
     gap: 8px;
+    margin-top: 6px;
 }
 
 .friends-nav .input-container {
@@ -341,6 +342,8 @@ body {
     padding: 5px 20px 10px 5px;
 }
 
+
+
 .input-box {
     display: flex;
     padding: 5px 5px;
@@ -352,9 +355,17 @@ body {
     font-size: large;
     display: flex;
     flex: 1;
-    border: none;
+    border: 1px solid transparent;
     background-color: transparent;
     color: #ffffff;
+    outline: none;
+    transition: 0.35s ease;
+    border-radius: 6px;
+}
+
+.friends-search:focus {
+    border-color: #6366F1;
+    background: linear-gradient(145deg, #111827, #1e293b);
 }
 
 .search-icon {
@@ -403,7 +414,7 @@ body {
     cursor: pointer;
     box-sizing: border-box;
     z-index: 1;
-    transition: all 0.35s ease;
+    transition: all 0.10s ease;
     cursor: pointer;
 }
 
@@ -433,8 +444,8 @@ body {
 
 .pc-item .friend-info-container:hover {
     background: #23244a;
-    box-shadow: 0 2px 8px #3b82f6;
-    border-radius: 5px;
+    box-shadow: 0 1px 8px #23244a;
+    border-radius: 10px;
     transform: scale(1.02);
     z-index: 2;
     transition: all 0.25s ease;

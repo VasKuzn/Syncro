@@ -396,7 +396,7 @@
 .sk-class img {
   width: 35px;
   height: 35px;
-  transition: all 0.15s;
+  transition: all 0.2s;
   filter: invert(30%) sepia(55%) saturate(571%) hue-rotate(128deg) brightness(97%) contrast(30%);
 }
 
@@ -1073,13 +1073,12 @@ video::-webkit-media-controls-panel {
   align-items: center;
   justify-content: center;
   z-index: 2;
-  transition: all 0.3s ease;
+  transition: all 0.1s ease;
 }
 
 .scroll-down-button:hover {
   background: linear-gradient(145deg, #2563EB, #1D4ED8);
   transform: scale(1.15) translateY(-2px);
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .scroll-down-button:active {
