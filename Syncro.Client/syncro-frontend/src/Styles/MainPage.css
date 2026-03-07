@@ -206,6 +206,7 @@ body {
     align-items: center;
     height: 50px;
     width: 50px;
+    margin-top: 16px;
 }
 
 .group-chat-item.add:hover {
@@ -951,4 +952,111 @@ body.modal-open {
 
 .rejected-section {
     opacity: 0.5;
+}
+
+/* Стили для всплывающего окна нового сообщения */
+.notification-popup {
+  width: 360px;
+  background: #07081C; 
+  border-radius: 8px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  border-left: 4px solid #3b82f6;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+}
+
+.notification-popup--header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  border-bottom: 1px solid #374151;
+}
+
+.notification-popup--chat-name {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.notification-popup--badge {
+  background: #3b82f6;
+  color: white;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.notification-popup--content {
+  display: flex;
+  padding: 16px;
+  gap: 12px;
+}
+
+.notification-popup--avatar {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.notification-popup--avatar-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.notification-popup--avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #5865f2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 500;
+  font-size: 18px;
+  text-transform: uppercase;
+}
+
+.notification-popup--message {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.notification-popup--sender-name {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.notification-popup--message-text {
+  color: #b5bac1;
+  font-size: 13px;
+  line-height: 1.4;
+  word-wrap: break-word;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.notification-popup--timestamp {
+  color: #80848e;
+  font-size: 11px;
+  margin-top: 4px;
 }

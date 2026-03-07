@@ -1,6 +1,7 @@
 import { useRef, useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Message from '../Components/ChatPage/MessageComponent';
+import ConfirmDialog from '../Components/ChatPage/ConfirmDialog';
 import MessageInput from '../Components/ChatPage/MessageInput';
 import MainComponent from '../Components/ChatPage/MainComponents';
 import VideoCall from "../Components/ChatPage/VideoCallComponent";
@@ -27,6 +28,9 @@ const ChatPage = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [messageInputValue, setMessageInputValue] = useState('');
 
+  const [showSwitchChatDialog, setShowSwitchChatDialog] = useState(false);
+  const [pendingFriend, setPendingFriend] = useState<any>(null);
+
   const {
     friends,
     setFriends,
@@ -35,8 +39,16 @@ const ChatPage = () => {
     currentFriend,
     currentUser,
     encryptionSessionReady,
-    setEncryptionSessionReady
-  } = useChatInitialization();
+    setBlockState,
+    confirmFriendChange,
+    cancelFriendChange
+  } = useChatInitialization((newFriend) => {
+    if (inCall) {
+      setPendingFriend(newFriend);
+      setShowSwitchChatDialog(true);
+    }
+  });
+
 
   const scrollToBottom = useCallback(() => {
     if (messagesEndRef.current) {
@@ -161,6 +173,25 @@ const ChatPage = () => {
     setShowEmojiPicker(false);
   }, [sendMessage]);
 
+  useEffect(() => {
+    setBlockState(inCall);
+  }, [inCall, setBlockState]);
+
+  const handleConfirmSwitchChat = useCallback(() => {
+    if (pendingFriend) {
+      handleEndCall(); 
+      confirmFriendChange(); 
+      setShowSwitchChatDialog(false);
+      setPendingFriend(null);
+    }
+  }, [pendingFriend, handleEndCall, confirmFriendChange]);
+
+  const handleCancelSwitchChat = useCallback(() => {
+    cancelFriendChange();
+    setShowSwitchChatDialog(false);
+    setPendingFriend(null);
+    
+  }, [cancelFriendChange]);
 
   return (
     <>
@@ -436,6 +467,16 @@ const ChatPage = () => {
         friend={currentFriend}
         isOpen={showFriendProfile}
         onClose={() => setShowFriendProfile(false)}
+      />
+
+      <ConfirmDialog
+        isOpen={showSwitchChatDialog}
+        title="Завершить текущий звонок?"
+        message={`Вы сейчас разговариваете с ${currentFriend?.nickname}. Хотите завершить звонок и перейти в чат с ${pendingFriend?.nickname}?`}
+        confirmText="Завершить и перейти"
+        cancelText="Остаться"
+        onConfirm={handleConfirmSwitchChat}
+        onCancel={handleCancelSwitchChat}
       />
     </>
   );

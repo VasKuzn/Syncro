@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Friend } from '../Types/FriendType';
 import { ShortFriend } from '../Types/FriendType';
 import { UserInfo } from '../Types/UserInfo';
@@ -8,7 +8,7 @@ import { getPersonalConferenceById } from '../Services/ChatService';
 import { useLocation } from 'react-router-dom';
 import { encryptionService } from '../Services/EncryptionService';
 
-export const useChatInitialization = () => {
+export const useChatInitialization = (onFriendChange?: (newFriend: ShortFriend | null) => void) => {
     const [friends, setFriends] = useState<Friend[]>([]);
     const [personalConference, setPersonalConference] = useState<string | null>(null);
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -16,6 +16,8 @@ export const useChatInitialization = () => {
     const [currentUser, setCurrentUser] = useState<UserInfo | null>(null);
     const [encryptionSessionReady, setEncryptionSessionReady] = useState(false);
     const location = useLocation();
+    const shouldBlockFriendUpdate = useRef(false);
+    const pendingFriendRef = useRef<ShortFriend | null>(null);
 
     const initializeUser = useCallback(async () => {
         const userId = await fetchCurrentUser();
@@ -67,13 +69,38 @@ export const useChatInitialization = () => {
                     ? conf.user2
                     : conf.user1;
                 const friendData = await fetchUserById(friendId);
+                
+                if (shouldBlockFriendUpdate.current) {
+                    pendingFriendRef.current = friendData;
+                    if (onFriendChange) {
+                        onFriendChange(friendData);
+                    }
+                    return; 
+                }
+                
                 setCurrentFriend(friendData);
+                pendingFriendRef.current = null;
             } catch (err) {
                 console.error('Failed to load conference or friend', err);
             }
         };
         fetchConferenceAndFriend();
     }, [personalConference, currentUserId]);
+
+    const setBlockState = useCallback((value: boolean) => {
+        shouldBlockFriendUpdate.current = value;
+    }, []);
+
+    const confirmFriendChange = useCallback(() => {
+        if (pendingFriendRef.current) {
+            setCurrentFriend(pendingFriendRef.current);
+            pendingFriendRef.current = null;
+        }
+    }, []);
+
+    const cancelFriendChange = useCallback(() => {
+        pendingFriendRef.current = null;
+    }, []);
 
     useEffect(() => {
         const initializeEncryption = async () => {
@@ -101,6 +128,9 @@ export const useChatInitialization = () => {
         currentFriend,
         currentUser,
         encryptionSessionReady,
-        setEncryptionSessionReady
+        setBlockState,
+        setEncryptionSessionReady,
+        confirmFriendChange,
+        cancelFriendChange
     };
 };

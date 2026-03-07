@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import UseRtcConnection from './UseRtcConnection';
 import { UseCallManagementProps } from '../Types/ChatTypes';
 
@@ -12,6 +12,8 @@ export const useCallManagement = ({ currentFriend, currentUserId }: UseCallManag
 
     const localStreamRef = useRef<MediaStream | null>(null);
     const remoteStreamRef = useRef<MediaStream | null>(null);
+
+    const currentCallFriendIdRef = useRef<string | null>(null);
 
     const rtcConnection = UseRtcConnection({
         onRemoteStream: (stream: MediaStream) => {
@@ -39,6 +41,13 @@ export const useCallManagement = ({ currentFriend, currentUserId }: UseCallManag
         }
     });
 
+    useEffect(() => {
+        if (inCall && currentCallFriendIdRef.current && 
+            currentFriend?.id !== currentCallFriendIdRef.current) {
+            handleEndCall();
+        }
+    }, [currentFriend?.id, inCall]);
+
     const handleEndCall = useCallback(() => {
         if (currentFriend?.id) {
             rtcConnection.endCall(currentFriend.id);
@@ -54,6 +63,7 @@ export const useCallManagement = ({ currentFriend, currentUserId }: UseCallManag
             localStreamRef.current = null;
         }
         remoteStreamRef.current = null;
+        currentCallFriendIdRef.current = null;
     }, [currentFriend?.id, rtcConnection]);
 
     const handleStartCall = useCallback(async () => {
@@ -65,6 +75,9 @@ export const useCallManagement = ({ currentFriend, currentUserId }: UseCallManag
             setInCall(true);
             setShowCallModal(false);
             setIncomingCall(false);
+            if (currentFriend) {
+                currentCallFriendIdRef.current = currentFriend.id;
+            }
         } catch (error) {
             console.error("Failed to start call:", error);
         }
@@ -76,6 +89,9 @@ export const useCallManagement = ({ currentFriend, currentUserId }: UseCallManag
             setShowCallModal(false);
             setInCall(true);
             setIncomingCall(false);
+            if (currentFriend) {
+                currentCallFriendIdRef.current = currentFriend.id;
+            }
         } catch (error) {
             console.error("Failed to accept call:", error);
         }
@@ -88,6 +104,7 @@ export const useCallManagement = ({ currentFriend, currentUserId }: UseCallManag
         setShowCallModal(false);
         setIncomingCall(false);
         setCallInitiator(null);
+        currentCallFriendIdRef.current = null;
     }, [callInitiator, rtcConnection]);
 
     return {

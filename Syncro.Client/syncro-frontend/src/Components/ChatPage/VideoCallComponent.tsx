@@ -28,6 +28,14 @@ const VideoCall: React.FC<VideoCallProps> = ({
 
   const [speaking, setSpeaking] = useState(false);
   const currentVideoTrackRef = useRef<MediaStreamTrack | undefined>(null);
+  // Состояние для полноэкранного режима
+  const [fullscreenItem, setFullscreenItem] = useState<{
+    type: 'local' | 'remote';
+    stream?: MediaStream;
+    isAvatar?: boolean;
+    name: string;
+    avatarUrl: string;
+  } | null>(null);
 
   useEffect(() => {
     console.log("Remote stream changed in VideoCall:", remoteStream);
@@ -263,6 +271,56 @@ const VideoCall: React.FC<VideoCallProps> = ({
     }
   };
 
+   // Функции для полноэкранного режима
+  const openFullscreen = (type: 'local' | 'remote', stream?: MediaStream | null, isAvatar?: boolean) => {
+    setFullscreenItem({
+      type,
+      stream: stream || undefined,
+      isAvatar,
+      name: type === 'local' ? localUserName : remoteUserName,
+      avatarUrl: type === 'local' ? localAvatarUrl : remoteAvatarUrl
+    });
+  };
+
+  const closeFullscreen = () => {
+    setFullscreenItem(null);
+  };
+
+  // Вспомогательный компонент
+  const FullscreenVideoWithRef: React.FC<{ stream: MediaStream; isLocal: boolean }> = ({ stream, isLocal }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.srcObject = stream;
+      videoRef.current.play().catch(console.error);
+    }
+  }, [stream]);
+  
+  return <video ref={videoRef} autoPlay muted={isLocal} playsInline className="fullscreen-video" />;
+};
+
+// Если открыт полноэкранный режим
+if (fullscreenItem) {
+  return (
+    <div className="video-call-container fullscreen-mode">
+      <div className="fullscreen-header">
+        <span className="fullscreen-user-name">{fullscreenItem.name}</span>
+        <button className="fullscreen-close-btn" onClick={closeFullscreen}>
+          <img src="/minimize.png" alt="Collapse" className="icon" />
+        </button>
+      </div>
+      <div className="fullscreen-content">
+        {!fullscreenItem.isAvatar && fullscreenItem.stream ? (
+          <FullscreenVideoWithRef stream={fullscreenItem.stream} isLocal={fullscreenItem.type === 'local'} />
+        ) : (
+          <img src={fullscreenItem.avatarUrl} className="fullscreen-avatar" alt={fullscreenItem.name} />
+        )}
+      </div>
+    </div>
+  );
+}
+
   return (
     <div className="video-call-container">
       <div className="video-top">
@@ -302,6 +360,12 @@ const VideoCall: React.FC<VideoCallProps> = ({
           ) : (
             <img src={localAvatarUrl} className="video-avatar" alt="Local user" />
           )}
+          <button 
+              className="video-expand-btn"
+              onClick={() => openFullscreen('local', localStream, !localVideoOn && !localScreenOn)}
+            >
+              <img src="/full_screen.png"/>
+            </button>
         </div>
 
         {/* Удаленное видео */}
@@ -331,6 +395,12 @@ const VideoCall: React.FC<VideoCallProps> = ({
           ) : (
             <img src={remoteAvatarUrl} className="video-avatar" alt="Remote user" />
           )}
+          <button 
+              className="video-expand-btn"
+              onClick={() => openFullscreen('remote', remoteStream, !remoteVideoOn && !remoteScreenOn)}
+            >
+              <img src="/full_screen.png"/>
+            </button>
         </div>
       </div>
 

@@ -92,8 +92,8 @@ const GroupChatsComponent = () => {
                 <div className="chat-separator"></div>
                 <div className="group-chat-list">
                     {groups.map(group => (
-                        <div key={group.id} className="group-chat-item">
-                            {group.conferenceName}
+                        <div key={group.id} className="group-chat-item" title={group.conferenceName}>
+                            {group.conferenceName.substring(0, 5)}
                         </div>
                     ))}
                 </div>
