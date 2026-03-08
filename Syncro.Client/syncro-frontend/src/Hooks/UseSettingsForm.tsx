@@ -1,11 +1,10 @@
 import { useState, useRef } from "react";
-import { EMAIL_REGEX, MIN_PASSWORD_LENGTH, PHONE_REGEX } from "../Constants/LoginConsts";
+import { EMAIL_REGEX, PHONE_REGEX } from "../Constants/LoginConsts";
 
 export const useSettingsForm = () => {
     const [formState, setFormState] = useState({
         nickname: '',
         email: '',
-        password: '',
         firstname: '',
         lastname: '',
         phonenumber: '',
@@ -19,7 +18,6 @@ export const useSettingsForm = () => {
     const emailField = useRef<HTMLInputElement>(null);
     const phoneField = useRef<HTMLInputElement>(null);
     const countryField = useRef<HTMLInputElement>(null);
-    const passwordField = useRef<HTMLInputElement>(null);
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
     // Функция для обновления аватара
@@ -37,9 +35,8 @@ export const useSettingsForm = () => {
         nicknameField.current?.setCustomValidity('');
         emailField.current?.setCustomValidity('');
         phoneField.current?.setCustomValidity('');
-        passwordField.current?.setCustomValidity('');
 
-        const { nickname, email, phonenumber, password } = formState;
+        const { nickname, email, phonenumber } = formState;
 
         if (!nickname) {
             nicknameField.current?.setCustomValidity('Пожалуйста, введите отображаемое имя.');
@@ -62,20 +59,9 @@ export const useSettingsForm = () => {
             isValid = false;
         }
 
-        if (!password) {
-            passwordField.current?.setCustomValidity('Введите пароль.');
-            isValid = false;
-        } else if (password.length < MIN_PASSWORD_LENGTH) {
-            passwordField.current?.setCustomValidity(
-                `Пароль должен содержать минимум ${MIN_PASSWORD_LENGTH} символов.`
-            );
-            isValid = false;
-        }
-
         nicknameField.current?.reportValidity();
         emailField.current?.reportValidity();
         phoneField.current?.reportValidity();
-        passwordField.current?.reportValidity();
 
         return isValid;
     }
@@ -91,7 +77,6 @@ export const useSettingsForm = () => {
         emailField,
         phoneField,
         countryField,
-        passwordField,
         validateForm
     }
 }

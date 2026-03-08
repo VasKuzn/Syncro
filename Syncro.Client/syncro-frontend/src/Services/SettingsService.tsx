@@ -18,3 +18,20 @@ export const updateUserInfo = async (userId: string | null, userData: FormData, 
         throw new Error((error as NetworkError).message || "Ошибка сети")
     }
 }
+
+export const changePass = async (oldPass: string, newPass: string) => {
+    try {
+        const response = await fetch('', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ oldPass, newPass }),
+        });
+
+        if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.message || 'Ошибка при смене пароля');
+        }
+    } catch (error) {
+        throw new Error((error as NetworkError).message || "Ошибка сети")
+    }
+}
