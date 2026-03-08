@@ -18,9 +18,9 @@ namespace Syncro.Infrastructure.Services
             _cdnUrl = configuration["S3Storage:CdnUrl"];
         }
 
-        public async Task<MessageModel> UploadMessageMediaAsync(Guid personalConferenceId, Guid accountId, Guid messageId, string accountNickname, string messageContent, IFormFile file)
+        public async Task<MessageModel> UploadMessageMediaAsync(Guid personalConferenceId, Guid accountId, Guid messageId, string accountNickname, string messageContent, IFormFile file, Guid? groupConferenceId = null)
         {
-            var result = await _storageService.UploadMessageFileAsync(file, messageId, accountId, personalConferenceId);
+            var result = await _storageService.UploadMessageFileAsync(file, messageId, accountId, personalConferenceId, groupConferenceId);
 
             var typeEnum = DetermineMediaType(result.ContentType);
 
@@ -31,8 +31,8 @@ namespace Syncro.Infrastructure.Services
                 messageDateSent = DateTime.UtcNow,
                 accountId = accountId,
                 accountNickname = accountNickname,
-                personalConferenceId = personalConferenceId,
-                groupConferenceId = null,
+                personalConferenceId = groupConferenceId.HasValue ? null : personalConferenceId,
+                groupConferenceId = groupConferenceId,
                 sectorId = null,
                 isEdited = false,
                 previousMessageContent = null,

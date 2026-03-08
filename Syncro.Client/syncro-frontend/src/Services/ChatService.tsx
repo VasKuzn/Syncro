@@ -84,7 +84,8 @@ export const uploadMediaMessage = async (
         messageContent: string;
         accountId: string;
         accountNickname: string | null;
-        personalConferenceId: string;
+        personalConferenceId?: string;
+        groupConferenceId?: string;
         isEncrypted?: boolean;
     },
     baseUrl: string, csrfToken: string | null
@@ -95,9 +96,19 @@ export const uploadMediaMessage = async (
     formData.append('messageContent', data.messageContent);
     formData.append('accountId', data.accountId);
     formData.append('accountNickname', data.accountNickname ?? '');
-    formData.append('personalConferenceId', data.personalConferenceId);
 
-    const response = await fetch(`${baseUrl}/api/storage/${data.personalConferenceId}/${data.accountId}/${messageId}/media`, {
+    const conferenceId = data.personalConferenceId || data.groupConferenceId;
+    if (!conferenceId) {
+        throw new Error('Either personalConferenceId or groupConferenceId must be provided');
+    }
+    if (data.personalConferenceId) {
+        formData.append('personalConferenceId', data.personalConferenceId);
+    }
+    if (data.groupConferenceId) {
+        formData.append('groupConferenceId', data.groupConferenceId);
+    }
+
+    const response = await fetch(`${baseUrl}/api/storage/${conferenceId}/${data.accountId}/${messageId}/media`, {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': csrfToken || ''

@@ -7,12 +7,14 @@ namespace Syncro.Api.Controllers
     public class MessagesController : ControllerBase
     {
         private readonly ICouchBaseMessagesService _messageService;
-        private readonly IHubContext<PersonalMessagesHub> _messagesHub;
+        private readonly IHubContext<PersonalMessagesHub> _personalMessagesHub;
+        private readonly IHubContext<GroupMessagesHub> _groupMessagesHub;
 
-        public MessagesController(ICouchBaseMessagesService messageService, IHubContext<PersonalMessagesHub> messagesHub)
+        public MessagesController(ICouchBaseMessagesService messageService, IHubContext<PersonalMessagesHub> personalMessagesHub, IHubContext<GroupMessagesHub> groupMessagesHub)
         {
             _messageService = messageService;
-            _messagesHub = messagesHub;
+            _personalMessagesHub = personalMessagesHub;
+            _groupMessagesHub = groupMessagesHub;
         }
 
         // GET: api/messages
@@ -84,11 +86,11 @@ namespace Syncro.Api.Controllers
                 //персональные конференции
                 if (createdMessage.personalConferenceId != null)
                 {
-                    await _messagesHub.Clients.Group($"personalconference-{createdMessage.personalConferenceId}").SendAsync("ReceivePersonalMessage", createdMessage);
+                    await _personalMessagesHub.Clients.Group($"personalconference-{createdMessage.personalConferenceId}").SendAsync("ReceivePersonalMessage", createdMessage);
                 }
                 if (createdMessage.groupConferenceId != null)
                 {
-                    await _messagesHub.Clients.Group($"groupConference-{createdMessage.groupConferenceId}").SendAsync("ReceiveGroupMessage", createdMessage);
+                    await _groupMessagesHub.Clients.Group($"groupConference-{createdMessage.groupConferenceId}").SendAsync("ReceiveGroupMessage", createdMessage);
                 }
                 //
                 return CreatedAtAction(nameof(GetMessageById), new { id = createdMessage.Id }, createdMessage);

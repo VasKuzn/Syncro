@@ -104,7 +104,6 @@ const GroupChatsComponent = () => {
             }
         }
 
-        console.log('Детальная информация о друзьях:', friendsList);
         return friendsList;
     }, []);
 
@@ -125,7 +124,6 @@ const GroupChatsComponent = () => {
                     // Загружаем связи дружбы
                     try {
                         const friendsData = await getFriends(userId, baseUrl);
-                        console.log('Загруженные связи дружбы:', friendsData);
 
                         // Преобразуем в список друзей с полной информацией
                         const friendsList = await loadFriendDetails(friendsData, userId);

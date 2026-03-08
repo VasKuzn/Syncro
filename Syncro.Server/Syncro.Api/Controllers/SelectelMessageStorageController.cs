@@ -5,18 +5,20 @@ namespace Syncro.Api.Controllers
     public class SelectelMessageStorageController : ControllerBase
     {
         private readonly IMediaMessageService _mediaMessageService;
-        private readonly IHubContext<PersonalMessagesHub> _messagesHub;
+        private readonly IHubContext<PersonalMessagesHub> _personalMessagesHub;
+        private readonly IHubContext<GroupMessagesHub> _groupMessagesHub;
 
-        public SelectelMessageStorageController(IMediaMessageService mediaMessageService, IHubContext<PersonalMessagesHub> messagesHub)
+        public SelectelMessageStorageController(IMediaMessageService mediaMessageService, IHubContext<PersonalMessagesHub> personalMessagesHub, IHubContext<GroupMessagesHub> groupMessagesHub)
         {
             _mediaMessageService = mediaMessageService;
-            _messagesHub = messagesHub;
+            _personalMessagesHub = personalMessagesHub;
+            _groupMessagesHub = groupMessagesHub;
         }
 
         [ValidateAntiForgeryToken]
-        [HttpPost("{personalConferenceId}/{accountId}/{messageId}/media")]
+        [HttpPost("{conferenceId}/{accountId}/{messageId}/media")]
         public async Task<IActionResult> UploadMessageMedia(
-            Guid personalConferenceId,
+            Guid conferenceId,
             Guid accountId,
             Guid messageId,
             IFormFile file)
@@ -25,14 +27,32 @@ namespace Syncro.Api.Controllers
             {
                 var accountNickname = Request.Form["accountNickname"].FirstOrDefault() ?? string.Empty;
                 var messageContent = Request.Form["messageContent"].FirstOrDefault() ?? string.Empty;
-                var createdMessage = await _mediaMessageService.UploadMessageMediaAsync(
-                    personalConferenceId, accountId, messageId, accountNickname, messageContent, file);
+                var groupConferenceIdStr = Request.Form["groupConferenceId"].FirstOrDefault();
 
+                Guid? groupConferenceId = null;
+                if (!string.IsNullOrEmpty(groupConferenceIdStr) && Guid.TryParse(groupConferenceIdStr, out var parsedGroupId))
+                {
+                    groupConferenceId = parsedGroupId;
+                }
+
+                // Если groupConferenceId передан, то conferenceId игнорируется для personalConferenceId
+                var personalConferenceId = groupConferenceId.HasValue ? Guid.Empty : conferenceId;
+
+                var createdMessage = await _mediaMessageService.UploadMessageMediaAsync(
+                    personalConferenceId, accountId, messageId, accountNickname, messageContent, file, groupConferenceId);
+
+                // Отправляем через правильный Hub в зависимости от типа конференции
                 if (createdMessage.personalConferenceId != null)
                 {
-                    await _messagesHub.Clients
+                    await _personalMessagesHub.Clients
                         .Group($"personalconference-{createdMessage.personalConferenceId}")
                         .SendAsync("ReceivePersonalMessage", createdMessage);
+                }
+                else if (createdMessage.groupConferenceId != null)
+                {
+                    await _groupMessagesHub.Clients
+                        .Group($"groupConference-{createdMessage.groupConferenceId}")
+                        .SendAsync("ReceiveGroupMessage", createdMessage);
                 }
 
                 return Ok(createdMessage);
@@ -47,9 +67,9 @@ namespace Syncro.Api.Controllers
             }
         }
 
-        [HttpGet("{personalConferenceId}/{accountId}/{messageId}/media")]
+        [HttpGet("{conferenceId}/{accountId}/{messageId}/media")]
         public async Task<IActionResult> GetMessageMedia(
-            Guid personalConferenceId,
+            Guid conferenceId,
             Guid accountId,
             Guid messageId)
         {

@@ -55,23 +55,19 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
 
     // Создать группу
     const handleCreate = async () => {
-        console.log('1. Начинаем создание группы');
 
         if (!groupName.trim() || selectedFriends.length === 0 || !currentUserId) return;
 
         setIsCreating(true);
         try {
             // 1. Создаем группу
-            console.log('2. Создаем группу');
             const group = await createGroup({
                 conferenceName: groupName,
                 groupConferenceType: 0,
             }, baseUrl, csrfToken);
 
-            console.log('3. Группа создана, ID:', group.id);
 
             // 2. СОЗДАЕМ РОЛИ ДЛЯ ЭТОЙ ГРУППЫ
-            console.log('4. Создаем роли для группы');
 
             // Роль администратора
             const adminRole = {
@@ -95,7 +91,6 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
             }
 
             const adminRoleData = await adminResponse.json();
-            console.log('Роль администратора создана:', adminRoleData);
 
             // Роль обычного участника
             const memberRole = {
@@ -119,10 +114,8 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
             }
 
             const memberRoleData = await memberResponse.json();
-            console.log('Роль участника создана:', memberRoleData);
 
             // 3. ТЕПЕРЬ ДОБАВЛЯЕМ УЧАСТНИКОВ С РОЛЯМИ
-            console.log('5. Добавляем участников');
 
             // Добавляем создателя (админ)
             const creatorMember = {
@@ -165,11 +158,9 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
                     body: JSON.stringify(friendMember)
                 });
 
-                console.log(`Друг ${friendId} добавлен`);
             }
 
             // 4. Переходим в группу
-            console.log('6. Переходим в группу');
             onGroupCreated(group.id);
             onClose();
             setGroupName('');

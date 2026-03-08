@@ -46,7 +46,6 @@ export const useGroupMessageManagement = ({
             const loadedMessages = await getGroupMessages(groupId, baseUrl);
             processedMessagesRef.current.clear();
             setMessages(loadedMessages);
-            console.log('Loaded messages:', loadedMessages);
         } catch (error) {
             console.error('Failed to load messages:', error);
         } finally {
@@ -118,7 +117,7 @@ export const useGroupMessageManagement = ({
                     messageContent: text,
                     accountId: currentUserId,
                     accountNickname: currentUser?.nickname || null,
-                    personalConferenceId: groupId, // Бэкенд должен понимать, что это groupId
+                    groupConferenceId: groupId,
                     isEncrypted: false
                 }, baseUrl, csrfToken);
             } else {

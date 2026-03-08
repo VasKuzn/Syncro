@@ -304,6 +304,12 @@ namespace Syncro.Infrastructure.CouchBaseMessageStorage
                     message.messageDateSent = DateTime.UtcNow;
                 }
 
+                // Отключаем шифрование для групповых сообщений
+                if (message.groupConferenceId.HasValue)
+                {
+                    message.IsEncrypted = false;
+                }
+
                 if (message.IsEncrypted)
                 {
                     byte[] encryptedContent;
@@ -332,18 +338,6 @@ namespace Syncro.Infrastructure.CouchBaseMessageStorage
                             message.messageContent,
                             message.accountId.Value,
                             recipientId
-                        );
-
-                        encryptedContent = encryptionResult.EncryptedData;
-                        metadataJson = JsonSerializer.Serialize(encryptionResult.Metadata);
-                    }
-                    else if (message.groupConferenceId.HasValue)
-                    {
-                        var encryptionResult = await _encryptionService.EncryptMessageAsync(
-                            message.messageContent,
-                            message.accountId.Value,
-                            Guid.Empty,
-                            message.groupConferenceId.Value
                         );
 
                         encryptedContent = encryptionResult.EncryptedData;

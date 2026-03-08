@@ -34,13 +34,15 @@ namespace Syncro.Infrastructure.Selectel
             _urlExpirationHours = configuration.GetValue<int>("S3Storage:UrlExpirationHours", 24);
         }
 
-        public async Task<FileUploadResult> UploadMessageFileAsync(IFormFile file, Guid messageId, Guid? accountId, Guid? personalConferenceId)
+        public async Task<FileUploadResult> UploadMessageFileAsync(IFormFile file, Guid messageId, Guid? accountId, Guid? personalConferenceId, Guid? groupConferenceId = null)
         {
             ValidateFile(file);
             var fileExtension = Path.GetExtension(file.FileName).ToLower();
             var contentType = GetContentTypeMessage(fileExtension);
-            var folder = $"messages/{DateTime.UtcNow:yyyy/MM/dd}";
-            var keyName = $"{folder}/{personalConferenceId}/{accountId}/{messageId}{fileExtension}";
+            var folderType = groupConferenceId.HasValue ? "groupmessages" : "messages";
+            var conferenceId = groupConferenceId.HasValue ? groupConferenceId : personalConferenceId;
+            var folder = $"{folderType}/{DateTime.UtcNow:yyyy/MM/dd}";
+            var keyName = $"{folder}/{conferenceId}/{accountId}/{messageId}{fileExtension}";
 
             using var memoryStream = new MemoryStream();
             await file.CopyToAsync(memoryStream);

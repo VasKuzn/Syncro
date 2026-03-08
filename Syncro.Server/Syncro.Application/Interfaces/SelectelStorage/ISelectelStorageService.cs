@@ -5,7 +5,7 @@ namespace Syncro.Application.SelectelStorage
 {
     public interface ISelectelStorageService
     {
-        Task<FileUploadResult> UploadMessageFileAsync(IFormFile file, Guid messageId, Guid? accountId, Guid? personalConferenceId);
+        Task<FileUploadResult> UploadMessageFileAsync(IFormFile file, Guid messageId, Guid? accountId, Guid? personalConferenceId, Guid? groupConferenceId = null);
         Task<FileUploadResult> UploadAvatarFileAsync(IFormFile file, Guid? accountId);
         Task<string> GetTemporaryFileUrlAsync(string keyName);
         Task DeleteMessageFileAsync(Guid messageId, Guid personalConferenceId, Guid accountId);
