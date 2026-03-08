@@ -1,21 +1,26 @@
 import { useState, useEffect, useCallback } from "react";
 import { GroupConf } from "../../Types/GroupConf";
 import { NetworkError } from "../../Types/LoginTypes";
-import { fetchCurrentUser, getUserInfo, getGroups } from '../../Services/MainFormService';
+import { fetchCurrentUser, getUserInfo, getGroups, getFriends } from '../../Services/MainFormService';
 import * as signalR from "@microsoft/signalr";
 import { useNavigate } from "react-router-dom";
 import { UserInfo } from "../../Types/UserInfo";
+import { Friend } from '../../Types/FriendType';
+import CreateGroupModal from '../GroupChat/CreateGroupModal';
+import '../../Styles/GroupChat.css';
+import logo from '../../assets/logo.png';
+import { useCsrf } from "../../Contexts/CsrfProvider";
 
-interface GroupChatsComponentProps {
-    baseUrl: string;
-}
-
-const GroupChatsComponent = ({ baseUrl }: GroupChatsComponentProps) => {
+const GroupChatsComponent = () => {
     const [groups, setGroups] = useState<GroupConf[]>([]);
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [friends, setFriends] = useState<Friend[]>([]);
+    const { baseUrl, csrfToken } = useCsrf();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
     const [currentUser, setCurrentUser] = useState<UserInfo | null>(null);
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
     const navigate = useNavigate();
 
     const initSignalR = useCallback(async (userId: string) => {
@@ -42,7 +47,7 @@ const GroupChatsComponent = ({ baseUrl }: GroupChatsComponentProps) => {
         }
 
         return newConnection;
-    }, [getGroups]);
+    }, []);
 
     const refreshGroupsData = useCallback(async (userId: string) => {
         setLoading(true);
@@ -55,17 +60,80 @@ const GroupChatsComponent = ({ baseUrl }: GroupChatsComponentProps) => {
         } finally {
             setLoading(false);
         }
-    }, [getGroups]);
+    }, []);
+
+    // Функция для загрузки детальной информации о друзьях
+    const loadFriendDetails = useCallback(async (friendshipList: any[], userId: string) => {
+        const friendsList: Friend[] = [];
+
+        for (const f of friendshipList) {
+            // Берем только подтвержденных друзей (status = 1)
+            if (f.status === 1) {
+                // Определяем ID друга (не текущий пользователь)
+                const friendId = f.userWhoSent === userId ? f.userWhoRecieved : f.userWhoSent;
+
+                try {
+                    // Загружаем полную информацию о друге
+                    const response = await fetch(`${baseUrl}/api/accounts/${friendId}`, {
+                        credentials: 'include'
+                    });
+
+                    if (response.ok) {
+                        const friendData = await response.json();
+
+                        friendsList.push({
+                            id: friendId,
+                            nickname: friendData.nickname || 'Без имени',
+                            avatar: friendData.avatar || logo,
+                            email: friendData.email,
+                            phonenumber: friendData.phonenumber,
+                            firstname: friendData.firstname,
+                            lastname: friendData.lastname,
+                            isOnline: friendData.isOnline || false,
+                            status: f.status,
+                            userWhoReceived: f.userWhoRecieved,
+                            userWhoSent: f.userWhoSent,
+                            friendShipId: f.id,
+                            friendsSince: new Date(f.friendsSince),
+                            unreadCount: 0
+                        });
+                    }
+                } catch (error) {
+                    console.error(`Ошибка загрузки друга ${friendId}:`, error);
+                }
+            }
+        }
+
+        console.log('Детальная информация о друзьях:', friendsList);
+        return friendsList;
+    }, []);
 
     useEffect(() => {
         let isMounted = true;
 
         const loadData = async () => {
             try {
+                // Сначала получаем ID
                 const userId = await fetchCurrentUser(baseUrl);
                 if (isMounted && userId) {
+                    setCurrentUserId(userId);  // сохраняем ID отдельно
+
+                    // Потом получаем полную информацию о текущем пользователе
                     const userData = await getUserInfo(userId, baseUrl);
                     setCurrentUser(userData);
+
+                    // Загружаем связи дружбы
+                    try {
+                        const friendsData = await getFriends(userId, baseUrl);
+                        console.log('Загруженные связи дружбы:', friendsData);
+
+                        // Преобразуем в список друзей с полной информацией
+                        const friendsList = await loadFriendDetails(friendsData, userId);
+                        setFriends(friendsList);
+
+                    } catch (error) {
+                        console.error("Ошибка загрузки друзей:", error);
+                    }
 
                     await refreshGroupsData(userId);
                     await initSignalR(userId);
@@ -81,9 +149,8 @@ const GroupChatsComponent = ({ baseUrl }: GroupChatsComponentProps) => {
             isMounted = false;
             connection?.stop();
         };
-    }, [fetchCurrentUser, refreshGroupsData, initSignalR]);
+    }, [refreshGroupsData, initSignalR, loadFriendDetails]);
 
-    const avatarUrl = currentUser?.avatar || "/logo.png";
     if (loading) return <div></div>;
     if (error) return <div></div>;
 
@@ -91,18 +158,79 @@ const GroupChatsComponent = ({ baseUrl }: GroupChatsComponentProps) => {
         <div className="group-chats-container">
             <div className="group-chats">
                 <div className="main-logo">
-                    <img src="/logo-icon-transparent.png" alt="Syncro logo" width="35" height="35" onClick={e => navigate("/main")} />
+                    <img
+                        src="/logo-icon-transparent.png"
+                        alt="Syncro logo"
+                        width="35"
+                        height="35"
+                        onClick={() => navigate("/main")}
+                    />
                 </div>
                 <div className="chat-separator"></div>
                 <div className="group-chat-list">
                     {groups.map(group => (
-                        <div key={group.id} className="group-chat-item">
-                            {group.conferenceName}
+                        <div
+                            key={group.id}
+                            className="group-chat-item"
+                            onClick={() => navigate(`/group-chat/${group.id}`)}
+                        >
+                            <div className="group-icon-wrapper">
+                                <img
+                                    src="/logo-icon-transparent.png"
+                                    alt="group"
+                                    className="group-icon"
+                                />
+                                <span
+                                    className="group-name-tooltip"
+                                    ref={(el) => {
+                                        if (el) {
+                                            // Позиционируем тултип справа от иконки
+                                            const rect = el.parentElement?.getBoundingClientRect();
+                                            if (rect) {
+                                                const tooltipWidth = el.offsetWidth;
+                                                let left = rect.right + 10; // 10px отступ справа от иконки
+
+                                                const maxLeft = window.innerWidth - tooltipWidth - 10;
+                                                if (left > maxLeft) {
+                                                    // Если не помещается справа, показываем слева
+                                                    left = rect.left - tooltipWidth - 10;
+                                                }
+
+                                                // Проверяем, не выходит ли за левый край
+                                                if (left < 10) left = 10;
+
+                                                el.style.left = `${left}px`;
+                                            }
+                                        }
+                                    }}
+                                >
+                                    {group.conferenceName}
+                                </span>
+                            </div>
                         </div>
                     ))}
                 </div>
-                <div className="group-chat-item add">+</div>
+                <div
+                    className="group-chat-item add"
+                    onClick={() => {
+                        setShowCreateModal(true);
+                    }}
+                >
+                    <span className="add-icon">+</span>
+                </div>
             </div>
+
+            {showCreateModal && (
+                <CreateGroupModal
+                    isOpen={showCreateModal}
+                    onClose={() => setShowCreateModal(false)}
+                    friends={friends}
+                    onGroupCreated={(groupId) => navigate(`/group-chat/${groupId}`)}
+                    currentUserId={currentUserId}
+                    baseUrl={baseUrl}
+                    csrfToken={csrfToken}
+                />
+            )}
         </div>
     );
 };

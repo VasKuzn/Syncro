@@ -14,5 +14,6 @@ namespace Syncro.Application.Interfaces.CouchBaseStorage
         Task<List<MessageModel>> GetAllMessagesByPersonalConferenceAsync(Guid personalConferenceId);
         Task<List<MessageModel>> GetAllMessagesByPersonalConferenceAsync(Guid personalConferenceId, int limit, int offset);
         Task<MessageModel> UpdateMessageAsync(MessageModel message);
+        Task<List<MessageModel>> GetAllMessagesByGroupConferenceAsync(Guid groupConferenceId);
     }
 }

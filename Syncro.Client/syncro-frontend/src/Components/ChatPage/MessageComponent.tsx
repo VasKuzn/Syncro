@@ -140,7 +140,7 @@ const Message = ({
                             src={avatarUrl}
                             alt={`${accountNickname} avatar`}
                             onError={(e) => {
-                                e.currentTarget.src = './logo.png';
+                                e.currentTarget.src = '../logo.png';
                             }}
                         />
                     </div>

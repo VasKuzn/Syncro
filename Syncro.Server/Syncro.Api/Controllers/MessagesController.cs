@@ -86,6 +86,10 @@ namespace Syncro.Api.Controllers
                 {
                     await _messagesHub.Clients.Group($"personalconference-{createdMessage.personalConferenceId}").SendAsync("ReceivePersonalMessage", createdMessage);
                 }
+                if (createdMessage.groupConferenceId != null)
+                {
+                    await _messagesHub.Clients.Group($"groupConference-{createdMessage.groupConferenceId}").SendAsync("ReceiveGroupMessage", createdMessage);
+                }
                 //
                 return CreatedAtAction(nameof(GetMessageById), new { id = createdMessage.Id }, createdMessage);
             }
@@ -233,6 +237,20 @@ namespace Syncro.Api.Controllers
                     return StatusCode(404, $"Message not found error: ID {id}");
                 }
                 return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("bygroupconference")]
+        public async Task<IActionResult> GetMessagesByGroupConference([FromQuery] Guid groupConferenceId)
+        {
+            try
+            {
+                var messages = await _messageService.GetAllMessagesByGroupConferenceAsync(groupConferenceId);
+                return Ok(messages);
             }
             catch (Exception ex)
             {

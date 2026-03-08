@@ -170,6 +170,7 @@ body {
     flex-direction: column;
     justify-items: center;
     align-items: center;
+    z-index:3;
 }
 
 .group-chat-list {
@@ -190,6 +191,7 @@ body {
     border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s ease;
+    margin: 10px;
 }
 
 .group-chat-item:hover {
@@ -447,7 +449,7 @@ body {
     box-shadow: 0 1px 8px #23244a;
     border-radius: 10px;
     transform: scale(1.02);
-    z-index: 2;
+    z-index: 1;
     transition: all 0.25s ease;
 }
 
@@ -483,6 +485,7 @@ body {
     overflow: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    z-index: 0;
 }
 
 .pc-item {

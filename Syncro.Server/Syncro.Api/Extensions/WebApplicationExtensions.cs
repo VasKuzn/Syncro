@@ -43,6 +43,7 @@ namespace Syncro.Api.Extensions
             {
                 "/friendshub",
                 "/groupshub",
+                "/groupmessageshub",
                 "/accountshub",
                 "/personalmessageshub",
                 "/videochathub",
@@ -59,6 +60,7 @@ namespace Syncro.Api.Extensions
             app.MapHub<FriendsHub>("/friendshub");
             app.MapHub<GroupsHub>("/groupshub");
             app.MapHub<AccountsHub>("/accountshub");
+            app.MapHub<GroupMessagesHub>("/groupmessageshub");
             app.MapHub<PersonalMessagesHub>("/personalmessageshub");
             app.MapHub<VideoChatHub>("/videochathub");
         }

@@ -1,6 +1,7 @@
 import { Friend, ShortFriend } from "./FriendType";
 import { UserInfo } from "./UserInfo";
 
+
 export interface PersonalMessageData {
     id: string,
     messageContent: string,

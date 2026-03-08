@@ -21,7 +21,7 @@ export const FriendItem: React.FC<FriendItemProps> = ({
             <div className="friend-avatar-container">
                 <img
                     className="friend-avatar"
-                    src={friend.avatar || '/logo.png'}
+                    src={friend.avatar || 'logo.png'}
                     alt={`Аватар ${friend.nickname}`}
                     onError={(e) => {
                         (e.target as HTMLImageElement).src = '/logo.png';

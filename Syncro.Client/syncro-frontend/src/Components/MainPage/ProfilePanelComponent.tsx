@@ -7,7 +7,7 @@ const ProfilePanelComponent = ({nickname, avatar, isOnline}: ShortUserInfo) => {
     <div className="profile-panel">
         <div className="profile-info-container">
             <div className="profile-avatar-container">
-                <img className="profile-avatar" src={avatar || "logo.png"}></img>
+                <img className="profile-avatar" src={avatar || "../logo.png"}></img>
             </div>
             <div className="profile-text-info">
                 <span className="nickname">{nickname}</span>
@@ -16,7 +16,7 @@ const ProfilePanelComponent = ({nickname, avatar, isOnline}: ShortUserInfo) => {
         </div>
         <button className="profile-button"
                 onClick={e => navigate("/settings")}>
-            <img className="settings-image" src="settings.png"/>
+            <img className="settings-image" src="../settings.png"/>
         </button>
     </div>
 )}

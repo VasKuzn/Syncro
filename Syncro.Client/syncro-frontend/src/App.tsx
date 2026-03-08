@@ -9,6 +9,8 @@ import Settings from "./Pages/Settings";
 import ResetPassword from "./Pages/ResetPassword";
 import ForgotPassword from "./Pages/ForgotPassword";
 import ProtectedRoute from "./Components/ProtectedRoute";
+import GroupChatPage from './Pages/GroupChatPage';
+import GroupChatsComponent from "./Components/MainPage/GroupChatsComponent";
 import { CsrfProvider } from "./Contexts/CsrfProvider";
 
 
@@ -22,6 +24,7 @@ const App = () => {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot_password" element={<ForgotPassword />} />
           <Route path="/reset_password" element={<ResetPassword />} />
+
           <Route path="/main" element={
             <ProtectedRoute>
               <Main />
@@ -35,6 +38,16 @@ const App = () => {
           <Route path="/settings" element={
             <ProtectedRoute>
               <Settings />
+            </ProtectedRoute>
+          } />
+          <Route path="/group-chats" element={
+            <ProtectedRoute>
+              <GroupChatsComponent />
+            </ProtectedRoute>
+          } />
+          <Route path="/group-chat/:groupId" element={
+            <ProtectedRoute>
+              <GroupChatPage />
             </ProtectedRoute>
           } />
         </Routes>

@@ -1,0 +1,525 @@
+/* Модальное окно создания группы */
+.create-group-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(7, 8, 28, 0.95);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: modal-fadeIn 0.3s ease-out;
+}
+
+.create-group-modal {
+  width: 450px;
+  background: linear-gradient(135deg, #07081c, #0f1122);
+  border-radius: 12px;
+  padding: 32px;
+  border: 2px solid #2a2c3e;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  animation: modal-slideIn 0.3s ease-out;
+}
+
+.create-group-modal h2 {
+  font-size: 24px;
+  color: #ffffff;
+  margin: 0 0 8px 0;
+  font-weight: 600;
+}
+
+.create-group-modal .modal-subtitle {
+  font-size: 14px;
+  color: #a0a4b8;
+  margin-bottom: 24px;
+}
+
+.create-group-modal .group-name-input {
+  width: 100%;
+  padding: 14px 16px;
+  background-color: #0f1122;
+  border: 2px solid #2a2c3e;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 15px;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+.create-group-modal .group-name-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.create-group-modal .group-name-input::placeholder {
+  color: #6b7280;
+}
+
+.create-group-modal .search-friends {
+  margin-bottom: 16px;
+}
+
+.create-group-modal .search-friends input {
+  width: 100%;
+  padding: 12px 14px;
+  background-color: #0f1122;
+  border: 2px solid #2a2c3e;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+.create-group-modal .search-friends input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.create-group-modal .friends-list {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 24px;
+  border: 2px solid #2a2c3e;
+  border-radius: 8px;
+  background-color: #0f1122;
+  padding: 8px;
+}
+
+.create-group-modal .friends-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.create-group-modal .friends-list::-webkit-scrollbar-track {
+  background: #0f1122;
+}
+
+.create-group-modal .friends-list::-webkit-scrollbar-thumb {
+  background: #2a2c3e;
+  border-radius: 3px;
+}
+
+.create-group-modal .friend-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  margin-bottom: 2px;
+  border: 2px solid transparent;
+  position: relative;
+}
+
+.create-group-modal .friend-item span {
+  color: #d5d6da;
+  font-size: 14px;
+  font-weight: 500;
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 10px;
+}
+
+
+.create-group-modal .friend-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  margin-bottom: 2px;
+  border: 2px solid transparent;
+}
+
+.create-group-modal .friend-item .checkmark {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 18px;
+  width: 20px;         /* фиксированная ширина */
+  text-align: right;   /* текст внутри прижат вправо */
+  flex-shrink: 0;      /* чтобы не сжималась */
+  margin-right: 5px;   /* отступ от правого края */
+}
+
+.create-group-modal .friend-item:hover {
+  background-color: #1a1c30;
+  border-color: #3b82f6;
+}
+
+.create-group-modal .friend-item.selected {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.create-group-modal .friend-item img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  margin-right: 12px;
+  object-fit: cover;
+  border: 2px solid #2a2c3e;
+}
+
+.create-group-modal .modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.create-group-modal .cancel-btn,
+.create-group-modal .create-btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.create-group-modal .cancel-btn {
+  background-color: #2a2c3e;
+  color: #a0a4b8;
+  border: 2px solid transparent;
+}
+
+.create-group-modal .cancel-btn:hover:not(:disabled) {
+  background-color: #3a3c4e;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.create-group-modal .create-btn {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  border: 2px solid transparent;
+}
+
+.create-group-modal .create-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.create-group-modal .create-btn:disabled,
+.create-group-modal .cancel-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Спиннер загрузки */
+.create-group-modal .create-spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Анимации */
+@keyframes modal-fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Адаптивность для модалки */
+@media (max-width: 768px) {
+  .create-group-modal {
+    width: 90%;
+    padding: 24px;
+  }
+
+  .create-group-modal .group-name-input {
+    padding: 12px 14px;
+  }
+
+  .create-group-modal .friend-item {
+    padding: 8px;
+  }
+
+  .create-group-modal .friend-item img {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+@media (max-width: 480px) {
+  .create-group-modal {
+    padding: 20px;
+  }
+
+  .create-group-modal .modal-actions {
+    flex-direction: column;
+  }
+
+  .create-group-modal .cancel-btn,
+  .create-group-modal .create-btn {
+    width: 100%;
+  }
+}
+
+.group-chat-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;  /* центрируем иконку */
+  padding: 12px;
+  margin: 4px 0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: #0f1122;
+  border: 2px solid transparent;
+  position: relative;
+}
+
+.group-icon-wrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.group-chat-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  margin: 4px 0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: #0f1122;
+  border: 2px solid transparent;
+  position: relative;
+}
+
+.group-icon-wrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.group-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 2px solid #2a2c3e;
+  transition: all 0.3s ease;
+}
+
+.group-name-tooltip {
+  position: absolute;
+  background-color: #2a2c3e;
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  white-space: nowrap;
+  opacity: 0;
+  z-index:1;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  pointer-events: none;
+  border: 1px solid #3b82f6;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  margin-left: 10px; /* отступ от иконки */
+}
+
+.group-name-tooltip::before {
+  content: '';
+  position: absolute;
+  left: -6px;  /* стрелка слева */
+  top: 50%;
+  transform: translateY(-50%);
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-right: 6px solid #2a2c3e;  /* стрелка указывает влево */
+}
+
+.group-icon-wrapper:hover .group-name-tooltip {
+  opacity: 1;
+  visibility: visible;
+  z-index:1;
+}
+
+.group-icon-wrapper:hover .group-icon {
+  border-color: #3b82f6;
+  transform: scale(1.05);
+}
+
+.group-chat-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: #07081c;
+}
+
+/* --------------------------*/
+
+/* Стили для информации о группе в шапке */
+.group-info-header {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    margin-right: 10px;
+}
+
+.group-profile-preview {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background-color: rgba(59, 130, 246, 0.1);
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.group-profile-preview:hover {
+    background-color: rgba(59, 130, 246, 0.2);
+    border-color: #3B82F6;
+}
+
+.group-avatar-small {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #3B82F6;
+}
+
+.group-info-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.group-name {
+    font-weight: 600;
+    color: #E2E8F0;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+
+.participants-count-text {
+    font-size: 11px;
+    color: #94A3B8;
+}
+
+/* Аватарки участников в шапке */
+.participants-avatars-row {
+    display: flex;
+    align-items: center;
+    margin-right: 10px;
+}
+
+.participant-mini-avatar {
+    position: relative;
+    width: 28px;
+    height: 28px;
+    margin-left: -8px;
+    border-radius: 50%;
+    border: 2px solid #151838;
+    transition: transform 0.2s ease;
+    margin: 10px;
+}
+
+.participant-mini-avatar:first-child {
+    margin-left: 0;
+}
+
+.participant-mini-avatar:hover {
+    transform: translateY(-2px);
+    z-index: 20 !important;
+}
+
+.participant-mini-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.mini-online-dot {
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 8px;
+    height: 8px;
+    background-color: #10b981;
+    border-radius: 50%;
+    border: 2px solid #151838;
+}
+
+.participants-count-badge {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-color: #1A2438;
+    border: 2px solid #3B82F6;
+    color: #E2E8F0;
+    font-size: 11px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .group-name {
+        max-width: 100px;
+    }
+    
+    .group-profile-preview {
+        padding: 4px 8px;
+    }
+    
+    .participant-mini-avatar {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .participants-count-badge {
+        width: 24px;
+        height: 24px;
+        font-size: 10px;
+    }
+}
