@@ -343,7 +343,7 @@
 }
 
 .group-name-tooltip {
-  position: fixed;
+  position: absolute;
   background-color: #2a2c3e;
   color: #ffffff;
   padding: 6px 12px;
@@ -351,10 +351,10 @@
   font-size: 13px;
   white-space: nowrap;
   opacity: 0;
+  z-index:1;
   visibility: hidden;
   transition: all 0.2s ease;
   pointer-events: none;
-  z-index: 1000;
   border: 1px solid #3b82f6;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   margin-left: 10px; /* отступ от иконки */
@@ -374,6 +374,7 @@
 .group-icon-wrapper:hover .group-name-tooltip {
   opacity: 1;
   visibility: visible;
+  z-index:1;
 }
 
 .group-icon-wrapper:hover .group-icon {

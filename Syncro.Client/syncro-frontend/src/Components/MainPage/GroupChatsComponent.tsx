@@ -8,6 +8,7 @@ import { UserInfo } from "../../Types/UserInfo";
 import { Friend } from '../../Types/FriendType';
 import CreateGroupModal from '../GroupChat/CreateGroupModal';
 import '../../Styles/GroupChat.css';
+import logo from '../../assets/logo.png';
 
 const GroupChatsComponent = () => {
     const [groups, setGroups] = useState<GroupConf[]>([]);
@@ -81,7 +82,7 @@ const GroupChatsComponent = () => {
                         friendsList.push({
                             id: friendId,
                             nickname: friendData.nickname || 'Без имени',
-                            avatar: friendData.avatar || "logo.png",
+                            avatar: friendData.avatar || logo,
                             email: friendData.email,
                             phonenumber: friendData.phonenumber,
                             firstname: friendData.firstname,
@@ -187,7 +188,6 @@ const GroupChatsComponent = () => {
                             const tooltipWidth = el.offsetWidth;
                             let left = rect.right + 10; // 10px отступ справа от иконки
                             
-                            // Проверяем, не выходит ли за правый край
                             const maxLeft = window.innerWidth - tooltipWidth - 10;
                             if (left > maxLeft) {
                                 // Если не помещается справа, показываем слева

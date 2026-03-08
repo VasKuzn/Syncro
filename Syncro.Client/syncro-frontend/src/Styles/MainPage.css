@@ -170,6 +170,7 @@ body {
     flex-direction: column;
     justify-items: center;
     align-items: center;
+    z-index:3;
 }
 
 .group-chat-list {
@@ -416,7 +417,7 @@ body {
     box-shadow: 0 2px 8px #3b82f6;
     border-radius: 5px;
     transform: scale(1.02);
-    z-index: 2;
+    z-index: 1;
     transition: all 0.25s ease;
 }
 
@@ -452,6 +453,7 @@ body {
     overflow: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    z-index: 0;
 }
 
 .pc-item {

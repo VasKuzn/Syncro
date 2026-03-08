@@ -12,7 +12,7 @@ import '../Styles/Chat.css';
 import '../Styles/GroupChat.css';
 import searchIcon from '../assets/search3.png';
 import arrowDownIcon from '../assets/arrow-down.png';
-import backIcon from '../assets/arrow-back.png';
+import logo from '../assets/logo.png';
 
 const GroupChatPage = () => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -31,6 +31,7 @@ const GroupChatPage = () => {
         currentUser,
         group,
         participants,
+        friends,
         loading,
         error,
         getSenderInfo
@@ -122,7 +123,6 @@ const GroupChatPage = () => {
         setMessageInputValue(prev => prev + emoji);
     }, []);
 
-    // Мини-компонент для отображения аватарок участников в шапке
     const ParticipantsAvatars = () => {
         const displayParticipants = participants.slice(0, 5);
         const remainingCount = participants.length - 5;
@@ -136,7 +136,7 @@ const GroupChatPage = () => {
                         style={{ zIndex: 10 - index }}
                         title={user.nickname}
                     >
-                        <img src={user.avatar || "../logo.png"} alt={user.nickname} />
+                        <img src={user.avatar || logo} alt={user.nickname} />
                         {user.isOnline && <span className="mini-online-dot" />}
                     </div>
                 ))}
@@ -158,101 +158,99 @@ const GroupChatPage = () => {
                 <>
                     {/* Шапка как в обычном чате, но с информацией о группе */}
                     <AnimatePresence>
-                        {!false && (
-                            <motion.div
-                                className="call-button-container"
-                                initial={{ opacity: 0, y: -20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -20 }}
-                                transition={{ duration: 0.3, ease: "easeOut" }}
-                            >
-                                <div className="group-info-header">
-                                    <div
-                                        className="group-profile-preview"
-                                        style={{ cursor: 'pointer' }}
-                                    >
-                                        <img
-                                            src={group.conferenceAvatar || "../logo.png"}
-                                            alt={group.conferenceName}
-                                            className="group-avatar-small"
-                                        />
-                                        <div className="group-info-text">
-                                            <span className="group-name">{group.conferenceName}</span>
-                                            <span className="participants-count-text">
-                                                {participants.length} участников
-                                            </span>
-                                        </div>
+                        <motion.div
+                            className="call-button-container"
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.3, ease: "easeOut" }}
+                        >
+                            <div className="group-info-header">
+                                <div
+                                    className="group-profile-preview"
+                                    style={{ cursor: 'pointer' }}
+                                >
+                                    <img
+                                        src={group.conferenceAvatar || logo}
+                                        alt={group.conferenceName}
+                                        className="group-avatar-small"
+                                    />
+                                    <div className="group-info-text">
+                                        <span className="group-name">{group.conferenceName}</span>
+                                        <span className="participants-count-text">
+                                            {participants.length} members
+                                        </span>
                                     </div>
                                 </div>
+                            </div>
 
-                                {/* Аватарки участников в шапке */}
-                                <ParticipantsAvatars />
+                            {/* Аватарки участников в шапке */}
+                            <ParticipantsAvatars />
 
-                                <AnimatePresence>
-                                    {search.isSearchActive && (
-                                        <motion.div
-                                            className="search-panel"
-                                            initial={{ opacity: 0, width: 0, x: -20 }}
-                                            animate={{ opacity: 1, width: "300px", x: 0 }}
-                                            exit={{ opacity: 0, width: 0, x: -20 }}
-                                            transition={{ duration: 0.2 }}
-                                        >
-                                            <div className="search-input-container">
-                                                <img src={searchIcon} alt="Поиск" className="search-icon" />
-                                                <input
-                                                    type="text"
-                                                    className="search-input"
-                                                    placeholder="Поиск сообщений..."
-                                                    value={search.searchQuery}
-                                                    onChange={(e) => search.setSearchQuery(e.target.value)}
-                                                    autoFocus
-                                                />
-                                                <button className="search-close-btn" onClick={search.handleExitSearch}>
-                                                    ✕
-                                                </button>
-                                            </div>
-
-                                            {search.searchQuery && (
-                                                <div className="search-results-info">
-                                                    <span>
-                                                        {search.searchResults.length > 0
-                                                            ? `Найдено: ${search.currentResultIndex + 1} из ${search.searchResults.length}`
-                                                            : 'Совпадений не найдено'}
-                                                    </span>
-                                                    <div className="search-navigation">
-                                                        <button
-                                                            className="search-nav-btn"
-                                                            onClick={search.goToPrevResult}
-                                                            disabled={search.searchResults.length === 0}
-                                                        >
-                                                            ▲
-                                                        </button>
-                                                        <button
-                                                            className="search-nav-btn"
-                                                            onClick={search.goToNextResult}
-                                                            disabled={search.searchResults.length === 0}
-                                                        >
-                                                            ▼
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-
-                                {!search.isSearchActive && (
-                                    <motion.button
-                                        className="search-button"
-                                        onClick={() => search.setIsSearchActive(true)}
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
+                            <AnimatePresence>
+                                {search.isSearchActive && (
+                                    <motion.div
+                                        className="search-panel"
+                                        initial={{ opacity: 0, width: 0, x: -20 }}
+                                        animate={{ opacity: 1, width: "300px", x: 0 }}
+                                        exit={{ opacity: 0, width: 0, x: -20 }}
+                                        transition={{ duration: 0.2 }}
                                     >
-                                        <img src={searchIcon} alt="Поиск" width="16" height="16" />
-                                    </motion.button>
+                                        <div className="search-input-container">
+                                            <img src={searchIcon} alt="Поиск" className="search-icon" />
+                                            <input
+                                                type="text"
+                                                className="search-input"
+                                                placeholder="Поиск сообщений..."
+                                                value={search.searchQuery}
+                                                onChange={(e) => search.setSearchQuery(e.target.value)}
+                                                autoFocus
+                                            />
+                                            <button className="search-close-btn" onClick={search.handleExitSearch}>
+                                                ✕
+                                            </button>
+                                        </div>
+
+                                        {search.searchQuery && (
+                                            <div className="search-results-info">
+                                                <span>
+                                                    {search.searchResults.length > 0
+                                                        ? `Найдено: ${search.currentResultIndex + 1} из ${search.searchResults.length}`
+                                                        : 'Совпадений не найдено'}
+                                                </span>
+                                                <div className="search-navigation">
+                                                    <button
+                                                        className="search-nav-btn"
+                                                        onClick={search.goToPrevResult}
+                                                        disabled={search.searchResults.length === 0}
+                                                    >
+                                                        ▲
+                                                    </button>
+                                                    <button
+                                                        className="search-nav-btn"
+                                                        onClick={search.goToNextResult}
+                                                        disabled={search.searchResults.length === 0}
+                                                    >
+                                                        ▼
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </motion.div>
                                 )}
-                            </motion.div>
-                        )}
+                            </AnimatePresence>
+
+                            {!search.isSearchActive && (
+                                <motion.button
+                                    className="search-button"
+                                    onClick={() => search.setIsSearchActive(true)}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    <img src={searchIcon} alt="Поиск" width="16" height="16" />
+                                </motion.button>
+                            )}
+                        </motion.div>
                     </AnimatePresence>
 
                     {/* Кнопка скролла вниз */}
@@ -349,7 +347,7 @@ const GroupChatPage = () => {
                     </motion.div>
                 </>
             }
-            friends={[]} // В групповом чате список друзей не нужен
+            friends={friends}
             nickname={currentUser?.nickname}
             avatar={currentUser?.avatar}
             isOnline={true}

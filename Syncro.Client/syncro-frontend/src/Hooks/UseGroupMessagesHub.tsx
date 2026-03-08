@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import signalR, { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
+import { HubConnection, HubConnectionBuilder, LogLevel, HttpTransportType } from '@microsoft/signalr';
 import { PersonalMessageData } from '../Types/ChatTypes';
 
 const useGroupMessagesHub = (
@@ -27,7 +27,7 @@ const useGroupMessagesHub = (
                 .withUrl('http://localhost:5232/groupMessagesHub', {
                     withCredentials: true,
                     skipNegotiation: true,
-                    transport: signalR.HttpTransportType.WebSockets
+                    transport: HttpTransportType.WebSockets // Changed from signalR.HttpTransportType
                 })
                 .configureLogging(LogLevel.Warning)
                 .withAutomaticReconnect()
