@@ -3,7 +3,6 @@ import { SettingsComponentProps } from "../../Types/SettingsProps";
 import SettingsAddAvatarComponent from './SettingsAddAvatarComponent';
 import AIGenerationModal from './AIGenerationModal';
 import { logoutUser } from '../../Services/LogoutService';
-import { useNavigate } from 'react-router-dom';
 import ChangePasswordModal from './ChangePasswordModal';
 
 interface EnhancedSettingsComponentProps extends SettingsComponentProps {
@@ -37,8 +36,11 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const navigate = useNavigate();
 
+    // Группировка полей по секциям для рендеринга
+    const [saveSuccess, setSaveSuccess] = useState(false);
+
+    // Обработчики аватара
     const handleAvatarClick = () => {
         setShowAvatarModal(true);
     };
@@ -48,20 +50,16 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
     };
 
     const handleFileSelect = (file: File) => {
-        const previewUrl = URL.createObjectURL(file);
         onAvatarUpdate(file);
         setShowAvatarModal(false);
     };
 
     const handleAIGenerate = () => {
-
         setShowAvatarModal(false);
-
         setShowAIModal(true);
     };
 
     const handleAIGenerated = (file: File) => {
-        const previewUrl = URL.createObjectURL(file);
         onAvatarUpdate(file);
         setShowAIModal(false);
     };
@@ -73,6 +71,7 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
         }
     };
 
+    // Обработчики выхода
     const handleLogoutClick = () => {
         setShowLogoutModal(true);
     };
@@ -80,7 +79,6 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
     const handleConfirmLogout = async () => {
         try {
             setIsLoggingOut(true);
-
             await logoutUser(baseUrl);
 
             localStorage.clear();
@@ -113,23 +111,79 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
 
     const handleChangePassword = () => {
         setShowChangePassModal(true);
-    }
+    };
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        await onSubmit(e);
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 3000);
+    };
 
     return (
         <div className="settings-profile">
-            <div className="settings-profile-header">Настройки учётной записи</div>
+            {saveSuccess && (
+                <div className="settings-success-banner">
+                    Изменения сохранены успешно
+                </div>
+            )}
 
-            <form id="settings-form" onSubmit={onSubmit} noValidate>
-                <div className="settings-form-container">
-                    <div className="column">
+            <form id="settings-form" onSubmit={handleSubmit} noValidate>
+                <section className="settings-section settings-profile-section">
+                    <div className="settings-profile-container">
+                        <div className="profile-avatar-block">
+                            <div className="avatar-container">
+                                <img
+                                    className="settings-avatar"
+                                    src={avatar || "logo.png"}
+                                    alt="Аватар профиля"
+                                    onClick={handleAvatarClick}
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).src = "logo.png";
+                                    }}
+                                />
+                                <div
+                                    className="avatar-edit-badge"
+                                    onClick={handleAvatarClick}
+                                >
+                                    <span>✏</span>
+                                </div>
+                                <div className="avatar-tooltip">Нажмите для изменения аватара</div>
+                            </div>
+                        </div>
 
-                        <div className="setting">
-                            <div className="setting-label">Имя</div>
+                        <div className="profile-info-block">
+                            <div className="profile-header">
+                                <h1 className="profile-nickname">{nickname}</h1>
+                                <p className="profile-email">{email}</p>
+                            </div>
+
+                            <div className="profile-meta">
+                                {firstname && lastname && (
+                                    <p className="profile-fullname">{firstname} {lastname}</p>
+                                )}
+                                {country && (
+                                    <p className="profile-location">{country}</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section className="settings-section">
+                    <div className="section-header">
+                        <h2 className="section-title">Личная информация</h2>
+                    </div>
+
+                    <div className="settings-grid-2">
+                        <div className="settings-field">
+                            <label htmlFor="firstname" className="setting-label">Имя</label>
                             <div className="setting-input-box">
                                 <input
+                                    id="firstname"
                                     name="firstname"
                                     className="setting-input"
-                                    placeholder="Новое имя"
+                                    placeholder="Ваше имя"
                                     value={firstname}
                                     onChange={onChange}
                                     ref={firstnameField}
@@ -137,27 +191,47 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
                             </div>
                         </div>
 
-                        <div className="setting">
-                            <div className="setting-label">Фамилия</div>
+                        <div className="settings-field">
+                            <label htmlFor="lastname" className="setting-label">Фамилия</label>
                             <div className="setting-input-box">
                                 <input
+                                    id="lastname"
                                     name="lastname"
                                     className="setting-input"
-                                    placeholder="Новая фамилия"
+                                    placeholder="Ваша фамилия"
                                     value={lastname}
                                     onChange={onChange}
                                     ref={lastnameField}
                                 />
                             </div>
                         </div>
+                    </div>
 
-                        <div className="setting">
-                            <div className="setting-label">Страна</div>
+                    <div className="settings-grid-2">
+                        <div className="settings-field">
+                            <label htmlFor="nickname" className="setting-label">Имя пользователя</label>
                             <div className="setting-input-box">
                                 <input
+                                    id="nickname"
+                                    name="nickname"
+                                    className="setting-input"
+                                    placeholder="Ваше имя в системе"
+                                    value={nickname}
+                                    onChange={onChange}
+                                    ref={nicknameField}
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div className="settings-field">
+                            <label htmlFor="country" className="setting-label">Страна (код)</label>
+                            <div className="setting-input-box">
+                                <input
+                                    id="country"
                                     name="country"
                                     className="setting-input"
-                                    placeholder="Выберите страну"
+                                    placeholder="Код страны"
                                     value={country}
                                     onChange={onChange}
                                     ref={countryField}
@@ -165,14 +239,23 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
                                 />
                             </div>
                         </div>
+                    </div>
+                </section>
 
-                        <div className="setting">
-                            <div className="setting-label">Почта</div>
+                <section className="settings-section">
+                    <div className="section-header">
+                        <h2 className="section-title">Контактная информация</h2>
+                    </div>
+
+                    <div className="settings-grid-2">
+                        <div className="settings-field">
+                            <label htmlFor="email" className="setting-label">Электронная почта</label>
                             <div className="setting-input-box">
                                 <input
+                                    id="email"
                                     name="email"
                                     className="setting-input"
-                                    placeholder="Новый почтовый адрес"
+                                    placeholder="your.email@example.com"
                                     value={email}
                                     onChange={onChange}
                                     ref={emailField}
@@ -182,13 +265,14 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
                             </div>
                         </div>
 
-                        <div className="setting">
-                            <div className="setting-label">Номер телефона</div>
+                        <div className="settings-field">
+                            <label htmlFor="phonenumber" className="setting-label">Номер телефона</label>
                             <div className="setting-input-box">
                                 <input
+                                    id="phonenumber"
                                     name="phonenumber"
                                     className="setting-input"
-                                    placeholder="Новый номер телефона"
+                                    placeholder="+7 (999) 999-99-99"
                                     value={phonenumber}
                                     onChange={onChange}
                                     ref={phoneField}
@@ -196,82 +280,55 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
                                 />
                             </div>
                         </div>
-
-                        <div className="setting">
-                            <div className="setting-label">Пароль</div>
-                            <button 
-                                className="setting-button" 
-                                type="button"
-                                onClick={handleChangePassword}>
-                                    Изменить пароль
-                            </button>
-                        </div>
                     </div>
+                </section>
 
-                    <div className="column">
-                        <div className="setting">
-                            <div className="setting-label">Аватар</div>
-                            <div className="avatar-container">
-                                <img
-                                    className="settings-avatar"
-                                    src={avatar || "logo.png"}
-                                    width="250"
-                                    height="250"
-                                    alt="Аватар"
-                                    onClick={handleAvatarClick}
-                                    onError={(e) => {
-                                        (e.target as HTMLImageElement).src = "logo.png";
-                                    }}
-                                />
-                                <div className="avatar-tooltip">Изменить аватар</div>
-                            </div>
-                        </div>
-                        
-                        <div className="setting">
-                            <div className="setting-label">Имя пользователя</div>
-                            <div className="setting-input-box">
-                                <input
-                                    name="nickname"
-                                    className="setting-input"
-                                    placeholder="Новое имя пользователя"
-                                    value={nickname}
-                                    onChange={onChange}
-                                    ref={nicknameField}
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <button className="setting-button" type="submit">Сохранить изменения</button>
+                <section className="settings-section">
+                    <div className="settings-field">
+                        <label className="setting-label">Пароль</label>
+                        <p className="setting-hint">Измените свой пароль для повышения безопасности!</p>
+                        <button
+                            className="settings-button settings-button-compact settings-button-secondary"
+                            type="button"
+                            onClick={handleChangePassword}
+                        >
+                            Изменить пароль
+                        </button>
                     </div>
+                </section>
+
+                <div className="settings-actions">
+                    <button className="settings-button settings-button-primary" type="submit">
+                        Сохранить все изменения
+                    </button>
                 </div>
 
-                <div className="settings-divider">
-                    <div className="setting">
+                <section className="settings-section settings-danger-zone">
+                    <div className="section-header">
+                        <h2 className="section-title danger">Выход из аккаунта</h2>
+                    </div>
+
+                    <div className="danger-zone-content">
+                        <p className="danger-zone-description">
+                            При выходе из аккаунта вы будете перенаправлены на страницу входа.
+                        </p>
                         <button
                             type="button"
-                            className="setting-button sb-red"
+                            className="settings-button settings-button-compact settings-button-danger"
                             onClick={handleLogoutClick}
                         >
                             Выйти из аккаунта
                         </button>
                     </div>
-                </div>
+                </section>
             </form>
-
-            <input
-                className="file-input-display-none"
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileInputChange}
-                accept="image/*"
-            />
 
             {showChangePassModal && (
                 <ChangePasswordModal
                     onClose={() => setShowChangePassModal(false)}
                 />
             )}
+
             {showAvatarModal && (
                 <SettingsAddAvatarComponent
                     onFileSelect={handleFileSelect}
@@ -280,12 +337,14 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
                     fileInputRef={fileInputRef}
                 />
             )}
+
             {showAIModal && (
                 <AIGenerationModal
                     onGenerate={handleAIGenerated}
                     onClose={() => setShowAIModal(false)}
                 />
             )}
+
             {showLogoutModal && (
                 <div className="logout-modal-overlay">
                     <div className="logout-modal">
@@ -293,9 +352,11 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
                             <h2>Подтверждение выхода</h2>
                         </div>
                         <div className="logout-modal-content">
-                            <p>Вы уверены, что хотите выполнить полный выход из аккаунта?</p>
-                            <p className="logout-modal-text">
-                                После выхода вы будете перенаправлены на страницу входа.
+                            <p className="logout-modal-text-main">
+                                Вы уверены, что хотите выполнить полный выход из аккаунта?
+                            </p>
+                            <p className="logout-modal-text-secondary">
+                                После выхода вы будете перенаправлены на страницу входа. Ваши данные останутся сохранены.
                             </p>
                         </div>
                         <div className="logout-modal-actions">
@@ -319,6 +380,14 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
                     </div>
                 </div>
             )}
+
+            <input
+                className="file-input-display-none"
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileInputChange}
+                accept="image/*"
+            />
         </div>
     );
 };

@@ -1,3 +1,7 @@
+/* ==========================================
+   НАСТРОЙКИ - ОСНОВНАЯ СТРАНИЦА
+   ========================================== */
+
 .settings-page {
   display: flex;
   flex-direction: row;
@@ -10,24 +14,268 @@
 .settings-profile {
   display: flex;
   flex-direction: column;
-  padding: 50px 25px;
+  padding: 40px 50px;
   flex: 1;
-  background-color: #151838;
-  border-bottom: 1px solid #2D3748;
+  background: linear-gradient(135deg, #151838 0%, #0f1428 100%);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #4A5568 #1E293B;
 }
 
-.settings-form-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  width: 100vh;
+.settings-profile::-webkit-scrollbar {
+  width: 6px;
+}
+
+.settings-profile::-webkit-scrollbar-track {
+  background: #1E293B;
+}
+
+.settings-profile::-webkit-scrollbar-thumb {
+  background-color: #4A5568;
+  border-radius: 3px;
+}
+
+.settings-profile::-webkit-scrollbar-thumb:hover {
+  background-color: #64748B;
+}
+
+/* ==========================================
+   УВЕДОМЛЕНИЕ ОБ УСПЕШНОМ СОХРАНЕНИИ
+   ========================================== */
+
+.settings-success-banner {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  color: white;
+  padding: 14px 24px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+  animation: slideInRight 0.3s ease, slideOutRight 0.3s ease 2.7s forwards;
+  z-index: 100;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+}
+
+/* ==========================================
+   СЕКЦИИ НАСТРОЕК
+   ========================================== */
+
+.settings-section {
+  margin-bottom: 40px;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.section-header {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid rgba(59, 130, 246, 0.2);
+}
+
+.section-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #E2E8F0;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.section-title.danger {
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ==========================================
+   ПРОФИЛЬНАЯ СЕКЦИЯ
+   ========================================== */
+
+.settings-profile-section {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 50px;
+}
+
+.settings-profile-container {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+}
+
+.profile-avatar-block {
+  flex-shrink: 0;
+}
+
+.avatar-container {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+}
+
+.settings-avatar {
+  display: block;
+  width: 200px;
+  height: 200px;
+  border-radius: 16px;
+  object-fit: cover;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 3px solid rgba(59, 130, 246, 0.3);
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.2);
+}
+
+.settings-avatar:hover {
+  filter: brightness(0.8);
+  transform: scale(1.05);
+  border-color: rgba(139, 92, 246, 0.6);
+  box-shadow: 0 12px 40px rgba(139, 92, 246, 0.3);
+}
+
+.avatar-edit-badge {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  transition: all 0.3s ease;
+  border: 2px solid #151838;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.avatar-container:hover .avatar-edit-badge {
+  opacity: 1;
+  transform: scale(1.1);
+  pointer-events: auto;
+}
+
+.avatar-tooltip {
+  position: absolute;
+  bottom: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  white-space: nowrap;
+  z-index: 10;
+  pointer-events: none;
+  font-weight: 500;
+}
+
+.avatar-container:hover .avatar-tooltip {
+  opacity: 1;
+  visibility: visible;
+  bottom: -45px;
+}
+
+.profile-info-block {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   gap: 20px;
 }
 
-.column {
+.profile-header {
+  margin-bottom: 12px;
+}
+
+.profile-nickname {
+  font-size: 32px;
+  font-weight: 700;
+  color: #E2E8F0;
+  margin: 0;
+  word-break: break-word;
+}
+
+.profile-email {
+  font-size: 15px;
+  color: #94A3B8;
+  margin: 8px 0 0 0;
+  word-break: break-all;
+}
+
+.profile-meta {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
+
+.profile-fullname {
+  font-size: 16px;
+  color: #CBD5E1;
+  margin: 0;
+}
+
+.profile-location {
+  font-size: 15px;
+  color: #94A3B8;
+  margin: 0;
+}
+
+/* ==========================================
+   БОКОВАЯ ПАНЕЛЬ НАСТРОЕК
+   ========================================== */
 
 .settings-sidebar {
   display: flex;
@@ -36,13 +284,15 @@
   justify-content: center;
   align-items: flex-end;
   background-color: #07081C;
-  border-bottom: 1px solid #2D3748;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  padding-right: 20px;
 }
 
 .settings-pages-container {
   display: block;
   padding: 50px 20px;
   height: 100vh;
+  overflow-y: auto;
 }
 
 .settings-sidebar-button {
@@ -50,162 +300,248 @@
   background: transparent;
   border: none;
   outline: none;
-  font-size: larger;
-  color: inherit;
+  font-size: 16px;
+  color: #94A3B8;
   font-family: inherit;
-  margin: 10px 0;
+  margin: 12px 0;
+  padding: 12px 20px;
   cursor: pointer;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .settings-sidebar-button:hover {
-  background-color: rgba(0, 123, 255, 0.1);
-  box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
-  transform: translateY(-1px);
+  background-color: rgba(59, 130, 246, 0.15);
+  color: #E2E8F0;
+  transform: translateX(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
 
 .settings-sidebar-button:active {
-  background-color: rgba(0, 123, 255, 0.2);
-  box-shadow: 0 0 12px rgba(0, 123, 255, 0.5);
-  transform: translateY(0);
+  background-color: rgba(139, 92, 246, 0.2);
+  color: #ffffff;
+  transform: translateX(0);
+}
+
+/* ==========================================
+   ПОЛЯ ВВОДА
+   ========================================== */
+
+.settings-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 1200px) {
+  .settings-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.setting-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: #E2E8F0;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin: 0;
+}
+
+.setting-hint {
+  font-size: 13px;
+  color: #94A3B8;
+  margin: 0;
+  font-style: italic;
 }
 
 .setting-input-box {
+  position: relative;
   display: flex;
-  padding: 5px 5px;
-  margin: 5px 0;
-  background-color: #07081C;
-  border-radius: 10px;
-  width: 300px;
+  align-items: center;
+  padding: 2px 2px;
+  background: linear-gradient(135deg, #1A2438 0%, #0f1c34 100%);
+  border-radius: 12px;
+  border: 1.5px solid rgba(59, 130, 246, 0.3);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.setting-input-box:focus-within {
+  border-color: rgba(139, 92, 246, 0.8);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+  transform: translateY(-1px);
 }
 
 .setting-input,
-.setting-input[type=password] {
-  font-size: 20px;
+.setting-input[type="password"],
+.setting-input[type="email"],
+.setting-input[type="number"] {
+  font-size: 15px;
   display: flex;
   flex: 1;
   border: none;
   background-color: transparent;
+  color: #E2E8F0;
+  padding: 12px 16px;
+  font-family: inherit;
+  transition: color 0.2s ease;
+}
+
+.setting-input::placeholder {
+  color: #64748B;
+  font-weight: 400;
+}
+
+.setting-input:focus {
+  outline: none;
   color: #ffffff;
 }
 
-.setting {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 20px;
+.setting-input[type="number"]::-webkit-outer-spin-button,
+.setting-input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
-.settings-divider {
-  margin-top: 50px;
-  padding-top: 20px;
-  border-top: 1px solid #2D3748;
-}
+/* ==========================================
+   КНОПКИ
+   ========================================== */
 
-.file-input-display-none {
-  display: none;
-}
-
-.setting-button {
-  display: flex;
+.settings-button {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  font-size: 20px;
-  padding: 5px 10px;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 12px 28px;
   border: none;
-  border-radius: 10px;
-  background-color: #3B82F6;
-  color: #ffffff;
-  width: fit-content;
-  min-width: 250px;
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
-  animation: gradient-flow 3s infinite;
-}
-
-.setting-button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.5);
+  border-radius: 12px;
   cursor: pointer;
-}
-
-.sb-red {
-  background-color: #ef4444;
-  animation: none;
-}
-
-.settings-header {
-  font-size: x-large;
-}
-
-.setting-label {
-  font-size: x-large;
-  margin-bottom: 10px;
-}
-
-.settings-profile-header {
-  font-size: xx-large;
-  margin-bottom: 30px;
-}
-
-/*Стили для смены аватара - добавила Кристина*/
-
-.avatar-container {
-  position: relative;
-  display: inline-block;
-  width: fit-content;
-  display: flex;
-
-}
-
-.avatar-tooltip {
-  position: absolute;
-  bottom: 15px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 14px;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
-  white-space: nowrap;
-  z-index: 10;
-  pointer-events: none;
-}
-
-.avatar-tooltip::after {
-  content: '';
-  position: absolute;
-  top: -5px;
-  left: 50%;
-  transform: translateX(-50%);
-  border-width: 5px;
-  border-style: solid;
-  border-color: transparent transparent rgba(0, 0, 0, 0.8) transparent;
-}
-
-.avatar-container:hover .avatar-tooltip {
-  opacity: 1;
-  visibility: visible;
-}
-
-.settings-avatar {
-  display: block;
-  border-radius: 10%;
-  object-fit: cover;
   transition: all 0.3s ease;
-  cursor: pointer;
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
   position: relative;
-  z-index: 1;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
-.settings-avatar:hover {
-  filter: brightness(0.7);
-  transform: scale(1.02);
+/* Основная кнопка */
+.settings-button-primary {
+  background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
 }
+
+.settings-button-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+}
+
+.settings-button-primary:active {
+  transform: translateY(0);
+}
+
+/* Вторичная кнопка */
+.settings-button-secondary {
+  background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+}
+
+.settings-button-secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+}
+
+.settings-button-secondary:active {
+  transform: translateY(0);
+}
+
+/* Опасная кнопка */
+.settings-button-danger {
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+.settings-button-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+}
+
+.settings-button-danger:active {
+  transform: translateY(0);
+}
+
+/* Компактная версия кнопок */
+.settings-button-compact {
+  font-size: 13px;
+  padding: 8px 16px;
+  min-width: 120px;
+  width: fit-content;
+}
+
+.settings-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ==========================================
+   ДЕЙСТВИЯ И СОХРАНЕНИЕ
+   ========================================== */
+
+.settings-actions {
+  display: flex;
+  gap: 16px;
+  margin: 50px 0 40px 0;
+  padding: 30px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ==========================================
+   ОПАСНАЯ ЗОНА
+   ========================================== */
+
+.settings-danger-zone {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(220, 38, 38, 0.03) 100%);
+  border: 2px solid rgba(239, 68, 68, 0.2);
+  border-radius: 16px;
+  padding: 32px;
+  margin-top: 40px;
+}
+
+.danger-zone-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.danger-zone-description {
+  font-size: 14px;
+  color: #CBD5E1;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ==========================================
+   АВАТАР МОДАЛЬНОЕ ОКНО НОВОЕ
+   ========================================== */
 
 /* Стили для модального окна смены аватара */
 .avatar-modal-overlay {
@@ -222,12 +558,25 @@
 }
 
 .avatar-modal {
-  background-color: #151838;
-  border-radius: 15px;
+  background: linear-gradient(135deg, #1A2438 0%, #151838 100%);
+  border-radius: 16px;
   padding: 30px;
   width: 400px;
-  border: 1px solid #2D3748;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  animation: scaleIn 0.3s ease;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .avatar-modal-header {
@@ -236,7 +585,7 @@
   align-items: center;
   margin-bottom: 30px;
   padding-bottom: 15px;
-  border-bottom: 1px solid #2D3748;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .avatar-modal-header h2 {
@@ -248,7 +597,7 @@
 .modal-close-btn {
   background: none;
   border: none;
-  color: #ffffff;
+  color: #94A3B8;
   font-size: 28px;
   cursor: pointer;
   padding: 0;
@@ -258,11 +607,12 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
 }
 
 .modal-close-btn:hover {
   background-color: rgba(255, 255, 255, 0.1);
+  color: #E2E8F0;
 }
 
 .avatar-modal-content {
@@ -309,6 +659,226 @@
   transform: translateY(0);
 }
 
+/* ==========================================
+   RESPONSIVE ДИЗАЙН
+   ========================================== */
+
+@media (max-width: 1400px) {
+  .settings-profile {
+    padding: 40px 30px;
+  }
+
+  .settings-profile-container {
+    gap: 30px;
+  }
+
+  .settings-avatar {
+    width: 160px;
+    height: 160px;
+  }
+
+  .profile-nickname {
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 1000px) {
+  .settings-page {
+    flex-direction: column;
+  }
+
+  .settings-sidebar {
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0;
+  }
+
+  .settings-sidebar-button {
+    margin: 0 8px;
+    padding: 8px 16px;
+  }
+
+  .settings-profile {
+    flex: 1;
+  }
+
+  .settings-profile-section {
+    padding: 24px;
+  }
+
+  .settings-profile-container {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 24px;
+  }
+
+  .profile-info-block {
+    align-items: center;
+  }
+
+  .settings-grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-avatar {
+    width: 140px;
+    height: 140px;
+  }
+
+  .profile-nickname {
+    font-size: 24px;
+  }
+
+  .section-title {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 768px) {
+  .settings-profile {
+    padding: 24px 16px;
+    margin-bottom: 20px;
+  }
+
+  .settings-section {
+    margin-bottom: 24px;
+  }
+
+  .settings-profile-section {
+    padding: 16px;
+  }
+
+  .settings-actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .settings-button {
+    width: 100%;
+  }
+
+  .logout-modal {
+    margin: 16px;
+    max-width: calc(100% - 32px);
+  }
+
+  .settings-avatar {
+    width: 120px;
+    height: 120px;
+  }
+
+  .profile-nickname {
+    font-size: 20px;
+  }
+
+  .section-title {
+    font-size: 16px;
+  }
+
+  .settings-success-banner {
+    left: 16px;
+    right: 16px;
+    top: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-profile {
+    padding: 16px 12px;
+  }
+
+  .settings-profile-section {
+    padding: 12px;
+  }
+
+  .settings-grid-2 {
+    gap: 16px;
+  }
+
+  .settings-button {
+    font-size: 13px;
+    padding: 10px 16px;
+  }
+
+  .section-header {
+    margin-bottom: 16px;
+  }
+
+  .logout-modal {
+    padding: 20px;
+  }
+
+  .logout-modal-header h2 {
+    font-size: 18px;
+  }
+
+  .profile-nickname {
+    font-size: 18px;
+  }
+
+  .section-title {
+    font-size: 14px;
+  }
+}
+
+/* ==========================================
+   УТИЛИТЫ И ИИ МОДАЛЬ
+   ========================================== */
+
+.settings-form-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  width: 100%;
+}
+
+@media (max-width: 1200px) {
+  .settings-form-container {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .settings-form-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.file-input-display-none {
+  display: none;
+}
+
+.setting {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+.settings-divider {
+  margin-top: 50px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.settings-header {
+  font-size: x-large;
+}
+
+.settings-profile-header {
+  font-size: xx-large;
+  margin-bottom: 30px;
+}
+
+/* Стили для ИИ модального окна - сохраняем совместимость */
 .ai-modal-overlay {
   position: fixed;
   top: 0;
@@ -320,17 +890,18 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  animation: fadeIn 0.2s ease;
 }
 
 .ai-modal {
-  background-color: #151838;
-  border-radius: 15px;
+  background: linear-gradient(135deg, #1A2438 0%, #151838 100%);
+  border-radius: 16px;
   padding: 30px;
   width: 500px;
   max-height: 90vh;
   overflow-y: auto;
-  border: 1px solid #2D3748;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
 }
 
 .ai-modal-header {
@@ -339,13 +910,14 @@
   align-items: center;
   margin-bottom: 20px;
   padding-bottom: 15px;
-  border-bottom: 1px solid #2D3748;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .ai-modal-header h2 {
   margin: 0;
-  font-size: 24px;
-  color: #ffffff;
+  font-size: 20px;
+  font-weight: 600;
+  color: #E2E8F0;
 }
 
 .ai-modal-content {
@@ -482,7 +1054,28 @@
   font-size: 14px;
 }
 
-/* Стили для модального окна выхода */
+/* ==========================================
+   АНИМАЦИИ
+   ========================================== */
+
+@keyframes gradient-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* ==========================================
+   МОДАЛЬ ЛОГАУТА
+   ========================================== */
+
 .logout-modal-overlay {
   position: fixed;
   top: 0;
@@ -494,37 +1087,53 @@
   justify-content: center;
   align-items: center;
   z-index: 2000;
-  backdrop-filter: blur(3px);
+  animation: fadeIn 0.2s ease;
 }
 
 .logout-modal {
-  background-color: #151838;
-  border-radius: 15px;
-  padding: 30px;
-  width: 400px;
-  border: 1px solid #2D3748;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(135deg, #1A2438 0%, #151838 100%);
+  border-radius: 16px;
+  padding: 32px;
+  width: 100%;
+  max-width: 420px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  animation: scaleIn 0.3s ease;
 }
 
 .logout-modal-header {
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #2D3748;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .logout-modal-header h2 {
   margin: 0;
-  font-size: 24px;
-  color: #ffffff;
-  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+  color: #E2E8F0;
 }
 
 .logout-modal-content {
-  margin-bottom: 30px;
-  color: #e5e7eb;
+  margin-bottom: 24px;
+}
+
+.logout-modal-text-main {
   font-size: 16px;
+  font-weight: 600;
+  color: #E2E8F0;
+  margin: 0 0 12px 0;
   line-height: 1.5;
-  text-align: center;
+}
+
+.logout-modal-text-secondary {
+  font-size: 14px;
+  color: #94A3B8;
+  margin: 0;
+  line-height: 1.5;
 }
 
 .logout-modal-text {
@@ -535,19 +1144,51 @@
 
 .logout-modal-actions {
   display: flex;
-  gap: 15px;
-  justify-content: center;
+  gap: 12px;
+  justify-content: flex-end;
 }
 
 .logout-modal-btn {
-  padding: 12px 24px;
+  flex: 1;
+  padding: 12px 20px;
   border: none;
   border-radius: 10px;
-  font-size: 16px;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   font-family: inherit;
-  min-width: 100px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.logout-modal-btn-cancel {
+  background: rgba(255, 255, 255, 0.1);
+  color: #CBD5E1;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.logout-modal-btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #E2E8F0;
+  transform: translateY(-1px);
+}
+
+.logout-modal-btn-confirm {
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.logout-modal-btn-confirm:hover {
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+  transform: translateY(-1px);
+}
+
+.logout-modal-btn-confirm:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .logout-modal-btn:disabled {
@@ -555,28 +1196,8 @@
   cursor: not-allowed;
 }
 
-.logout-modal-btn-cancel {
-  background-color: #4b5563;
-  color: white;
-}
-
-.logout-modal-btn-cancel:hover:not(:disabled) {
-  background-color: #6b7280;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(75, 85, 99, 0.3);
-}
-
-.logout-modal-btn-confirm {
-  background-color: #ef4444;
-  color: white;
-}
-
-.logout-modal-btn-confirm:hover:not(:disabled) {
-  background-color: #dc2626;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
-}
-
-.logout-modal-btn:active:not(:disabled) {
-  transform: translateY(0);
+.buttons-settings {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
 }

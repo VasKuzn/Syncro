@@ -9,6 +9,7 @@ namespace Syncro.Application.Services
         public Task<AccountModel> CreateAccountAsync(AccountModel account);
         public Task<bool> DeleteAccountAsync(Guid accountId);
         public Task<AccountModel> UpdateAccountAsync(Guid accountId, AccountModelDTO accountDto);
+        public Task<AccountModel> UpdateAccountPartialAsync(Guid accountId, AccountPartialUpdateDTO updateDto);
         public bool VerifyPassword(string password, string hashedPassword);
         public Task<Result<string>> Login(string email, string password);
         public Task<AccountModel> GetAccountByEmailAsync(string email);
@@ -16,6 +17,7 @@ namespace Syncro.Application.Services
         public Task<string> GetAccountAvatarUrlAsync(Guid accountId);
         public Task<AccountModel> DeleteAccountAvatarAsync(Guid accountId);
         public Task<AccountModel> ResetPassword(Guid accountId, string password);
+        public Task<Result<AccountModel>> ChangePasswordAsync(Guid accountId, string oldPassword, string newPassword);
         public Task<Result<bool>> Logout(Guid accountId);
     }
 }

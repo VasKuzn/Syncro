@@ -7,6 +7,7 @@ namespace Syncro.Application.Repositories
         public Task<AccountModel> AddAccountAsync(AccountModel account);
         public Task<bool> DeleteAccountAsync(Guid accountId);
         public Task<AccountModel> UpdateAccountAsync(AccountModel account);
+        public Task<AccountModel> UpdateAccountAsyncWithPasswordExcluded(AccountModel account);
         public Task<bool> AccountExistsByNicknameAsync(string nickname);
         public Task<bool> AccountExistsByEmailAsync(string email);
         public Task<bool> AccountExistsByPhoneAsync(string phonenumber);

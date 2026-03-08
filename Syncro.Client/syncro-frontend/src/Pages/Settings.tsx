@@ -3,7 +3,8 @@ import '../Styles/Settings.css';
 import SidebarComponent from '../Components/SettingsPage/SidebarComponent';
 import SettingsComponent from '../Components/SettingsPage/SettingsComponent';
 import { useSettingsForm } from '../Hooks/UseSettingsForm';
-import { updateUserInfo } from '../Services/SettingsService';
+import { useFormDelta } from '../Hooks/UseFormDelta';
+import { updateUserInfoPartial } from '../Services/SettingsService';
 import { fetchCurrentUser, getUserInfo } from '../Services/MainFormService';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -30,20 +31,31 @@ const Settings = () => {
         validateForm
     } = useSettingsForm();
 
+    const [isInitialized, setIsInitialized] = useState(false);
+    const delta = useFormDelta(formState);
+
     useEffect(() => {
         const loadCurrentUser = async () => {
             const user = await getUserInfo(await fetchCurrentUser(baseUrl), baseUrl);
             if (user != null) {
+                const { password, ...userWithoutPassword } = user as any;
                 setFormState(prev => ({
                     ...prev,
-                    ...user,
+                    ...userWithoutPassword,
                 }))
             }
             setCurrentUserId(await fetchCurrentUser(baseUrl));
+            setIsInitialized(true);
             setIsChecking(false);
         };
         loadCurrentUser();
     }, []);
+
+    useEffect(() => {
+        if (isInitialized) {
+            delta.updateFields(formState);
+        }
+    }, [isInitialized]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -52,22 +64,29 @@ const Settings = () => {
             return;
         }
 
+        if (!delta.hasChanges() && !avatarFile) {
+            alert('Нет изменений для сохранения');
+            return;
+        }
+
         setIsSubmitting(true);
 
         try {
-            const userData = new FormData()
+            let changedFields = delta.getDelta();
 
-            userData.append("nickname", formState.nickname)
-            userData.append("firstname", formState.firstname)
-            userData.append("lastname", formState.lastname)
-            userData.append("email", formState.email)
-            userData.append("phonenumber", formState.phonenumber)
-
-            if (avatarFile) {
-                userData.append("AvatarFile", avatarFile, avatarFile.name);
+            if ('password' in changedFields) {
+                console.warn('⚠️ Password field was in delta, removing it');
+                const { password, ...fieldsWithoutPassword } = changedFields as any;
+                changedFields = fieldsWithoutPassword;
             }
 
-            await updateUserInfo(currentUserId, userData, baseUrl, csrfToken);
+            await updateUserInfoPartial(
+                currentUserId,
+                changedFields,
+                avatarFile,
+                baseUrl,
+                csrfToken
+            );
 
             setTimeout(() => {
                 setIsSubmitting(false);
@@ -86,11 +105,13 @@ const Settings = () => {
             ...prev,
             [name]: value
         }))
+        delta.updateField(name as any, value);
     };
 
     const handleAvatarUpdate = (file: File) => {
         const previewUrl = URL.createObjectURL(file);
         updateAvatar(file, previewUrl);
+        delta.updateField('avatar' as any, previewUrl);
     };
 
     useEffect(() => {
@@ -120,7 +141,7 @@ const Settings = () => {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 1, ease: "easeInOut" }}
             >
-                <SidebarComponent/>
+                <SidebarComponent />
                 <SettingsComponent
                     nickname={formState.nickname}
                     email={formState.email}

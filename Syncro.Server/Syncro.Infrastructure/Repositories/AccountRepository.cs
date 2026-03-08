@@ -33,6 +33,16 @@ namespace Syncro.Infrastructure.Repositories
             await _context.SaveChangesAsync();
             return account;
         }
+        public async Task<AccountModel> UpdateAccountAsyncWithPasswordExcluded(AccountModel account)
+        {
+            var entry = _context.accounts.Entry(account);
+
+            entry.State = EntityState.Modified;
+            entry.Property(e => e.password).IsModified = false;
+
+            await _context.SaveChangesAsync();
+            return account;
+        }
 
         public async Task<bool> DeleteAccountAsync(Guid accountId)
         {

@@ -72,7 +72,6 @@ namespace Syncro.Infrastructure.Services
         {
             var existingAccount = await _accountRepository.GetAccountByIdAsync(accountId);
             existingAccount.nickname = accountDto.nickname;
-            existingAccount.password = accountDto.password;
             existingAccount.email = accountDto.email;
             existingAccount.phonenumber = accountDto.phonenumber;
             existingAccount.firstname = accountDto.firstname;
@@ -87,7 +86,9 @@ namespace Syncro.Infrastructure.Services
             {
                 existingAccount.avatar = accountDto.avatar;
             }
-            return await _accountRepository.UpdateAccountAsync(existingAccount);
+
+            var updatedAccount = await _accountRepository.UpdateAccountAsyncWithPasswordExcluded(existingAccount);
+            return updatedAccount;
         }
 
         public async Task<string> GetAccountAvatarUrlAsync(Guid accountId)
@@ -128,6 +129,44 @@ namespace Syncro.Infrastructure.Services
             return await _accountRepository.UpdateAccountAsync(existingAccount);
         }
 
+        public async Task<AccountModel> UpdateAccountPartialAsync(Guid accountId, AccountPartialUpdateDTO updateDto)
+        {
+            var existingAccount = await _accountRepository.GetAccountByIdAsync(accountId);
+
+            if (existingAccount == null)
+                throw new KeyNotFoundException($"Account with id {accountId} not found");
+
+            if (!string.IsNullOrEmpty(updateDto.nickname))
+                existingAccount.nickname = updateDto.nickname;
+
+            if (!string.IsNullOrEmpty(updateDto.email))
+                existingAccount.email = updateDto.email;
+
+            if (!string.IsNullOrEmpty(updateDto.firstname))
+                existingAccount.firstname = updateDto.firstname;
+
+            if (!string.IsNullOrEmpty(updateDto.lastname))
+                existingAccount.lastname = updateDto.lastname;
+
+            if (!string.IsNullOrEmpty(updateDto.phonenumber))
+                existingAccount.phonenumber = updateDto.phonenumber;
+
+            // Обработка аватара
+            if (updateDto.AvatarFile != null && updateDto.AvatarFile.Length > 0)
+            {
+                var result = await _selectelStorageService.UploadAvatarFileAsync(updateDto.AvatarFile, accountId);
+                existingAccount.avatar = result.FileUrl;
+            }
+            else if (!string.IsNullOrEmpty(updateDto.avatar))
+            {
+                existingAccount.avatar = updateDto.avatar;
+            }
+
+            var updatedAccount = await _accountRepository.UpdateAccountAsyncWithPasswordExcluded(existingAccount);
+
+            return updatedAccount;
+        }
+
         public bool VerifyPassword(string password, string hashedPassword)
         {
             return BCrypt.Net.BCrypt.EnhancedVerify(password, hashedPassword);
@@ -157,6 +196,43 @@ namespace Syncro.Infrastructure.Services
             return await _accountRepository.UpdateAccountAsync(existingAccount);
         }
 
+        public async Task<Result<AccountModel>> ChangePasswordAsync(Guid accountId, string oldPassword, string newPassword)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(oldPassword))
+                    return Result<AccountModel>.Failure("Старый пароль не может быть пустым");
+
+                if (string.IsNullOrWhiteSpace(newPassword))
+                    return Result<AccountModel>.Failure("Новый пароль не может быть пустым");
+
+                if (newPassword.Length < 8)
+                    return Result<AccountModel>.Failure("Новый пароль должен содержать минимум 8 символов");
+
+                var existingAccount = await _accountRepository.GetAccountByIdAsync(accountId);
+
+                if (existingAccount == null)
+                    return Result<AccountModel>.Failure("Пользователь не найден");
+
+                if (!VerifyPassword(oldPassword, existingAccount.password))
+                {
+                    return Result<AccountModel>.Failure("Старый пароль введён неправильно");
+                }
+
+                existingAccount.password = newPassword;
+                var updatedAccount = await _accountRepository.UpdateAccountAsync(existingAccount);
+
+                return Result<AccountModel>.Success(updatedAccount);
+            }
+            catch (ArgumentException ex)
+            {
+                return Result<AccountModel>.Failure($"Пользователь не найден: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                return Result<AccountModel>.Failure($"Ошибка при смене пароля: {ex.Message}");
+            }
+        }
 
         public async Task<Result<bool>> Logout(Guid accountId)
         {

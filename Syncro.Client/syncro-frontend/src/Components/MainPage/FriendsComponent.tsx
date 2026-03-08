@@ -384,7 +384,7 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends, baseUrl, csrfTok
                                 <div className="empty-state">
                                     {!searchQuery.trim() && (
                                         <>
-                                            <h3 className="section-title">Ожидающие</h3>
+                                            <h3 className="section-title-main">Ожидающие</h3>
                                             <img
                                                 className="no-friends-image"
                                                 src="/no-friends.png"
@@ -396,7 +396,7 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends, baseUrl, csrfTok
                                 </div>
                             ) : (
                                 <>
-                                    <h3 className="section-title">Ожидающие</h3>
+                                    <h3 className="section-title-main">Ожидающие</h3>
                                     {requestsFromme.map(friend =>
                                         <FriendItem
                                             key={friend.id}
@@ -409,7 +409,7 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends, baseUrl, csrfTok
                             {rejectedRequests.length > 0 && (
                                 <>
                                     {!searchQuery.trim() && <div className="section-divider" />}
-                                    <h3 className="section-title">Отклоненные заявки</h3>
+                                    <h3 className="section-title-main">Отклоненные заявки</h3>
                                     <div className="requests-section rejected-section">
                                         {rejectedRequests.map(friend => (
                                             <FriendItem

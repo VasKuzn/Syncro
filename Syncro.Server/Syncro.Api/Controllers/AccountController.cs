@@ -346,7 +346,6 @@ namespace Syncro.Api.Controllers
                 {
                     nickname = accountInfo.nickname,
                     email = accountInfo.email,
-                    password = accountInfo.password,
                     firstname = accountInfo.firstname,
                     lastname = accountInfo.lastname,
                     phonenumber = accountInfo.phonenumber,
@@ -361,7 +360,6 @@ namespace Syncro.Api.Controllers
             }
         }
 
-        //PUT: api/accounts/full_account_info/{id} - запрос для обновления всей инфы пользователя
         [ValidateAntiForgeryToken]
         [HttpPut("full_account_info/{id}")]
         public async Task<IActionResult> UpdateAccountWithPersonalInfoAsync(Guid id, [FromForm] AccountWithPersonalInfoModel model)
@@ -375,7 +373,7 @@ namespace Syncro.Api.Controllers
                 {
                     nickname = model.nickname,
                     email = model.email,
-                    password = model.password,
+                    password = null,
                     firstname = model.firstname,
                     lastname = model.lastname,
                     phonenumber = model.phonenumber,
@@ -389,6 +387,41 @@ namespace Syncro.Api.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+        [ValidateAntiForgeryToken]
+        [HttpPatch("partial/{id}")]
+        public async Task<IActionResult> UpdateAccountPartialAsync(Guid id, [FromForm] AccountPartialUpdateDTO updateDto)
+        {
+            try
+            {
+                _logger.LogInformation($"🔍 PATCH /partial/{id} - Received updateDto with fields: nickname={updateDto.nickname}, email={updateDto.email}, firstname={updateDto.firstname}, lastname={updateDto.lastname}, phonenumber={updateDto.phonenumber}, avatar={updateDto.avatar}, country={updateDto.country}, hasAvatarFile={updateDto.AvatarFile != null}");
+
+                if (!updateDto.HasAnyUpdates())
+                {
+                    return BadRequest(new { message = "No fields to update provided" });
+                }
+
+                if (updateDto.country.HasValue)
+                {
+                    await _infoService.UpdatePersonalAccountCountryAsync(id, updateDto.country.Value);
+                }
+
+                var updatedAccount = await _accountService.UpdateAccountPartialAsync(id, updateDto);
+
+                return Ok(new { message = "Account updated successfully", account = updatedAccount });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return StatusCode(404, new { message = $"Account not found: {ex.Message}" });
+            }
+            catch (ArgumentException ex)
+            {
+                return StatusCode(400, new { message = $"Bad request: {ex.Message}" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
             }
         }
 
@@ -614,6 +647,49 @@ namespace Syncro.Api.Controllers
                     Error = "Internal server error",
                     Message = ex.Message
                 });
+            }
+        }
+
+        [HttpPost("change_password/{id}")]
+        [ValidateAntiForgeryToken]
+        [Authorize]
+        public async Task<IActionResult> ChangePassword(Guid id, [FromBody] ChangePasswordRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                var message = string.Join("; ", errors);
+                return BadRequest(new { message });
+            }
+
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!Guid.TryParse(userId, out var authenticatedUserId) || authenticatedUserId != id)
+                {
+                    return Forbid("You can only change your own password");
+                }
+
+                var result = await _accountService.ChangePasswordAsync(id, request.OldPassword, request.NewPassword);
+
+                if (!result.IsSuccess)
+                {
+                    return StatusCode(400, new { message = result.Error });
+                }
+
+                return Ok(new { message = "Пароль успешно изменен" });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return StatusCode(404, new { message = $"Account not found: {ex.Message}" });
+            }
+            catch (ArgumentException ex)
+            {
+                return StatusCode(400, new { message = $"Bad request: {ex.Message}" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Internal server error: {ex.Message}" });
             }
         }
     }

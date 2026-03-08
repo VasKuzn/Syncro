@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { MIN_PASSWORD_LENGTH } from '../../Constants/LoginConsts';
 import { changePass } from '../../Services/SettingsService';
+import { useCsrf } from '../../Contexts/CsrfProvider';
+import { fetchCurrentUser } from '../../Services/MainFormService';
 
 interface ChangePasswordModalProps {
     onClose: () => void;
@@ -9,11 +11,13 @@ interface ChangePasswordModalProps {
 const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
     onClose
 }) => {
+    const { baseUrl, csrfToken } = useCsrf();
     const [oldPass, setOldPass] = useState('');
     const [newPass, setNewPass] = useState('');
     const [confirmPass, setConfirmPass] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
     const validate = (): boolean => {
         if (!oldPass || !newPass || !confirmPass) {
@@ -22,6 +26,7 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
         }
         if (newPass.length < MIN_PASSWORD_LENGTH) {
             setError(`Пароль должен содержать минимум ${MIN_PASSWORD_LENGTH} символов.`)
+            return false;
         }
         if (newPass !== confirmPass) {
             setError('Новый пароль и подтверждение не совпадают');
@@ -40,13 +45,27 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
         setError(null);
 
         try {
-            changePass(oldPass, newPass);
+            const userId = await fetchCurrentUser(baseUrl);
+
+            if (!userId) {
+                setError('ID пользователя не найден');
+                setIsLoading(false);
+                return;
+            }
+
+            await changePass(userId, oldPass, newPass, baseUrl, csrfToken);
 
             setOldPass('');
             setNewPass('');
             setConfirmPass('');
-            onClose();
+            setError(null);
+            setSuccessMessage('Пароль успешно изменен!');
+
+            setTimeout(() => {
+                onClose();
+            }, 1500);
         } catch (err) {
+            setSuccessMessage(null);
             setError(err instanceof Error ? err.message : 'Ошибка при смене пароля')
         } finally {
             setIsLoading(false)
@@ -64,33 +83,33 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
                 <div className="ai-modal-content">
                     <div className='column'>
                         <div className='setting-label'>Старый пароль</div>
-                        <div className='setting-input-box'>                            
-                            <input 
+                        <div className='setting-input-box'>
+                            <input
                                 className='setting-input'
                                 value={oldPass}
                                 onChange={(e) => setOldPass(e.target.value)}
                                 type='password'
-                                required/>
+                                required />
                         </div>
 
                         <div className='setting-label'>Новый пароль</div>
-                        <div className='setting-input-box'>                            
-                            <input 
+                        <div className='setting-input-box'>
+                            <input
                                 className='setting-input'
                                 value={newPass}
                                 onChange={(e) => setNewPass(e.target.value)}
                                 type='password'
-                                required/>
+                                required />
                         </div>
 
                         <div className='setting-label'>Подтвердите новый пароль</div>
-                        <div className='setting-input-box'>                            
-                            <input 
+                        <div className='setting-input-box'>
+                            <input
                                 className='setting-input'
                                 value={confirmPass}
                                 onChange={(e) => setConfirmPass(e.target.value)}
                                 type='password'
-                                required/>
+                                required />
                         </div>
 
                     </div>
@@ -99,13 +118,31 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
                         <div className="error-message">{error}</div>
                     )}
 
-                    <button
-                        className="setting-button"
-                        disabled={isLoading}
-                        onClick={handleConfirm}
-                    >
-                        Изменить
-                    </button>
+                    {successMessage && (
+                        <div className="success-notification">
+                            {successMessage}
+                        </div>
+                    )}
+
+                    <div className="buttons-settings">
+                        <button
+                            className="settings-button settings-button-secondary"
+                            disabled={isLoading}
+                            onClick={handleConfirm}
+                            type="button"
+                        >
+                            Изменить пароль
+                        </button>
+
+                        <button
+                            className="settings-button settings-button-secondary"
+                            onClick={onClose}
+                            type="button"
+                            disabled={isLoading}
+                        >
+                            Отмена
+                        </button>
+                    </div>
 
                     {isLoading && (
                         <div className="loading-indicator">

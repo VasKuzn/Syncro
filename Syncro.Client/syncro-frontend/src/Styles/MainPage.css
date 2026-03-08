@@ -969,7 +969,7 @@ body.modal-open {
 }
 
 /* Стили для вкладки Заявки мне */
-.section-title {
+.section-title-main {
     font-size: medium;
     color: #a1a1aa;
     margin: 15px 0 10px 10px;

@@ -241,6 +241,7 @@
   border: 1px solid rgba(99, 102, 241, 0.2);
   font-size: 0.875rem;
   color: #94A3B8;
+  opacity: 0.6;
 }
 
 .typing-nickname {
