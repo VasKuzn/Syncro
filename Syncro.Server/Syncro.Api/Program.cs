@@ -6,6 +6,12 @@ using Syncro.Infrastructure.Data.DataBaseContext;
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
+// Конфигурация Kestrel для больших файлов (500MB)
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.Limits.MaxRequestBodySize = 524288000; // 500MB
+});
+
 //INFRASTRUCTURE LAYER core+infrastructure
 builder.Services.AddInfrastructureServices(configuration);
 //PRESENTATION LAYER все web сервисы - контроллеры, signalr, authentication... 

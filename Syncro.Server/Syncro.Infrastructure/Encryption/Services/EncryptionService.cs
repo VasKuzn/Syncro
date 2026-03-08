@@ -46,7 +46,7 @@ namespace Syncro.Infrastructure.Encryption.Services
             await _keyRepository.SavePublicKeyAsync(userId, keyPair.PublicKey);
 
             var cacheKey = $"private_key_{userId}";
-            _cache.Set(cacheKey, keyPair.PrivateKey, TimeSpan.FromHours(1));
+            _cache.Set(cacheKey, keyPair.PrivateKey, TimeSpan.FromHours(8));
 
             return keyPair;
         }
@@ -119,9 +119,6 @@ namespace Syncro.Infrastructure.Encryption.Services
         {
             try
             {
-                if (string.IsNullOrEmpty(plaintext))
-                    throw new ArgumentException("Plaintext cannot be empty");
-
                 byte[] encryptedData;
                 EncryptionMetadata metadata;
 
