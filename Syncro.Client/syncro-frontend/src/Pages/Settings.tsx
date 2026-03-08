@@ -49,17 +49,12 @@ const Settings = () => {
 
         try {
             const userData = new FormData()
-            Object.entries(formState).forEach(([key, value]) => {
-                if (value !== null && value !== '' && key !== 'password') {
-                    console.log(key, value.toString())
-                    userData.append(key, value.toString())
-                }
-            })
-            // userData.append("nickname", formState.nickname)
-            // userData.append("firstname", formState.firstname)
-            // userData.append("lastname", formState.lastname)
-            // userData.append("email", formState.email)
-            // userData.append("phonenumber", formState.phonenumber)
+
+            userData.append("nickname", formState.nickname)
+            userData.append("firstname", formState.firstname)
+            userData.append("lastname", formState.lastname)
+            userData.append("email", formState.email)
+            userData.append("phonenumber", formState.phonenumber)
 
             if (avatarFile) {
                 userData.append("AvatarFile", avatarFile, avatarFile.name);
