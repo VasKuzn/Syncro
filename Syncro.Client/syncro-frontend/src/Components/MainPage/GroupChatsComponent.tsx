@@ -1,21 +1,17 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { GroupConf } from "../../Types/GroupConf";
 import { NetworkError } from "../../Types/LoginTypes";
 import { fetchCurrentUser, getUserInfo, getGroups, getFriends } from '../../Services/MainFormService';
 import * as signalR from "@microsoft/signalr";
 import { useNavigate } from "react-router-dom";
 import { UserInfo } from "../../Types/UserInfo";
-import { Friend } from '../../Types/FriendType';
+import { Friend, FriendProps } from '../../Types/FriendType';
 import CreateGroupModal from '../GroupChat/CreateGroupModal';
 import '../../Styles/GroupChat.css';
-import logo from '../../assets/logo.png';
-import { useCsrf } from "../../Contexts/CsrfProvider";
 
-const GroupChatsComponent = () => {
+const GroupChatsComponent = ({ friends, setFriends, baseUrl, csrfToken }: FriendProps) => {
     const [groups, setGroups] = useState<GroupConf[]>([]);
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [friends, setFriends] = useState<Friend[]>([]);
-    const { baseUrl, csrfToken } = useCsrf();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
@@ -23,11 +19,18 @@ const GroupChatsComponent = () => {
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
     const navigate = useNavigate();
 
+    const setFriendsRef = useRef(setFriends);
+    const baseUrlRef = useRef(baseUrl);
+
+    useEffect(() => {
+        setFriendsRef.current = setFriends;
+        baseUrlRef.current = baseUrl;
+    }, [setFriends, baseUrl]);
+
     const initSignalR = useCallback(async (userId: string) => {
         const newConnection = new signalR.HubConnectionBuilder()
-            .withUrl(`${baseUrl}/groupshub`, {
+            .withUrl(`${baseUrlRef.current}/groupshub`, {
                 withCredentials: true,
-                //skipNegotiation: true,
                 transport: signalR.HttpTransportType.WebSockets
             })
             .configureLogging(signalR.LogLevel.Information)
@@ -35,7 +38,7 @@ const GroupChatsComponent = () => {
 
         newConnection.on("GroupsUpdated", () => {
             console.log("Received groups update notification");
-            getGroups(userId, baseUrl).then(gcs => setGroups(gcs));
+            getGroups(userId, baseUrlRef.current).then(gcs => setGroups(gcs));
         });
 
         try {
@@ -52,7 +55,7 @@ const GroupChatsComponent = () => {
     const refreshGroupsData = useCallback(async (userId: string) => {
         setLoading(true);
         try {
-            const gcs = await getGroups(userId, baseUrl);
+            const gcs = await getGroups(userId, baseUrlRef.current);
             setGroups(gcs);
         } catch (error) {
             setError((error as NetworkError).message || 'Network error');
@@ -62,79 +65,22 @@ const GroupChatsComponent = () => {
         }
     }, []);
 
-    // Функция для загрузки детальной информации о друзьях
-    const loadFriendDetails = useCallback(async (friendshipList: any[], userId: string) => {
-        const friendsList: Friend[] = [];
-
-        for (const f of friendshipList) {
-            // Берем только подтвержденных друзей (status = 1)
-            if (f.status === 1) {
-                // Определяем ID друга (не текущий пользователь)
-                const friendId = f.userWhoSent === userId ? f.userWhoRecieved : f.userWhoSent;
-
-                try {
-                    // Загружаем полную информацию о друге
-                    const response = await fetch(`${baseUrl}/api/accounts/${friendId}`, {
-                        credentials: 'include'
-                    });
-
-                    if (response.ok) {
-                        const friendData = await response.json();
-
-                        friendsList.push({
-                            id: friendId,
-                            nickname: friendData.nickname || 'Без имени',
-                            avatar: friendData.avatar || logo,
-                            email: friendData.email,
-                            phonenumber: friendData.phonenumber,
-                            firstname: friendData.firstname,
-                            lastname: friendData.lastname,
-                            isOnline: friendData.isOnline || false,
-                            status: f.status,
-                            userWhoReceived: f.userWhoRecieved,
-                            userWhoSent: f.userWhoSent,
-                            friendShipId: f.id,
-                            friendsSince: new Date(f.friendsSince),
-                            unreadCount: 0
-                        });
-                    }
-                } catch (error) {
-                    console.error(`Ошибка загрузки друга ${friendId}:`, error);
-                }
-            }
-        }
-
-        return friendsList;
-    }, []);
-
     useEffect(() => {
         let isMounted = true;
+        let mountedConnection: signalR.HubConnection | null = null;
 
         const loadData = async () => {
             try {
-                // Сначала получаем ID
-                const userId = await fetchCurrentUser(baseUrl);
+                const userId = await fetchCurrentUser(baseUrlRef.current);
                 if (isMounted && userId) {
-                    setCurrentUserId(userId);  // сохраняем ID отдельно
+                    setCurrentUserId(userId);
 
-                    // Потом получаем полную информацию о текущем пользователе
-                    const userData = await getUserInfo(userId, baseUrl);
+                    const userData = await getUserInfo(userId, baseUrlRef.current);
                     setCurrentUser(userData);
 
-                    // Загружаем связи дружбы
-                    try {
-                        const friendsData = await getFriends(userId, baseUrl);
-
-                        // Преобразуем в список друзей с полной информацией
-                        const friendsList = await loadFriendDetails(friendsData, userId);
-                        setFriends(friendsList);
-
-                    } catch (error) {
-                        console.error("Ошибка загрузки друзей:", error);
-                    }
-
                     await refreshGroupsData(userId);
-                    await initSignalR(userId);
+
+                    mountedConnection = await initSignalR(userId);
                 }
             } catch (error) {
                 console.error("Ошибка загрузки:", error);
@@ -145,9 +91,11 @@ const GroupChatsComponent = () => {
 
         return () => {
             isMounted = false;
-            connection?.stop();
+            if (mountedConnection) {
+                mountedConnection.stop();
+            }
         };
-    }, [refreshGroupsData, initSignalR, loadFriendDetails]);
+    }, [refreshGroupsData, initSignalR]);
 
     if (loading) return <div></div>;
     if (error) return <div></div>;
@@ -182,19 +130,16 @@ const GroupChatsComponent = () => {
                                     className="group-name-tooltip"
                                     ref={(el) => {
                                         if (el) {
-                                            // Позиционируем тултип справа от иконки
                                             const rect = el.parentElement?.getBoundingClientRect();
                                             if (rect) {
                                                 const tooltipWidth = el.offsetWidth;
-                                                let left = rect.right + 10; // 10px отступ справа от иконки
+                                                let left = rect.right + 10;
 
                                                 const maxLeft = window.innerWidth - tooltipWidth - 10;
                                                 if (left > maxLeft) {
-                                                    // Если не помещается справа, показываем слева
                                                     left = rect.left - tooltipWidth - 10;
                                                 }
 
-                                                // Проверяем, не выходит ли за левый край
                                                 if (left < 10) left = 10;
 
                                                 el.style.left = `${left}px`;
@@ -222,7 +167,7 @@ const GroupChatsComponent = () => {
                 <CreateGroupModal
                     isOpen={showCreateModal}
                     onClose={() => setShowCreateModal(false)}
-                    friends={friends}
+                    friends={friends} // Передаем всех друзей без фильтрации
                     onGroupCreated={(groupId) => navigate(`/group-chat/${groupId}`)}
                     currentUserId={currentUserId}
                     baseUrl={baseUrl}

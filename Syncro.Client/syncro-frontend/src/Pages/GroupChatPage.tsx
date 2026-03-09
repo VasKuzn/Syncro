@@ -1,6 +1,5 @@
 import { useRef, useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
 import Message from '../Components/ChatPage/MessageComponent';
 import MessageInput from '../Components/ChatPage/MessageInput';
 import MainComponent from '../Components/ChatPage/MainComponents';
@@ -20,7 +19,6 @@ const GroupChatPage = () => {
     const chatRef = useRef<HTMLDivElement>(null);
     const emojiPickerRef = useRef<HTMLDivElement>(null);
     const messageRefs = useRef<Map<number, HTMLDivElement>>(new Map());
-    const navigate = useNavigate();
     const { baseUrl, csrfToken } = useCsrf();
 
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -116,9 +114,10 @@ const GroupChatPage = () => {
         mediaType: string;
         fileName: string;
     }) => {
-        await sendMessage(text, media);
         setMessageInputValue('');
         setShowEmojiPicker(false);
+
+        await sendMessage(text, media);
     }, [sendMessage]);
 
     const handleEmojiSelect = useCallback((emoji: string) => {

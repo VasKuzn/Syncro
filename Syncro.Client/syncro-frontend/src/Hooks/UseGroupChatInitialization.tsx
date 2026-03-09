@@ -18,51 +18,49 @@ export const useGroupChatInitialization = (baseUrl: string) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Функция для загрузки полной информации о друзьях
+    // Функция для загрузки полной информации о друзьях (БЕЗ ФИЛЬТРАЦИИ)
     const loadFriendDetails = useCallback(async (friendshipList: any[], userId: string) => {
         const friendsList: Friend[] = [];
 
         for (const f of friendshipList) {
-            // Берем только подтвержденных друзей (status = 1)
-            if (f.status === 1) {
-                // Определяем ID друга (не текущий пользователь)
-                const friendId = f.userWhoSent === userId ? f.userWhoRecieved : f.userWhoSent;
+            // УБИРАЕМ фильтрацию по status === 1 - загружаем всех друзей
+            // Определяем ID друга (не текущий пользователь)
+            const friendId = f.userWhoSent === userId ? f.userWhoRecieved : f.userWhoSent;
 
-                try {
-                    // Загружаем полную информацию о друге
-                    const response = await fetch(`${baseUrl}/api/accounts/${friendId}`, {
-                        credentials: 'include'
+            try {
+                // Загружаем полную информацию о друге
+                const response = await fetch(`${baseUrl}/api/accounts/${friendId}`, {
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    const friendData = await response.json();
+
+                    friendsList.push({
+                        id: friendId,
+                        nickname: friendData.nickname || 'Без имени',
+                        avatar: friendData.avatar || "../logo.png",
+                        email: friendData.email,
+                        phonenumber: friendData.phonenumber,
+                        firstname: friendData.firstname,
+                        lastname: friendData.lastname,
+                        isOnline: friendData.isOnline || false,
+                        status: f.status, // Сохраняем оригинальный статус
+                        userWhoReceived: f.userWhoRecieved,
+                        userWhoSent: f.userWhoSent,
+                        friendShipId: f.id,
+                        friendsSince: new Date(f.friendsSince),
+                        unreadCount: 0
                     });
-
-                    if (response.ok) {
-                        const friendData = await response.json();
-
-                        friendsList.push({
-                            id: friendId,
-                            nickname: friendData.nickname || 'Без имени',
-                            avatar: friendData.avatar || null,
-                            email: friendData.email,
-                            phonenumber: friendData.phonenumber,
-                            firstname: friendData.firstname,
-                            lastname: friendData.lastname,
-                            isOnline: friendData.isOnline || false,
-                            status: f.status,
-                            userWhoReceived: f.userWhoRecieved,
-                            userWhoSent: f.userWhoSent,
-                            friendShipId: f.id,
-                            friendsSince: new Date(f.friendsSince),
-                            unreadCount: 0
-                        });
-                    }
-                } catch (error) {
-                    console.error(`Ошибка загрузки друга ${friendId}:`, error);
                 }
+            } catch (error) {
+                console.error(`Ошибка загрузки друга ${friendId}:`, error);
             }
         }
 
-        console.log('Детальная информация о друзьях:', friendsList);
+        console.log('Детальная информация о друзьях (все, включая не подтвержденных):', friendsList);
         return friendsList;
-    }, []);
+    }, [baseUrl]); // Добавляем baseUrl в зависимости
 
     // Загружаем текущего пользователя
     const initializeUser = useCallback(async () => {
@@ -78,7 +76,7 @@ export const useGroupChatInitialization = (baseUrl: string) => {
                     const friendsData = await getFriends(userId, baseUrl);
                     console.log('Загруженные связи дружбы:', friendsData);
 
-                    // Преобразуем в список друзей с полной информацией
+                    // Преобразуем в список друзей с полной информацией (БЕЗ ФИЛЬТРАЦИИ)
                     const friendsList = await loadFriendDetails(friendsData, userId);
                     setFriends(friendsList);
 
@@ -90,7 +88,7 @@ export const useGroupChatInitialization = (baseUrl: string) => {
             console.error('Failed to load current user', err);
             setError('Не удалось загрузить пользователя');
         }
-    }, [loadFriendDetails]);
+    }, [baseUrl, loadFriendDetails]);
 
     // Загружаем информацию о группе
     const loadGroupData = useCallback(async () => {
@@ -123,7 +121,7 @@ export const useGroupChatInitialization = (baseUrl: string) => {
         } finally {
             setLoading(false);
         }
-    }, [groupId, currentUserId]);
+    }, [groupId, currentUserId, baseUrl]);
 
     useEffect(() => {
         initializeUser();
@@ -152,7 +150,7 @@ export const useGroupChatInitialization = (baseUrl: string) => {
         currentUser,
         group,
         participants,
-        friends,
+        friends, // Теперь здесь ВСЕ друзья, без фильтрации
         loading,
         error,
         getSenderInfo

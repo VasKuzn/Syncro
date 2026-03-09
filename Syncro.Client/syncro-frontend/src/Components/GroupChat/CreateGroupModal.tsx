@@ -38,13 +38,8 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
         return () => window.removeEventListener('keydown', handleEsc);
     }, [isOpen, onClose]);
 
-    // Если модалка закрыта - не показываем ничего
     if (!isOpen) return null;
 
-    // Если модалка закрыта - не показываем ничего
-    if (!isOpen) return null;
-
-    // Добавить/убрать друга из списка
     const toggleFriend = (friendId: string) => {
         setSelectedFriends(prev =>
             prev.includes(friendId)
@@ -173,8 +168,9 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
             setIsCreating(false);
         }
     };
-    // Фильтруем друзей по поиску
-    const filteredFriends = friends.filter(friend =>
+    // Фильтруем только принятых друзей (status === 1) и затем по поиску
+    const acceptedFriends = friends.filter(friend => friend.status === 1);
+    const filteredFriends = acceptedFriends.filter(friend =>
         friend.nickname?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -211,7 +207,7 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
                             className={`friend-item ${selectedFriends.includes(friend.id) ? 'selected' : ''}`}
                             onClick={() => toggleFriend(friend.id)}
                         >
-                            <img src={friend.avatar || "logo.png"} alt={friend.nickname} />
+                            <img src={friend.avatar || "../logo.png"} alt={friend.nickname} />
                             <span>{friend.nickname}</span>
                             {selectedFriends.includes(friend.id) && <span>✓</span>}
                         </div>

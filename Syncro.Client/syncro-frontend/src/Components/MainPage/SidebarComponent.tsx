@@ -6,7 +6,11 @@ import { MainProps } from "../../Types/MainProps";
 const SidebarComponent = ({ friends, nickname, avatar, isOnline, setFriends, baseUrl, csrfToken }: MainProps & { setFriends: (friends: any) => void }) => {
     return (
         <div className="sidebar-container">
-            <GroupChatsComponent baseUrl={baseUrl} />
+            <GroupChatsComponent
+                friends={friends}
+                setFriends={setFriends}
+                baseUrl={baseUrl}
+                csrfToken={csrfToken} />
             <div className="main-sidebar-content">
                 <div className="search-pm">
                     <button className="button-search-pm">
