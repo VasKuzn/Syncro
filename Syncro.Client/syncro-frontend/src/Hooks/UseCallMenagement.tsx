@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 import UseRtcConnection from './UseRtcConnection';
 import { UseCallManagementProps } from '../Types/ChatTypes';
 
@@ -9,35 +9,40 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
     const [callInitiator, setCallInitiator] = useState<string | null>(null);
     const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
     const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+    const [currentRoomId, setCurrentRoomId] = useState<string | null>(null);
 
     const localStreamRef = useRef<MediaStream | null>(null);
     const remoteStreamRef = useRef<MediaStream | null>(null);
 
-    const rtcConnection = UseRtcConnection({
+    // Мемоизируем параметры для RTC соединения
+    const rtcParams = useMemo(() => ({
         onRemoteStream: (stream: MediaStream) => {
             console.log("Remote stream received");
             remoteStreamRef.current = stream;
             setRemoteStream(stream);
+            stream.getTracks().forEach(track => {
+                track.enabled = true;
+            });
         },
         onLocalStream: (stream: MediaStream) => {
             console.log("Local stream received");
             localStreamRef.current = stream;
             setLocalStream(stream);
         },
-        onIceCandidateReceived: (candidate: RTCIceCandidate) => {
-            console.log("ICE candidate received:", candidate);
-        },
         onCallEnded: (senderId: string) => {
             console.log("Call ended by:", senderId);
             handleEndCall();
         },
-        onIncomingCall: (senderId: string) => {
-            console.log("Incoming call from:", senderId);
+        onIncomingCall: (senderId: string, roomId: string) => {
+            console.log("Incoming call from:", senderId, "room:", roomId);
             setCallInitiator(senderId);
+            setCurrentRoomId(roomId);
             setIncomingCall(true);
             setShowCallModal(true);
         }
-    }, baseUrl);
+    }), []); // Пустые зависимости, так как функции не меняются
+
+    const rtcConnection = UseRtcConnection(rtcParams, baseUrl);
 
     const handleEndCall = useCallback(() => {
         if (currentFriend?.id) {
@@ -48,6 +53,7 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
         setShowCallModal(false);
         setIncomingCall(false);
         setCallInitiator(null);
+        setCurrentRoomId(null);
 
         if (localStreamRef.current) {
             localStreamRef.current.getTracks().forEach(track => track.stop());
@@ -63,14 +69,18 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
 
         try {
             await rtcConnection.getLocalStream();
-            await rtcConnection.createOffer(currentFriend.id);
+            const roomId = await rtcConnection.createOffer(currentFriend.id);
+            if (roomId) {
+                setCurrentRoomId(roomId);
+            }
             setInCall(true);
             setShowCallModal(false);
             setIncomingCall(false);
         } catch (error) {
             console.error("Failed to start call:", error);
+            handleEndCall();
         }
-    }, [currentFriend?.id, rtcConnection]);
+    }, [currentFriend?.id, rtcConnection, handleEndCall]);
 
     const handleAcceptCall = useCallback(async () => {
         try {
@@ -81,8 +91,9 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
             setIncomingCall(false);
         } catch (error) {
             console.error("Failed to accept call:", error);
+            handleEndCall();
         }
-    }, [rtcConnection]);
+    }, [rtcConnection, handleEndCall]);
 
     const handleRejectCall = useCallback(() => {
         if (callInitiator) {
@@ -92,6 +103,7 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
         setShowCallModal(false);
         setIncomingCall(false);
         setCallInitiator(null);
+        setCurrentRoomId(null);
     }, [callInitiator, rtcConnection]);
 
     return {
@@ -102,6 +114,7 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
         remoteStream,
         localStream,
         rtcConnection,
+        currentRoomId,
         handleStartCall,
         handleAcceptCall,
         handleRejectCall,

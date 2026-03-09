@@ -4,27 +4,28 @@ import { useEffect, useRef, useCallback, useState } from "react";
 interface UseRtcConnectionParams {
     onRemoteStream?: (stream: MediaStream) => void;
     onLocalStream?: (stream: MediaStream) => void;
-    onIceCandidateReceived?: (candidate: RTCIceCandidate) => void;
     onCallEnded?: (senderId: string) => void;
-    onIncomingCall?: (senderId: string) => void;
+    onIncomingCall?: (senderId: string, roomId: string) => void;
 }
 
 const UseRtcConnection = ({
     onRemoteStream,
     onLocalStream,
-    onIceCandidateReceived,
     onCallEnded,
     onIncomingCall,
 }: UseRtcConnectionParams,
     baseUrl: string) => {
+
     const connectionRef = useRef<HubConnection | null>(null);
     const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
     const localStreamRef = useRef<MediaStream | null>(null);
     const remoteStreamRef = useRef<MediaStream | null>(null);
     const isCallEndingRef = useRef(false);
-    const pendingOfferRef = useRef<{ senderId: string; offer: RTCSessionDescriptionInit; } | null>(null);
+    const pendingOfferRef = useRef<{ senderId: string; offer: RTCSessionDescriptionInit; roomId: string; } | null>(null);
     const pendingIceCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
+    const currentRoomIdRef = useRef<string | null>(null);
     const [isConnected, setIsConnected] = useState(false);
+    const initializationRef = useRef(false);
 
     const ICE_SERVERS: RTCConfiguration = {
         iceServers: [
@@ -56,9 +57,27 @@ const UseRtcConnection = ({
 
     const resetCallState = () => {
         isCallEndingRef.current = false;
+        pendingIceCandidatesRef.current = [];
     };
 
-    const initializePeerConnection = useCallback((receiverId: string) => {
+    const replaceVideoTrack = useCallback((track: MediaStreamTrack) => {
+        const sender = peerConnectionRef.current
+            ?.getSenders()
+            .find(s => s.track?.kind === "video");
+
+        if (sender) {
+            sender.replaceTrack(track).catch(err => {
+                console.error("Error replacing video track:", err);
+            });
+        } else {
+            console.warn("No video sender found, adding track instead");
+            if (peerConnectionRef.current && localStreamRef.current) {
+                peerConnectionRef.current.addTrack(track, localStreamRef.current);
+            }
+        }
+    }, []);
+
+    const initializePeerConnection = useCallback((roomId: string) => {
         if (peerConnectionRef.current && peerConnectionRef.current.connectionState !== "closed") {
             console.log("Closing existing peer connection");
             peerConnectionRef.current.close();
@@ -75,19 +94,19 @@ const UseRtcConnection = ({
                 return;
             }
 
-            if (event.candidate) {
-                connectionRef.current?.invoke("SendIceCandidate", receiverId, JSON.stringify(event.candidate.toJSON())).catch(err => {
-                    console.error("Error sending ICE candidate:", err);
-                });
+            if (currentRoomIdRef.current) {
+                connectionRef.current?.invoke("SendIceCandidate", currentRoomIdRef.current, JSON.stringify(event.candidate.toJSON()))
+                    .catch(err => console.error("Error sending ICE candidate:", err));
             }
         };
 
         peerConnection.ontrack = (event: RTCTrackEvent) => {
-            console.log("ontrack fired. Track:", event.track, "Streams:", event.streams);
+            console.log(`ontrack fired: ${event.track.kind}`);
 
             if (!remoteStreamRef.current) {
                 remoteStreamRef.current = new MediaStream();
             }
+
             const existingTrack = remoteStreamRef.current
                 .getTracks()
                 .find(t => t.id === event.track.id);
@@ -95,9 +114,8 @@ const UseRtcConnection = ({
             if (!existingTrack) {
                 remoteStreamRef.current.addTrack(event.track);
                 console.log(`Added ${event.track.kind} track to remote stream`);
+                onRemoteStream?.(remoteStreamRef.current);
             }
-
-            onRemoteStream?.(remoteStreamRef.current);
         };
 
         peerConnection.onconnectionstatechange = () => {
@@ -120,7 +138,15 @@ const UseRtcConnection = ({
         }
 
         try {
-            const peerConnection = initializePeerConnection(receiverId);
+            const roomId = await connectionRef.current?.invoke<string>("CreateCall", receiverId);
+            if (!roomId) {
+                throw new Error("Failed to create call room");
+            }
+
+            console.log("Call room created:", roomId);
+            currentRoomIdRef.current = roomId;
+
+            const peerConnection = initializePeerConnection(roomId);
 
             if (!localStreamRef.current) {
                 await getLocalStream();
@@ -141,11 +167,16 @@ const UseRtcConnection = ({
             });
 
             await peerConnection.setLocalDescription(offer);
-            await connectionRef.current?.invoke("SendOffer", receiverId, JSON.stringify(offer));
+
+            await connectionRef.current?.invoke("JoinCall", roomId);
+
+            await connectionRef.current?.invoke("SendOffer", roomId, JSON.stringify(offer));
 
             console.log("Offer sent to:", receiverId);
+            return roomId;
         } catch (err) {
             console.error("Error creating offer:", err);
+            throw err;
         }
     }, [initializePeerConnection, isConnected]);
 
@@ -155,16 +186,28 @@ const UseRtcConnection = ({
             return;
         }
 
-        const { senderId, offer } = pendingOfferRef.current;
+        const { senderId, offer, roomId } = pendingOfferRef.current;
         resetCallState();
 
         try {
+            currentRoomIdRef.current = roomId;
+
             if (peerConnectionRef.current) {
                 peerConnectionRef.current.close();
                 peerConnectionRef.current = null;
             }
 
-            const peerConnection = initializePeerConnection(senderId);
+            const peerConnection = initializePeerConnection(roomId);
+
+            // Получаем локальный поток ТОЛЬКО если его нет
+            if (!localStreamRef.current) {
+                try {
+                    await getLocalStream();
+                } catch (err) {
+                    console.error("Error getting local stream, continuing without video:", err);
+                    // Продолжаем без видео, но с аудио
+                }
+            }
 
             if (localStreamRef.current) {
                 localStreamRef.current.getTracks().forEach(track => {
@@ -179,9 +222,12 @@ const UseRtcConnection = ({
             await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
             console.log("Remote description set from offer");
 
+            await connectionRef.current?.invoke("JoinCall", roomId);
+
             for (const ice of pendingIceCandidatesRef.current) {
                 try {
                     await peerConnection.addIceCandidate(new RTCIceCandidate(ice));
+                    console.log("Added pending ICE candidate");
                 } catch (err) {
                     console.warn("Failed to add ICE candidate:", err);
                 }
@@ -191,40 +237,50 @@ const UseRtcConnection = ({
             const answer = await peerConnection.createAnswer();
             await peerConnection.setLocalDescription(answer);
 
-            await connectionRef.current?.invoke("SendAnswer", senderId, JSON.stringify(answer));
+            await connectionRef.current?.invoke("SendAnswer", roomId, JSON.stringify(answer));
 
             console.log("Answer sent to:", senderId);
             pendingOfferRef.current = null;
         } catch (err) {
             console.error("Error accepting call:", err);
             pendingOfferRef.current = null;
+            throw err;
         }
     }, [initializePeerConnection]);
 
     const rejectCall = useCallback(() => {
         if (pendingOfferRef.current) {
             console.log("Rejecting call from:", pendingOfferRef.current.senderId);
+            if (connectionRef.current && pendingOfferRef.current.roomId) {
+                connectionRef.current.invoke("EndCall", pendingOfferRef.current.roomId)
+                    .catch(err => console.error("Error ending call:", err));
+            }
             pendingOfferRef.current = null;
         }
         pendingIceCandidatesRef.current = [];
     }, []);
 
-    const handleReceiveOffer = useCallback(async (senderId: string, offerString: string) => {
+    const handleReceiveOffer = useCallback(async (senderId: string, roomId: string, offerString: string) => {
         resetCallState();
 
         try {
-            console.log("Received offer from:", senderId);
+            console.log("Received offer from:", senderId, "room:", roomId);
             const offer = JSON.parse(offerString) as RTCSessionDescriptionInit;
-            pendingOfferRef.current = { senderId, offer };
+            pendingOfferRef.current = { senderId, offer, roomId };
 
-            onIncomingCall?.(senderId);
+            if (onIncomingCall) {
+                console.log("Triggering incoming call for sender:", senderId);
+                onIncomingCall(senderId, roomId);
+            }
         } catch (err) {
             console.error("Error handling offer:", err);
         }
     }, [onIncomingCall]);
 
-    const handleReceiveAnswer = useCallback(async (answerInit: RTCSessionDescriptionInit) => {
+    const handleReceiveAnswer = useCallback(async (senderId: string, roomId: string, answerString: string) => {
         try {
+            console.log("Received answer from:", senderId, "room:", roomId);
+
             if (!peerConnectionRef.current) {
                 console.error("PeerConnection not initialized");
                 return;
@@ -235,12 +291,14 @@ const UseRtcConnection = ({
                 return;
             }
 
-            await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(answerInit));
+            const answer = JSON.parse(answerString) as RTCSessionDescriptionInit;
+            await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(answer));
             console.log("Answer received and set");
 
             for (const ice of pendingIceCandidatesRef.current) {
                 try {
                     await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(ice));
+                    console.log("Added pending ICE candidate after answer");
                 } catch (err) {
                     console.warn("Failed to add pending ICE candidate:", err);
                 }
@@ -251,17 +309,11 @@ const UseRtcConnection = ({
         }
     }, []);
 
-    const handleIceCandidate = useCallback(async (candidateInit: RTCIceCandidateInit) => {
+    const handleIceCandidate = useCallback(async (senderId: string, roomId: string, candidateString: string) => {
         try {
-            if (!peerConnectionRef.current) {
-                console.error("PeerConnection not initialized");
-                return;
-            }
-            if (peerConnectionRef.current.signalingState === "closed") {
-                console.warn("Cannot add ICE candidate - PeerConnection is closed");
-                return;
-            }
-            if (!peerConnectionRef.current.remoteDescription) {
+            const candidateInit = JSON.parse(candidateString) as RTCIceCandidateInit;
+
+            if (!peerConnectionRef.current || !peerConnectionRef.current.remoteDescription) {
                 console.log("Remote description not set yet, buffering ICE candidate");
                 pendingIceCandidatesRef.current.push(candidateInit);
                 return;
@@ -270,48 +322,38 @@ const UseRtcConnection = ({
             const candidate = new RTCIceCandidate(candidateInit);
             await peerConnectionRef.current.addIceCandidate(candidate);
             console.log("ICE candidate added successfully");
-            onIceCandidateReceived?.(candidate);
         } catch (err) {
             console.error("Error adding ICE candidate:", err);
         }
-    }, [onIceCandidateReceived]);
+    }, []);
 
     const getLocalStream = useCallback(async (constraints: MediaStreamConstraints = { video: true, audio: true }) => {
         try {
+            // Сначала пробуем с video и audio
             const stream = await navigator.mediaDevices.getUserMedia(constraints);
-            console.log(
-                "VIDEO tracks:",
-                stream.getVideoTracks(),
-                "AUDIO tracks:",
-                stream.getAudioTracks()
-            );
+            console.log("Got local stream with video and audio");
             localStreamRef.current = stream;
             if (onLocalStream) {
                 onLocalStream(stream);
             }
             return stream;
         } catch (err) {
-            console.error("Error getting local stream:", err);
-            throw err;
-        }
-    }, [onLocalStream]);
-
-    const replaceVideoTrack = useCallback((track: MediaStreamTrack) => {
-        const sender = peerConnectionRef.current
-            ?.getSenders()
-            .find(s => s.track?.kind === "video");
-
-        if (sender) {
-            sender.replaceTrack(track).catch(err => {
-                console.error("Error replacing video track:", err);
-            });
-        } else {
-            console.warn("No video sender found, adding track instead");
-            if (peerConnectionRef.current && localStreamRef.current) {
-                peerConnectionRef.current.addTrack(track, localStreamRef.current);
+            console.warn("Error getting full stream, trying audio only:", err);
+            try {
+                // Если не получилось, пробуем только аудио
+                const audioStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
+                console.log("Got local stream with audio only");
+                localStreamRef.current = audioStream;
+                if (onLocalStream) {
+                    onLocalStream(audioStream);
+                }
+                return audioStream;
+            } catch (audioErr) {
+                console.error("Error getting audio stream:", audioErr);
+                throw audioErr;
             }
         }
-    }, []);
+    }, [onLocalStream]);
 
     const endCallInternal = useCallback(async (receiverId: string) => {
         if (isCallEndingRef.current) {
@@ -328,29 +370,40 @@ const UseRtcConnection = ({
             }
 
             if (localStreamRef.current) {
-                localStreamRef.current.getTracks().forEach(track => track.stop());
+                localStreamRef.current.getTracks().forEach(track => {
+                    track.stop();
+                    console.log(`Stopped ${track.kind} track`);
+                });
                 localStreamRef.current = null;
             }
 
-            if (connectionRef.current?.state === "Connected") {
-                await connectionRef.current.invoke("EndCall", receiverId);
+            if (connectionRef.current?.state === "Connected" && currentRoomIdRef.current) {
+                await connectionRef.current.invoke("EndCall", currentRoomIdRef.current);
             }
 
             pendingOfferRef.current = null;
             pendingIceCandidatesRef.current = [];
+            currentRoomIdRef.current = null;
+
+            onCallEnded?.(receiverId);
         } catch (err) {
             console.error("Error ending call:", err);
         } finally {
             isCallEndingRef.current = false;
         }
-    }, []);
+    }, [onCallEnded]);
 
     useEffect(() => {
+        if (initializationRef.current || connectionRef.current) {
+            return;
+        }
+
+        initializationRef.current = true;
+
         const startConnection = async () => {
-
-            if (connectionRef.current) return;
-
             try {
+                console.log("Starting SignalR connection to:", `${baseUrl}/videochathub`);
+
                 const connection = new HubConnectionBuilder()
                     .withUrl(`${baseUrl}/videochathub`, {
                         transport: 1,
@@ -359,32 +412,36 @@ const UseRtcConnection = ({
                     .configureLogging(LogLevel.Warning)
                     .withAutomaticReconnect()
                     .build();
-                connection.on("ReceiveOffer", (senderId: string, offer: string) => {
-                    console.log("SignalR: Received offer from:", senderId);
-                    handleReceiveOffer(senderId, offer);
+
+                connection.on("ReceiveOffer", (senderId: string, roomId: string, offer: string) => {
+                    console.log("🔥 RECEIVED OFFER! Sender:", senderId, "Room:", roomId);
+                    handleReceiveOffer(senderId, roomId, offer);
                 });
 
-                connection.on("ReceiveAnswer", (answerJson: string) => {
-                    console.log("SignalR: Received answer");
-                    const answerInit = JSON.parse(answerJson);
-                    handleReceiveAnswer(answerInit);
+                connection.on("ReceiveAnswer", (senderId: string, roomId: string, answerJson: string) => {
+                    console.log("📞 RECEIVED ANSWER! Sender:", senderId, "Room:", roomId);
+                    handleReceiveAnswer(senderId, roomId, answerJson);
                 });
 
-                connection.on("ReceiveIceCandidate", (candidateJson: string) => {
-                    console.log("SignalR: Received ICE candidate");
-                    const candidateInit = JSON.parse(candidateJson) as RTCIceCandidateInit;
-                    handleIceCandidate(candidateInit);
+                connection.on("ReceiveIceCandidate", (senderId: string, roomId: string, candidateJson: string) => {
+                    console.log("🧊 RECEIVED ICE CANDIDATE! Sender:", senderId);
+                    handleIceCandidate(senderId, roomId, candidateJson);
                 });
 
-                connection.on("CallEnded", () => {
-                    console.log("SignalR: Call ended");
+                connection.on("CallEnded", (senderId: string) => {
+                    console.log("🚫 CALL ENDED by:", senderId);
                     if (peerConnectionRef.current) {
                         peerConnectionRef.current.close();
                         peerConnectionRef.current = null;
                     }
-                    onCallEnded?.("");
+                    onCallEnded?.(senderId);
                     pendingOfferRef.current = null;
                     pendingIceCandidatesRef.current = [];
+                    currentRoomIdRef.current = null;
+                });
+
+                connection.on("UserJoinedCall", (userId: string) => {
+                    console.log("👤 User joined call:", userId);
                 });
 
                 connection.onclose((error) => {
@@ -406,43 +463,31 @@ const UseRtcConnection = ({
                 connectionRef.current = connection;
                 setIsConnected(true);
 
+                console.log("✅ SignalR connected successfully! ConnectionId:", connection.connectionId);
+
             } catch (err: any) {
-                console.error("Error while establishing SignalR connection:", {
-                    message: err.message,
-                    name: err.name,
-                    stack: err.stack,
-                    status: err.statusCode,
-                    statusText: err.statusText
-                });
+                console.error("❌ Error while establishing SignalR connection:", err);
                 setIsConnected(false);
+                initializationRef.current = false;
             }
         };
 
         startConnection();
 
         return () => {
+            console.log("Cleaning up SignalR connection...");
             if (connectionRef.current) {
-                console.log("Cleaning up SignalR connection...");
                 connectionRef.current
                     .stop()
-                    .then(() => console.log("SignalR connection stopped"))
+                    .then(() => {
+                        console.log("SignalR connection stopped");
+                        connectionRef.current = null;
+                        setIsConnected(false);
+                        initializationRef.current = false;
+                    })
                     .catch((err) => console.error("Error stopping connection:", err));
-                connectionRef.current = null;
-                setIsConnected(false);
             }
         };
-    }, []);
-
-    const checkConnectionStatus = useCallback(() => {
-        if (connectionRef.current) {
-            console.log("SignalR Status:", {
-                state: connectionRef.current.state,
-                connectionId: connectionRef.current.connectionId,
-                isConnected: connectionRef.current.state === "Connected"
-            });
-            return connectionRef.current.state === "Connected";
-        }
-        return false;
     }, []);
 
     return {
@@ -451,9 +496,8 @@ const UseRtcConnection = ({
         rejectCall,
         getLocalStream,
         endCall: endCallInternal,
-        replaceVideoTrack,
-        checkConnectionStatus,
         isConnected,
+        replaceVideoTrack,
     };
 };
 

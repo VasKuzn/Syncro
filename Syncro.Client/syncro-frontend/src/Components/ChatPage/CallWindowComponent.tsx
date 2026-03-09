@@ -1,7 +1,6 @@
 import React from "react";
 import { CallWindowProps } from "../../Types/ChatTypes";
 
-
 const CallWindow: React.FC<CallWindowProps> = ({
   isIncoming,
   userName,
