@@ -13,12 +13,7 @@ const VideoCall: React.FC<VideoCallProps> = ({
 }) => {
   const [localVideoOn, setLocalVideoOn] = useState(true);
   const [localScreenOn, setLocalScreenOn] = useState(false);
-  const [remoteVideoOn, setRemoteVideoOn] = useState(false);
-  const [remoteScreenOn, setRemoteScreenOn] = useState(false);
   const [micOn, setMicOn] = useState(true);
-  const [expandedWindow, setExpandedWindow] = useState<
-    "localVideo" | "localScreen" | "remoteVideo" | "remoteScreen" | null
-  >(null);
   const [speaking, setSpeaking] = useState(false);
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
@@ -27,17 +22,6 @@ const VideoCall: React.FC<VideoCallProps> = ({
   const remoteScreenRef = useRef<HTMLVideoElement>(null);
   const currentVideoTrackRef = useRef<MediaStreamTrack | null>(null);
   const screenStreamRef = useRef<MediaStream | null>(null);
-
-  // Очистка при размонтировании
-  useEffect(() => {
-    return () => {
-      [localVideoRef, localScreenRef, remoteVideoRef, remoteScreenRef].forEach(ref => {
-        if (ref.current) {
-          ref.current.srcObject = null;
-        }
-      });
-    };
-  }, []);
 
   // Эффект для локального видео
   useEffect(() => {
@@ -48,20 +32,26 @@ const VideoCall: React.FC<VideoCallProps> = ({
       });
 
       const videoTrack = localStream.getVideoTracks()[0];
-      // Проверяем, не является ли это экраном
-      const isScreen = videoTrack?.label.toLowerCase().includes('screen') ||
-        videoTrack?.label.toLowerCase().includes('display');
+      const isScreen = videoTrack?.label?.toLowerCase().includes('screen') ||
+        videoTrack?.label?.toLowerCase().includes('display');
 
-      if (!localScreenOn) {
-        setLocalVideoOn(!!videoTrack && videoTrack.enabled && !isScreen);
-      }
+      setLocalVideoOn(!!videoTrack && !isScreen);
 
       const audioTrack = localStream.getAudioTracks()[0];
       setMicOn(!!audioTrack && audioTrack.enabled);
 
-      if (localVideoRef.current && !localScreenOn) {
+      // Важно: всегда обновляем srcObject при изменении стрима
+      if (!localScreenOn && localVideoRef.current) {
         localVideoRef.current.srcObject = localStream;
-        localVideoRef.current.play().catch(err => console.warn("Could not play local video:", err));
+        localVideoRef.current.play().catch(err => {
+          console.warn("Could not play local video:", err);
+          // Пробуем еще раз через небольшую задержку
+          setTimeout(() => {
+            localVideoRef.current?.play().catch(e =>
+              console.warn("Retry failed:", e)
+            );
+          }, 100);
+        });
       }
     }
   }, [localStream, localScreenOn]);
@@ -71,24 +61,33 @@ const VideoCall: React.FC<VideoCallProps> = ({
     if (remoteStream) {
       console.log("Remote stream updated:", {
         videoTracks: remoteStream.getVideoTracks().length,
-        audioTracks: remoteStream.getAudioTracks().length
+        audioTracks: remoteStream.getAudioTracks().length,
+        streamId: remoteStream.id
       });
 
       const videoTrack = remoteStream.getVideoTracks()[0];
-      const isScreenShare = videoTrack?.label.toLowerCase().includes('screen') ||
-        videoTrack?.label.toLowerCase().includes('display');
+      const isScreenShare = videoTrack?.label?.toLowerCase().includes('screen') ||
+        videoTrack?.label?.toLowerCase().includes('display');
 
-      setRemoteScreenOn(isScreenShare);
-      setRemoteVideoOn(!!videoTrack && !isScreenShare);
-
-      if (remoteVideoRef.current && !isScreenShare) {
+      // Всегда обновляем remoteVideoRef
+      if (remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = remoteStream;
-        remoteVideoRef.current.play().catch(err => console.warn("Could not play remote video:", err));
+        remoteVideoRef.current.play().catch(err => {
+          console.warn("Could not play remote video:", err);
+          setTimeout(() => {
+            remoteVideoRef.current?.play().catch(e =>
+              console.warn("Remote video retry failed:", e)
+            );
+          }, 100);
+        });
       }
 
-      if (remoteScreenRef.current && isScreenShare) {
+      // Для скриншеринга отдельный элемент
+      if (isScreenShare && remoteScreenRef.current) {
         remoteScreenRef.current.srcObject = remoteStream;
-        remoteScreenRef.current.play().catch(err => console.warn("Could not play remote screen:", err));
+        remoteScreenRef.current.play().catch(err =>
+          console.warn("Could not play remote screen:", err)
+        );
       }
     }
   }, [remoteStream]);
@@ -109,34 +108,9 @@ const VideoCall: React.FC<VideoCallProps> = ({
         });
         setLocalVideoOn(newState);
         console.log("Camera toggled:", newState ? "on" : "off");
-      } else {
-        // Если нет видео трека, пробуем получить его заново
-        navigator.mediaDevices.getUserMedia({ video: true })
-          .then(stream => {
-            const newVideoTrack = stream.getVideoTracks()[0];
-            const oldVideoTrack = localStream.getVideoTracks()[0];
-
-            if (oldVideoTrack) {
-              localStream.removeTrack(oldVideoTrack);
-              oldVideoTrack.stop();
-            }
-
-            localStream.addTrack(newVideoTrack);
-
-            if (replaceVideoTrack) {
-              replaceVideoTrack(newVideoTrack);
-            }
-
-            setLocalVideoOn(true);
-
-            if (localVideoRef.current) {
-              localVideoRef.current.srcObject = localStream;
-            }
-          })
-          .catch(err => console.error("Error getting camera:", err));
       }
     }
-  }, [localStream, localScreenOn, replaceVideoTrack]);
+  }, [localStream, localScreenOn]);
 
   // Функция для переключения микрофона
   const handleToggleMic = useCallback(() => {
@@ -157,7 +131,6 @@ const VideoCall: React.FC<VideoCallProps> = ({
   const handleToggleScreenShare = useCallback(async () => {
     if (!localScreenOn) {
       try {
-        // Запрашиваем доступ к экрану
         const screenStream = await navigator.mediaDevices.getDisplayMedia({
           video: true,
           audio: false
@@ -166,21 +139,14 @@ const VideoCall: React.FC<VideoCallProps> = ({
         const screenVideoTrack = screenStream.getVideoTracks()[0];
         if (!screenVideoTrack) return;
 
-        // Сохраняем текущий видео трек камеры
-        const currentVideoTrack = localStream?.getVideoTracks()[0];
-        currentVideoTrackRef.current = currentVideoTrack || null;
-
-        // Сохраняем поток экрана
+        currentVideoTrackRef.current = localStream?.getVideoTracks()[0] || null;
         screenStreamRef.current = screenStream;
 
-        // Заменяем трек в локальном потоке
-        if (localStream && currentVideoTrack) {
-          localStream.removeTrack(currentVideoTrack);
+        if (localStream && currentVideoTrackRef.current) {
+          localStream.removeTrack(currentVideoTrackRef.current);
           localStream.addTrack(screenVideoTrack);
-          console.log("Added screen track to local stream");
         }
 
-        // Заменяем трек в RTC соединении
         if (replaceVideoTrack) {
           replaceVideoTrack(screenVideoTrack);
         }
@@ -188,13 +154,11 @@ const VideoCall: React.FC<VideoCallProps> = ({
         setLocalScreenOn(true);
         setLocalVideoOn(false);
 
-        // Обновляем видео элемент для экрана
         if (localScreenRef.current) {
           localScreenRef.current.srcObject = screenStream;
           localScreenRef.current.play().catch(err => console.warn("Could not play screen:", err));
         }
 
-        // Обработчик окончания демонстрации
         screenVideoTrack.onended = () => {
           handleStopScreenShare();
         };
@@ -212,30 +176,22 @@ const VideoCall: React.FC<VideoCallProps> = ({
     try {
       console.log("Stopping screen share...");
 
-      // Останавливаем поток экрана
       if (screenStreamRef.current) {
         screenStreamRef.current.getTracks().forEach(track => track.stop());
         screenStreamRef.current = null;
       }
 
-      // Восстанавливаем камеру
       if (currentVideoTrackRef.current && localStream) {
-        const cameraTrack = currentVideoTrackRef.current;
-
-        // Убираем все видео треки
         const videoTracks = localStream.getVideoTracks();
         videoTracks.forEach(track => localStream.removeTrack(track));
 
-        // Добавляем трек камеры обратно
-        localStream.addTrack(cameraTrack);
-        cameraTrack.enabled = true;
+        localStream.addTrack(currentVideoTrackRef.current);
+        currentVideoTrackRef.current.enabled = true;
 
-        // Заменяем трек в RTC соединении
         if (replaceVideoTrack) {
-          replaceVideoTrack(cameraTrack);
+          replaceVideoTrack(currentVideoTrackRef.current);
         }
 
-        // Обновляем видео элемент
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = localStream;
           localVideoRef.current.play().catch(err => console.warn("Could not play video:", err));
@@ -266,8 +222,7 @@ const VideoCall: React.FC<VideoCallProps> = ({
 
       <div className="video-body">
         {/* Локальное видео */}
-        <div className={`video-box ${expandedWindow === "localVideo" ? "main" : "side"} ${speaking ? "speaking" : ""}`}
-          onClick={() => setExpandedWindow("localVideo")}>
+        <div className={`video-box side ${speaking ? "speaking" : ""}`}>
           {localScreenOn ? (
             <video
               autoPlay
@@ -287,22 +242,14 @@ const VideoCall: React.FC<VideoCallProps> = ({
           ) : (
             <img src={localAvatarUrl} className="video-avatar" alt="Local user" />
           )}
+          <div className="user-name">{localUserName}</div>
         </div>
 
         {/* Удаленное видео */}
-        <div className={`video-box ${expandedWindow === "remoteVideo" ? "main" : "side"} ${speaking ? "speaking" : ""}`}
-          onClick={() => setExpandedWindow("remoteVideo")}>
-          {remoteScreenOn ? (
+        <div className={`video-box main ${speaking ? "speaking" : ""}`}>
+          {remoteStream ? (
             <video
               autoPlay
-              playsInline
-              ref={remoteScreenRef}
-              className="video-stream"
-            />
-          ) : remoteVideoOn && remoteStream ? (
-            <video
-              autoPlay
-              muted={false}
               playsInline
               ref={remoteVideoRef}
               className="video-stream"
@@ -310,21 +257,34 @@ const VideoCall: React.FC<VideoCallProps> = ({
           ) : (
             <img src={remoteAvatarUrl} className="video-avatar" alt="Remote user" />
           )}
+          <div className="user-name">{remoteUserName}</div>
         </div>
       </div>
 
       <div className="video-controls">
         <button onClick={handleToggleMic} className={`control-btn ${micOn ? "" : "off"}`}>
-          <img src={micOn ? "microphone_on_icon.png" : "microphone_off_icon.png"} alt="Mic" className="icon" />
+          <img
+            src={micOn ? "/microphone_on_icon.png" : "/microphone_off_icon.png"}
+            alt="Mic"
+            className="icon"
+          />
         </button>
         <button onClick={handleToggleCamera} className={`control-btn ${localVideoOn ? "" : "off"}`}>
-          <img src={localVideoOn ? "video_icon.png" : "video_slash_icon.png"} alt="Cam" className='icon' />
+          <img
+            src={localVideoOn ? "/video_icon.png" : "/video_slash_icon.png"}
+            alt="Cam"
+            className='icon'
+          />
         </button>
         <button onClick={handleToggleScreenShare} className={`control-btn ${localScreenOn ? "active" : ""}`}>
-          <img src={localScreenOn ? "screen_stop_demonstration_icon.png" : "screen_demonstration_icon.png"} alt="Screen" className='icon' />
+          <img
+            src={localScreenOn ? "/screen_stop_demonstration_icon.png" : "/screen_demonstration_icon.png"}
+            alt="Screen"
+            className='icon'
+          />
         </button>
         <button className="control-btn end-call" onClick={onEndCall}>
-          <img src="call_remove_icon.png" alt="End call" className="icon" />
+          <img src="/call_remove_icon.png" alt="End call" className="icon" />
         </button>
       </div>
     </div>
