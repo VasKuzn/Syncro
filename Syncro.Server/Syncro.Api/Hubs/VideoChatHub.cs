@@ -7,6 +7,7 @@ namespace Syncro.Api.Hubs
     {
         private static readonly ConcurrentDictionary<string, string> _userConnections = new();
         private static readonly ConcurrentDictionary<string, CallRoom> _activeCalls = new();
+        private static readonly ConcurrentDictionary<string, HashSet<string>> _roomParticipants = new(); // Отслеживаем кто в комнате
 
         public override async Task OnConnectedAsync()
         {
@@ -27,6 +28,15 @@ namespace Syncro.Api.Hubs
             {
                 Console.WriteLine($"User disconnected: {userId}");
                 _userConnections.TryRemove(userId, out _);
+
+                // Очищаем комнаты при отключении
+                foreach (var room in _activeCalls.Values)
+                {
+                    if (room.Participants.Contains(userId))
+                    {
+                        await EndCall(room.RoomId);
+                    }
+                }
             }
             await base.OnDisconnectedAsync(exception);
         }
@@ -48,7 +58,12 @@ namespace Syncro.Api.Hubs
                 CreatedAt = DateTime.UtcNow
             };
 
+            // Добавляем вызывающего в комнату
             await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
+
+            // Инициализируем список участников комнаты
+            _roomParticipants[roomId] = new HashSet<string> { callerId };
+
             Console.WriteLine($"Room created: {roomId}, Caller: {callerId}, Target: {targetUserId}");
 
             return roomId;
@@ -61,16 +76,26 @@ namespace Syncro.Api.Hubs
 
             if (string.IsNullOrEmpty(userId)) return;
 
-            if (_activeCalls.TryGetValue(roomId, out var callRoom))
+            if (_activeCalls.TryGetValue(roomId, out var callRoom) &&
+                callRoom.Participants.Contains(userId))
             {
-                if (callRoom.Participants.Contains(userId))
-                {
-                    await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
-                    Console.WriteLine($"User {userId} joined room {roomId}");
+                await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
 
-                    // Уведомляем другого участника
-                    await Clients.GroupExcept(roomId, Context.ConnectionId)
-                        .SendAsync("UserJoinedCall", userId);
+                // Добавляем пользователя в список участников комнаты
+                if (!_roomParticipants.ContainsKey(roomId))
+                {
+                    _roomParticipants[roomId] = new HashSet<string>();
+                }
+                _roomParticipants[roomId].Add(userId);
+
+                Console.WriteLine($"User {userId} joined room {roomId}");
+
+                // Уведомляем другого участника о присоединении
+                var otherParticipant = callRoom.Participants.FirstOrDefault(p => p != userId);
+                if (otherParticipant != null && _roomParticipants[roomId].Contains(otherParticipant))
+                {
+                    await Clients.Group(roomId).SendAsync("UserJoinedCall", userId);
+                    Console.WriteLine($"Both participants now in room {roomId}");
                 }
             }
         }
@@ -80,18 +105,14 @@ namespace Syncro.Api.Hubs
             var userId = Context.UserIdentifier;
             Console.WriteLine($"SendOffer: User {userId} sending offer to room {roomId}");
 
-            // Получаем целевого пользователя (не отправителя)
             if (_activeCalls.TryGetValue(roomId, out var callRoom))
             {
                 var targetUser = callRoom.Participants.FirstOrDefault(p => p != userId);
-                if (!string.IsNullOrEmpty(targetUser) && _userConnections.TryGetValue(targetUser, out var targetConnectionId))
+                if (!string.IsNullOrEmpty(targetUser) &&
+                    _userConnections.TryGetValue(targetUser, out var targetConnectionId))
                 {
-                    Console.WriteLine($"Sending offer to target user: {targetUser}, ConnectionId: {targetConnectionId}");
+                    Console.WriteLine($"Sending offer to target user: {targetUser}");
                     await Clients.Client(targetConnectionId).SendAsync("ReceiveOffer", userId, roomId, offer);
-                }
-                else
-                {
-                    Console.WriteLine($"Target user {targetUser} not found or not connected");
                 }
             }
         }
@@ -104,7 +125,8 @@ namespace Syncro.Api.Hubs
             if (_activeCalls.TryGetValue(roomId, out var callRoom))
             {
                 var targetUser = callRoom.Participants.FirstOrDefault(p => p != userId);
-                if (!string.IsNullOrEmpty(targetUser) && _userConnections.TryGetValue(targetUser, out var targetConnectionId))
+                if (!string.IsNullOrEmpty(targetUser) &&
+                    _userConnections.TryGetValue(targetUser, out var targetConnectionId))
                 {
                     Console.WriteLine($"Sending answer to target user: {targetUser}");
                     await Clients.Client(targetConnectionId).SendAsync("ReceiveAnswer", userId, roomId, answer);
@@ -115,15 +137,28 @@ namespace Syncro.Api.Hubs
         public async Task SendIceCandidate(string roomId, string candidate)
         {
             var userId = Context.UserIdentifier;
-            Console.WriteLine($"SendIceCandidate: User {userId} sending ICE to room {roomId}");
 
-            if (_activeCalls.TryGetValue(roomId, out var callRoom))
+            // Проверяем, что оба участника в комнате
+            if (_roomParticipants.TryGetValue(roomId, out var participants) &&
+                participants.Count == 2) // Оба участника присоединились
             {
-                var targetUser = callRoom.Participants.FirstOrDefault(p => p != userId);
-                if (!string.IsNullOrEmpty(targetUser) && _userConnections.TryGetValue(targetUser, out var targetConnectionId))
+                Console.WriteLine($"SendIceCandidate: User {userId} sending ICE to room {roomId} (both participants ready)");
+
+                if (_activeCalls.TryGetValue(roomId, out var callRoom))
                 {
-                    await Clients.Client(targetConnectionId).SendAsync("ReceiveIceCandidate", userId, roomId, candidate);
+                    var targetUser = callRoom.Participants.FirstOrDefault(p => p != userId);
+                    if (!string.IsNullOrEmpty(targetUser) &&
+                        _userConnections.TryGetValue(targetUser, out var targetConnectionId))
+                    {
+                        await Clients.Client(targetConnectionId).SendAsync("ReceiveIceCandidate", userId, roomId, candidate);
+                    }
                 }
+            }
+            else
+            {
+                Console.WriteLine($"SendIceCandidate: User {userId} sending ICE to room {roomId} - waiting for other participant");
+                // Можно буферизовать на сервере, если нужно
+                // Но лучше буферизовать на клиенте, как мы уже делаем
             }
         }
 
@@ -134,6 +169,9 @@ namespace Syncro.Api.Hubs
 
             if (_activeCalls.TryRemove(roomId, out var callRoom))
             {
+                // Удаляем из отслеживания участников
+                _roomParticipants.TryRemove(roomId, out _);
+
                 foreach (var participantId in callRoom.Participants)
                 {
                     if (_userConnections.TryGetValue(participantId, out var connectionId))
