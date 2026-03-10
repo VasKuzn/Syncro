@@ -29,41 +29,77 @@ const UseRtcConnection = ({
 
     const ICE_SERVERS: RTCConfiguration = {
         iceServers: [
+            // Xirsys STUN
             {
-                urls: "stun:stun.relay.metered.ca:80",
+                urls: ["stun:fr-turn8.xirsys.com"]
             },
-            { urls: "stun:stun.l.google.com:19302" },
-            { urls: "stun:stun.l.google.com:5349" },
-            { urls: "stun:stun1.l.google.com:3478" },
-            { urls: "stun:stun1.l.google.com:5349" },
-            { urls: "stun:stun2.l.google.com:19302" },
-            { urls: "stun:stun2.l.google.com:5349" },
-            { urls: "stun:stun3.l.google.com:3478" },
-            { urls: "stun:stun3.l.google.com:5349" },
-            { urls: "stun:stun4.l.google.com:19302" },
-            { urls: "stun:stun4.l.google.com:5349" },
+            // Xirsys TURN
             {
-                urls: "turn:global.relay.metered.ca:80",
+                username: "ZtBjMiIuQtl7QfBuI4H1IP8WWVSVTDC6RvowOWx498dHPODh04APzilXJoc2nsXDAAAAAGmwY_VNdVJSUlppaw==",
+                credential: "a0460dc0-1caf-11f1-8f22-be96737d4d7e",
+                urls: [
+                    "turn:fr-turn8.xirsys.com:80?transport=udp",
+                    "turn:fr-turn8.xirsys.com:3478?transport=udp",
+                    "turn:fr-turn8.xirsys.com:80?transport=tcp",
+                    "turn:fr-turn8.xirsys.com:3478?transport=tcp",
+                    "turns:fr-turn8.xirsys.com:443?transport=tcp",
+                    "turns:fr-turn8.xirsys.com:5349?transport=tcp"
+                ]
+            },
+            // Google STUN серверы
+            {
+                urls: [
+                    "stun:stun.l.google.com:19302",
+                    "stun:stun.l.google.com:5349",
+                    "stun:stun1.l.google.com:3478",
+                    "stun:stun1.l.google.com:5349",
+                    "stun:stun2.l.google.com:19302",
+                    "stun:stun2.l.google.com:5349",
+                    "stun:stun3.l.google.com:3478",
+                    "stun:stun3.l.google.com:5349",
+                    "stun:stun4.l.google.com:19302",
+                    "stun:stun4.l.google.com:5349"
+                ]
+            },
+            // Публичные STUN серверы
+            {
+                urls: [
+                    "stun:stun.ekiga.net:3478",
+                    "stun:stun.ideasip.com:3478",
+                    "stun:stun.schlund.de:3478",
+                    "stun:stun.stunprotocol.org:3478",
+                    "stun:stun.voiparound.com:3478",
+                    "stun:stun.voipbuster.com:3478",
+                    "stun:stun.voipstunt.com:3478",
+                    "stun:stun.voxgratia.org:3478"
+                ]
+            },
+            // Metered STUN
+            {
+                urls: ["stun:stun.relay.metered.ca:80"]
+            },
+            // Metered TURN
+            {
+                urls: [
+                    "turn:global.relay.metered.ca:80",
+                    "turn:global.relay.metered.ca:80?transport=tcp",
+                    "turn:global.relay.metered.ca:443",
+                    "turns:global.relay.metered.ca:443?transport=tcp"
+                ],
                 username: "28b984ae9e217db6689a7957",
-                credential: "KxZSXNWu8JPGsB42",
+                credential: "KxZSXNWu8JPGsB42"
             },
             {
-                urls: "turn:global.relay.metered.ca:80?transport=tcp",
-                username: "28b984ae9e217db6689a7957",
-                credential: "KxZSXNWu8JPGsB42",
-            },
-            {
-                urls: "turn:global.relay.metered.ca:443",
-                username: "28b984ae9e217db6689a7957",
-                credential: "KxZSXNWu8JPGsB42",
-            },
-            {
-                urls: "turns:global.relay.metered.ca:443?transport=tcp",
-                username: "28b984ae9e217db6689a7957",
-                credential: "KxZSXNWu8JPGsB42",
-            },
+                urls: [
+                    "turn:openrelay.metered.ca:80",
+                    "turn:openrelay.metered.ca:443",
+                    "turn:openrelay.metered.ca:443?transport=tcp"
+                ],
+                username: "openrelayproject",
+                credential: "openrelayproject"
+            }
         ],
-        iceCandidatePoolSize: 10,
+        iceCandidatePoolSize: 20,
         bundlePolicy: "max-bundle",
         rtcpMuxPolicy: "require",
         iceTransportPolicy: "all"
