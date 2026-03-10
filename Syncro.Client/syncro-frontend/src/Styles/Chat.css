@@ -361,15 +361,15 @@
 
 @keyframes pulse {
   0% {
-    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(24, 177, 29, 0.4);
   }
 
-  50% {
-    transform: scale(1.1);
+  70% {
+    box-shadow: 0 0 0 10px rgba(24, 177, 29, 0);
   }
 
   100% {
-    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(24, 177, 29, 0);
   }
 }
 
@@ -599,28 +599,60 @@ video::-webkit-media-controls-panel {
 }
 
 .video-call-container {
-  position: relative;
-  height: 100%;
+  position: absolute;
+  /* Меняем с fixed на absolute */
+  top: 0;
+  /* Прижимаем к верху */
+  left: 50%;
+  transform: translateX(-50%);
+  /* Убираем translateY, оставляем только по X */
+  width: 800px;
+  height: 600px;
   background-color: #1A2438;
   color: #fff;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  border-radius: 0 0 12px 12px;
+  /* Скругляем только нижние углы */
   overflow: hidden;
-  z-index: 9999;
+  z-index: 10000;
   font-family: 'Arial', sans-serif;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  resize: both;
+  min-width: 400px;
+  min-height: 300px;
+  max-width: 90vw;
+  max-height: 90vh;
+  border: 1px solid #333;
+  border-top: none;
+  /* Убираем верхнюю границу */
+}
+
+.video-call-container.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  max-width: none;
+  max-height: none;
+  border-radius: 0;
+  transform: none;
+  resize: none;
 }
 
 .video-top {
   display: flex;
-  height: 13%;
+  height: 50px;
   justify-content: flex-start;
   align-items: center;
-  padding: 6px;
+  padding: 0 16px;
   background-color: #1A2438;
   border-bottom: 1px solid #333;
   flex-shrink: 0;
-  /* Не даем сжиматься */
+  -webkit-app-region: drag;
+  /* Для перетаскивания окна (в Electron) */
+  app-region: drag;
 }
 
 .call-info {
@@ -634,6 +666,8 @@ video::-webkit-media-controls-panel {
   display: flex;
   align-items: center;
   gap: 10px;
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
 }
 
 .video-info .icon {
@@ -655,7 +689,6 @@ video::-webkit-media-controls-panel {
   border: 2px solid #3B82F6;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin: auto;
-  /* Центрируем */
 }
 
 .video-avatar.speaking {
@@ -720,68 +753,72 @@ video::-webkit-media-controls-panel {
 
 .user-name {
   position: absolute;
-  bottom: 10px;
-  left: 10px;
-  font-size: 14px;
-  font-weight: bold;
+  bottom: 8px;
+  left: 8px;
+  font-size: 13px;
+  font-weight: 500;
   color: white;
   background: rgba(0, 0, 0, 0.6);
   padding: 4px 8px;
   border-radius: 4px;
-  z-index: 10;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: calc(100% - 20px);
+  z-index: 5;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .video-controls {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 10px;
-  gap: 16px;
-  border-top: 1px solid #333;
+  padding: 12px;
+  gap: 12px;
   background: rgba(26, 36, 56, 0.95);
-  /* Полупрозрачный фон */
+  border-top: 1px solid #333;
   flex-shrink: 0;
-  /* Не даем сжиматься */
-  z-index: 20;
+  backdrop-filter: blur(10px);
+  z-index: 30;
 }
 
 .control-btn {
-  background-color: #4A5568;
-  border: none;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  width: 50px;
-  height: 50px;
+  border: none;
+  background: #4A5568;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all 0.2s;
+  color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .control-btn:hover {
-  background-color: #555;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.control-btn:active {
+  transform: translateY(0);
 }
 
 .control-btn.off {
-  background-color: #e03e3e;
+  background: #e03e3e;
 }
 
 .control-btn.end-call {
-  background-color: #e03e3e;
+  background: #e03e3e;
 }
 
-.control-btn.end-call:hover {
-  background-color: #ff5c5c;
+.control-btn.active {
+  background: #4a8cff;
 }
+
 
 .control-btn img.icon {
-  width: 30px;
-  height: 30px;
-  /* Делаем иконки белыми */
+  width: 22px;
+  height: 22px;
 }
 
 .main-video {
@@ -811,30 +848,99 @@ video::-webkit-media-controls-panel {
 }
 
 .video-body {
-  display: flex;
-  flex-direction: row;
-  gap: 12px;
-  height: 87%;
-  /* 100% - высота video-top (13%) */
-  width: 100%;
+  flex: 1;
   position: relative;
   overflow: hidden;
-  padding: 10px;
-  background-color: #1A2438;
-  box-sizing: border-box;
-  /* Важно для правильных расчетов padding */
+  background-color: #0F172A;
+  min-height: 0;
+  /* Важно для flex */
 }
+
+.video-body.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+}
+
+.video-body.pip {
+  position: relative;
+}
+
+.video-body.pip .video-box.remote {
+  width: 100%;
+  height: 100%;
+}
+
+.video-body.pip .video-box.local {
+  position: absolute;
+  width: 200px;
+  height: 150px;
+  border: 2px solid #4a8cff;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  cursor: default;
+  z-index: 10;
+  transition: box-shadow 0.2s;
+  resize: both;
+  min-width: 120px;
+  min-height: 90px;
+  max-width: 300px;
+  max-height: 225px;
+  overflow: hidden;
+  /* Начальная позиция - правый нижний угол */
+  bottom: 20px;
+  right: 20px;
+  left: auto;
+  top: auto;
+}
+
+.video-body.pip .video-box.local[dragging="true"] {
+  bottom: auto;
+  right: auto;
+}
+
+
+.video-body.pip .video-box.local:hover {
+  border-color: #6ba1ff;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
 
 .video-box {
   position: relative;
   border-radius: 8px;
   overflow: hidden;
-  background: #222;
+  background: #1a1a1a;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
+}
+
+.drag-handle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 30px;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.3));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  font-size: 20px;
+  letter-spacing: 2px;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  z-index: 20;
+  border-radius: 8px 8px 0 0;
+  backdrop-filter: blur(4px);
+}
+
+.video-box.local:hover .drag-handle {
+  opacity: 1;
 }
 
 .video-box.main {
@@ -850,7 +956,7 @@ video::-webkit-media-controls-panel {
 }
 
 .video-box.speaking {
-  border: 3px solid #18b11d;
+  animation: pulse 2s infinite;
 }
 
 .video-body:has(.main) {
@@ -862,10 +968,8 @@ video::-webkit-media-controls-panel {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* Меняем с contain на cover */
   background: #000;
   display: block;
-  /* Убираем лишние отступы */
 }
 
 .video-wrapper {
@@ -1640,4 +1744,40 @@ video::-webkit-media-controls-panel {
 .popup-online {
   font-size: 0.875rem;
   color: #94A3B8;
+}
+
+@media (max-width: 768px) {
+  .video-call-container {
+    width: 100vw;
+    height: 100vh;
+    max-width: none;
+    max-height: none;
+    border-radius: 0;
+    transform: none;
+    top: 0;
+    left: 0;
+    resize: none;
+  }
+
+  .video-body.grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+
+  .video-body.pip .video-box.local {
+    width: 150px;
+    height: 112px;
+    bottom: 70px;
+    right: 10px;
+  }
+
+  .control-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .control-btn img.icon {
+    width: 20px;
+    height: 20px;
+  }
 }

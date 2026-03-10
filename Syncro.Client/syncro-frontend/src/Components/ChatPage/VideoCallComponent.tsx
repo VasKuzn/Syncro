@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { VideoCallProps } from "../../Types/ChatTypes";
+import { useDraggable } from '../../Hooks/useDraggable'; // Импортируем хук
 
 const VideoCall: React.FC<VideoCallProps> = ({
   onEndCall,
@@ -15,13 +16,18 @@ const VideoCall: React.FC<VideoCallProps> = ({
   const [localScreenOn, setLocalScreenOn] = useState(false);
   const [micOn, setMicOn] = useState(true);
   const [speaking, setSpeaking] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [layout, setLayout] = useState<'grid' | 'pip'>('grid');
 
-  const localVideoRef = useRef<HTMLVideoElement>(null);
-  const localScreenRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const remoteScreenRef = useRef<HTMLVideoElement>(null);
   const currentVideoTrackRef = useRef<MediaStreamTrack | null>(null);
   const screenStreamRef = useRef<MediaStream | null>(null);
+
+  // Используем хук для перетаскивания только в PIP режиме
+  const localVideoRef = useDraggable(layout === 'pip');
+  const localScreenRef = useDraggable(layout === 'pip');
 
   // Эффект для локального видео
   useEffect(() => {
@@ -40,21 +46,36 @@ const VideoCall: React.FC<VideoCallProps> = ({
       const audioTrack = localStream.getAudioTracks()[0];
       setMicOn(!!audioTrack && audioTrack.enabled);
 
-      // Важно: всегда обновляем srcObject при изменении стрима
-      if (!localScreenOn && localVideoRef.current) {
-        localVideoRef.current.srcObject = localStream;
-        localVideoRef.current.play().catch(err => {
-          console.warn("Could not play local video:", err);
-          // Пробуем еще раз через небольшую задержку
-          setTimeout(() => {
-            localVideoRef.current?.play().catch(e =>
-              console.warn("Retry failed:", e)
-            );
-          }, 100);
-        });
+      // Обновляем видео элемент в зависимости от режима
+      if (!localScreenOn) {
+        const videoElement = localVideoRef.current;
+        if (videoElement) {
+          videoElement.srcObject = localStream;
+          videoElement.play().catch(err => {
+            console.warn("Could not play local video:", err);
+            setTimeout(() => {
+              videoElement.play().catch(e =>
+                console.warn("Retry failed:", e)
+              );
+            }, 100);
+          });
+        }
       }
     }
-  }, [localStream, localScreenOn]);
+  }, [localStream, localScreenOn, localVideoRef]);
+
+  // Эффект для экрана
+  useEffect(() => {
+    if (localScreenOn && screenStreamRef.current) {
+      const screenElement = localScreenRef.current;
+      if (screenElement) {
+        screenElement.srcObject = screenStreamRef.current;
+        screenElement.play().catch(err =>
+          console.warn("Could not play screen:", err)
+        );
+      }
+    }
+  }, [localScreenOn, localScreenRef]);
 
   // Эффект для удаленного видео
   useEffect(() => {
@@ -65,11 +86,6 @@ const VideoCall: React.FC<VideoCallProps> = ({
         streamId: remoteStream.id
       });
 
-      const videoTrack = remoteStream.getVideoTracks()[0];
-      const isScreenShare = videoTrack?.label?.toLowerCase().includes('screen') ||
-        videoTrack?.label?.toLowerCase().includes('display');
-
-      // Всегда обновляем remoteVideoRef
       if (remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = remoteStream;
         remoteVideoRef.current.play().catch(err => {
@@ -82,7 +98,10 @@ const VideoCall: React.FC<VideoCallProps> = ({
         });
       }
 
-      // Для скриншеринга отдельный элемент
+      const videoTrack = remoteStream.getVideoTracks()[0];
+      const isScreenShare = videoTrack?.label?.toLowerCase().includes('screen') ||
+        videoTrack?.label?.toLowerCase().includes('display');
+
       if (isScreenShare && remoteScreenRef.current) {
         remoteScreenRef.current.srcObject = remoteStream;
         remoteScreenRef.current.play().catch(err =>
@@ -154,11 +173,6 @@ const VideoCall: React.FC<VideoCallProps> = ({
         setLocalScreenOn(true);
         setLocalVideoOn(false);
 
-        if (localScreenRef.current) {
-          localScreenRef.current.srcObject = screenStream;
-          localScreenRef.current.play().catch(err => console.warn("Could not play screen:", err));
-        }
-
         screenVideoTrack.onended = () => {
           handleStopScreenShare();
         };
@@ -192,37 +206,89 @@ const VideoCall: React.FC<VideoCallProps> = ({
           replaceVideoTrack(currentVideoTrackRef.current);
         }
 
-        if (localVideoRef.current) {
-          localVideoRef.current.srcObject = localStream;
-          localVideoRef.current.play().catch(err => console.warn("Could not play video:", err));
+        // Обновляем видео элемент
+        const videoElement = localVideoRef.current;
+        if (videoElement) {
+          videoElement.srcObject = localStream;
+          videoElement.play().catch(err => console.warn("Could not play video:", err));
         }
       }
 
       setLocalScreenOn(false);
       setLocalVideoOn(true);
-
-      if (localScreenRef.current) {
-        localScreenRef.current.srcObject = null;
-      }
     } catch (err) {
       console.error("Error stopping screen share:", err);
     }
-  }, [localStream, replaceVideoTrack]);
+  }, [localStream, replaceVideoTrack, localVideoRef]);
+
+  // Функция для переключения fullscreen
+  const toggleFullscreen = useCallback(() => {
+    if (!containerRef.current) return;
+
+    if (!document.fullscreenElement) {
+      containerRef.current.requestFullscreen().then(() => {
+        setIsFullscreen(true);
+      }).catch(err => {
+        console.error("Error attempting to enable fullscreen:", err);
+      });
+    } else {
+      document.exitFullscreen().then(() => {
+        setIsFullscreen(false);
+      }).catch(err => {
+        console.error("Error attempting to exit fullscreen:", err);
+      });
+    }
+  }, []);
+
+  // Слушаем изменения fullscreen
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
+  // Переключение между layout
+  const toggleLayout = useCallback(() => {
+    setLayout(prev => prev === 'grid' ? 'pip' : 'grid');
+  }, []);
 
   return (
-    <div className="video-call-container">
+    <div
+      ref={containerRef}
+      className={`video-call-container ${isFullscreen ? 'fullscreen' : ''}`}
+    >
       <div className="video-top">
         <div className="video-info">
-          <img src={'profile_user_icon.png'} alt='users' className='icon' />
+          <img src="/profile_user_icon.png" alt='users' className='icon' />
           <span className="participants">
             {localUserName}, {remoteUserName}
           </span>
         </div>
       </div>
 
-      <div className="video-body">
-        {/* Локальное видео */}
-        <div className={`video-box side ${speaking ? "speaking" : ""}`}>
+      <div className={`video-body ${layout}`}>
+        {/* Удаленное видео (основное) */}
+        <div className={`video-box remote ${speaking ? "speaking" : ""}`}>
+          {remoteStream ? (
+            <video
+              autoPlay
+              playsInline
+              ref={remoteVideoRef}
+              className="video-stream"
+            />
+          ) : (
+            <img src={remoteAvatarUrl} className="video-avatar" alt="Remote user" />
+          )}
+          <div className="user-name">{remoteUserName}</div>
+        </div>
+
+        {/* Локальное видео (второстепенное) */}
+        <div className={`video-box local ${speaking ? "speaking" : ""}`}>
           {localScreenOn ? (
             <video
               autoPlay
@@ -243,21 +309,13 @@ const VideoCall: React.FC<VideoCallProps> = ({
             <img src={localAvatarUrl} className="video-avatar" alt="Local user" />
           )}
           <div className="user-name">{localUserName}</div>
-        </div>
 
-        {/* Удаленное видео */}
-        <div className={`video-box main ${speaking ? "speaking" : ""}`}>
-          {remoteStream ? (
-            <video
-              autoPlay
-              playsInline
-              ref={remoteVideoRef}
-              className="video-stream"
-            />
-          ) : (
-            <img src={remoteAvatarUrl} className="video-avatar" alt="Remote user" />
+          {/* Кнопка для перетаскивания (только в pip режиме) */}
+          {layout === 'pip' && (
+            <div className="drag-handle" title="Перетащите для перемещения">
+              ⋮⋮
+            </div>
           )}
-          <div className="user-name">{remoteUserName}</div>
         </div>
       </div>
 
@@ -283,7 +341,21 @@ const VideoCall: React.FC<VideoCallProps> = ({
             className='icon'
           />
         </button>
-        <button className="control-btn end-call" onClick={onEndCall}>
+        <button onClick={toggleLayout} className="control-btn" title={layout === 'grid' ? 'Режим PIP' : 'Сетка'}>
+          <img
+            src={layout === 'grid' ? "/pip_icon.png" : "/grid_icon.png"}
+            alt="Layout"
+            className='icon'
+          />
+        </button>
+        <button onClick={toggleFullscreen} className="control-btn" title={isFullscreen ? 'Оконный режим' : 'Полный экран'}>
+          <img
+            src={isFullscreen ? "/fullscreen_exit_icon.png" : "/fullscreen_icon.png"}
+            alt="Fullscreen"
+            className='icon'
+          />
+        </button>
+        <button className="control-btn end-call" onClick={onEndCall} title="Завершить звонок">
           <img src="/call_remove_icon.png" alt="End call" className="icon" />
         </button>
       </div>
