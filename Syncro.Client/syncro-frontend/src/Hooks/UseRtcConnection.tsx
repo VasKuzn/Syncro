@@ -32,6 +32,16 @@ const UseRtcConnection = ({
             {
                 urls: "stun:stun.relay.metered.ca:80",
             },
+            { urls: "stun:stun.l.google.com:19302" },
+            { urls: "stun:stun.l.google.com:5349" },
+            { urls: "stun:stun1.l.google.com:3478" },
+            { urls: "stun:stun1.l.google.com:5349" },
+            { urls: "stun:stun2.l.google.com:19302" },
+            { urls: "stun:stun2.l.google.com:5349" },
+            { urls: "stun:stun3.l.google.com:3478" },
+            { urls: "stun:stun3.l.google.com:5349" },
+            { urls: "stun:stun4.l.google.com:19302" },
+            { urls: "stun:stun4.l.google.com:5349" },
             {
                 urls: "turn:global.relay.metered.ca:80",
                 username: "28b984ae9e217db6689a7957",
@@ -53,7 +63,10 @@ const UseRtcConnection = ({
                 credential: "KxZSXNWu8JPGsB42",
             },
         ],
-        iceCandidatePoolSize: 10, // Добавлено для лучшей работы ICE
+        iceCandidatePoolSize: 10,
+        bundlePolicy: "max-bundle",
+        rtcpMuxPolicy: "require",
+        iceTransportPolicy: "all"
     };
 
     const resetCallState = (roomId?: string) => {
@@ -141,11 +154,29 @@ const UseRtcConnection = ({
 
         peerConnection.onconnectionstatechange = () => {
             console.log("PeerConnection state:", peerConnection.connectionState);
-            if (peerConnection.connectionState === "connected") {
-                console.log("✅ PeerConnection connected successfully!");
-            }
-            if (peerConnection.connectionState === "failed" || peerConnection.connectionState === "disconnected") {
-                console.error("❌ PeerConnection failed or disconnected");
+
+            switch (peerConnection.connectionState) {
+                case "connected":
+                    console.log("✅ PeerConnection connected successfully!");
+                    break;
+                case "failed":
+                    console.error("❌ PeerConnection failed - attempting restart");
+                    if (peerConnectionRef.current && currentRoomIdRef.current) {
+                        peerConnectionRef.current.restartIce();
+
+                        setTimeout(() => {
+                            if (peerConnectionRef.current?.connectionState === "failed") {
+                                console.log("Attempting to recreate peer connection...");
+                            }
+                        }, 3000);
+                    }
+                    break;
+                case "disconnected":
+                    console.warn("⚠️ PeerConnection disconnected - may recover");
+                    break;
+                case "closed":
+                    console.log("PeerConnection closed");
+                    break;
             }
         };
 
