@@ -34,7 +34,6 @@ const useGroupMessagesHub = (
                 .build();
 
             connection.on("ReceiveGroupMessage", (message: PersonalMessageData) => {
-                console.log('Received group message:', message);
                 if (message.groupConferenceId === groupId) {
                     onMessageReceivedRef.current(message);
                 }

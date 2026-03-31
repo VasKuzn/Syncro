@@ -97,7 +97,6 @@ export const addGroupMember = async (data: {
     joiningDate: Date,
     roleId: string
 }, baseUrl: string, csrfToken: string | null) => {
-    console.log('GroupService.addGroupMember: отправка данных', data);
 
     // Максимально простой объект
     const requestData = {
@@ -107,7 +106,6 @@ export const addGroupMember = async (data: {
         roleId: data.roleId
     };
 
-    console.log('GroupService.addGroupMember: подготовленные данные', requestData);
 
     try {
         const response = await fetch(`${baseUrl}/api/groupconferencemember`, {
@@ -120,16 +118,13 @@ export const addGroupMember = async (data: {
             body: JSON.stringify(requestData)
         });
 
-        console.log('GroupService.addGroupMember: статус ответа', response.status);
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.log('GroupService.addGroupMember: тело ошибки', errorText);
             throw new Error(`Failed to add member: ${response.status} ${errorText}`);
         }
 
         const result = await response.json();
-        console.log('GroupService.addGroupMember: результат', result);
         return result;
 
     } catch (error) {

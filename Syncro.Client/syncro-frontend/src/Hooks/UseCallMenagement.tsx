@@ -1,6 +1,12 @@
 import { useState, useRef, useCallback, useMemo } from 'react';
-import UseRtcConnection from './UseRtcConnection';
+import UseRtcConnection, { VideoQuality } from './UseRtcConnection';
 import { UseCallManagementProps } from '../Types/ChatTypes';
+
+interface AudioFilters {
+    echoCancellation: boolean;
+    noiseSuppression: boolean;
+    autoGainControl: boolean;
+}
 
 export const useCallManagement = ({ currentFriend }: UseCallManagementProps, baseUrl: string) => {
     const [showCallModal, setShowCallModal] = useState(false);
@@ -11,13 +17,19 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
     const [localStream, setLocalStream] = useState<MediaStream | null>(null);
     const [currentRoomId, setCurrentRoomId] = useState<string | null>(null);
 
+    // Состояния для настроек
+    const [microphoneVolume, setMicrophoneVolume] = useState(1);
+    const [audioFilters, setAudioFilters] = useState<AudioFilters>({
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true
+    });
+
     const localStreamRef = useRef<MediaStream | null>(null);
     const remoteStreamRef = useRef<MediaStream | null>(null);
 
-    // Мемоизируем параметры для RTC соединения
     const rtcParams = useMemo(() => ({
         onRemoteStream: (stream: MediaStream) => {
-            console.log("Remote stream received");
             remoteStreamRef.current = stream;
             setRemoteStream(stream);
             stream.getTracks().forEach(track => {
@@ -25,24 +37,35 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
             });
         },
         onLocalStream: (stream: MediaStream) => {
-            console.log("Local stream received");
             localStreamRef.current = stream;
             setLocalStream(stream);
         },
         onCallEnded: (senderId: string) => {
-            console.log("Call ended by:", senderId);
             handleEndCall();
         },
         onIncomingCall: (senderId: string, roomId: string) => {
-            console.log("Incoming call from:", senderId, "room:", roomId);
             setCallInitiator(senderId);
             setCurrentRoomId(roomId);
             setIncomingCall(true);
             setShowCallModal(true);
         }
-    }), []); // Пустые зависимости, так как функции не меняются
+    }), []);
 
     const rtcConnection = UseRtcConnection(rtcParams, baseUrl);
+
+    const handleVolumeChange = useCallback((volume: number) => {
+        setMicrophoneVolume(volume);
+        rtcConnection.setMicrophoneVolume(volume);
+    }, [rtcConnection]);
+
+    const handleAudioFiltersChange = useCallback((filters: AudioFilters) => {
+        setAudioFilters(filters);
+        rtcConnection.applyAudioFilters(filters, microphoneVolume);
+    }, [rtcConnection, microphoneVolume]);
+
+    const handleQualityChange = useCallback((quality: VideoQuality) => {
+        rtcConnection.setVideoQuality(quality);
+    }, [rtcConnection]);
 
     const handleEndCall = useCallback(() => {
         if (currentFriend?.id) {
@@ -68,7 +91,11 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
         if (!currentFriend?.id || !rtcConnection.isConnected) return;
 
         try {
-            await rtcConnection.getLocalStream();
+            await rtcConnection.getLocalStream(
+                { video: true, audio: true },
+                audioFilters,
+                microphoneVolume
+            );
             const roomId = await rtcConnection.createOffer(currentFriend.id);
             if (roomId) {
                 setCurrentRoomId(roomId);
@@ -80,11 +107,15 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
             console.error("Failed to start call:", error);
             handleEndCall();
         }
-    }, [currentFriend?.id, rtcConnection, handleEndCall]);
+    }, [currentFriend?.id, rtcConnection, handleEndCall, audioFilters, microphoneVolume]);
 
     const handleAcceptCall = useCallback(async () => {
         try {
-            await rtcConnection.getLocalStream();
+            await rtcConnection.getLocalStream(
+                { video: true, audio: true },
+                audioFilters,
+                microphoneVolume
+            );
             await rtcConnection.acceptCall();
             setShowCallModal(false);
             setInCall(true);
@@ -93,7 +124,7 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
             console.error("Failed to accept call:", error);
             handleEndCall();
         }
-    }, [rtcConnection, handleEndCall]);
+    }, [rtcConnection, handleEndCall, audioFilters, microphoneVolume]);
 
     const handleRejectCall = useCallback(() => {
         if (callInitiator) {
@@ -118,6 +149,13 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
         handleStartCall,
         handleAcceptCall,
         handleRejectCall,
-        handleEndCall
+        handleEndCall,
+        // Настройки
+        microphoneVolume,
+        audioFilters,
+        handleVolumeChange,
+        handleAudioFiltersChange,
+        handleQualityChange,
+        currentVideoQuality: rtcConnection.currentVideoQuality
     };
 };

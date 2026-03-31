@@ -37,7 +37,6 @@ const GroupChatsComponent = ({ friends, setFriends, baseUrl, csrfToken }: Friend
             .build();
 
         newConnection.on("GroupsUpdated", () => {
-            console.log("Received groups update notification");
             getGroups(userId, baseUrlRef.current).then(gcs => setGroups(gcs));
         });
 

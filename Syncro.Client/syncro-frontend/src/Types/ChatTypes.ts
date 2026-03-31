@@ -87,9 +87,15 @@ export interface VideoCallProps {
     localAvatarUrl: string;
     remoteUserName: string;
     remoteAvatarUrl: string;
-    localStream?: MediaStream | null;
-    remoteStream?: MediaStream | null;
-    replaceVideoTrack: (track: MediaStreamTrack) => void;
+    localStream: MediaStream | null;
+    remoteStream: MediaStream | null;
+    replaceVideoTrack?: (track: MediaStreamTrack) => void;
+}
+
+export interface AudioFilters {
+    echoCancellation: boolean;
+    noiseSuppression: boolean;
+    autoGainControl: boolean;
 }
 
 export interface MessageProps extends PersonalMessageData {

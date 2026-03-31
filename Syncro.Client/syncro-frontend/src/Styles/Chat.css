@@ -1,3 +1,7 @@
+.icon {
+  filter: invert(70%) sepia(85%) saturate(771%) hue-rotate(138deg) brightness(100%) contrast(100%);
+}
+
 .personal-chats {
   width: 300px;
   background-color: #07081C;
@@ -1744,6 +1748,159 @@ video::-webkit-media-controls-panel {
 .popup-online {
   font-size: 0.875rem;
   color: #94A3B8;
+}
+
+/* Настройки звонка */
+.call-settings-panel {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  background: #1e1e2e;
+  border-radius: 12px;
+  padding: 16px;
+  min-width: 280px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  border: 1px solid #3a3a4a;
+  animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #3a3a4a;
+}
+
+.settings-header h4 {
+  margin: 0;
+  color: #fff;
+  font-size: 16px;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0 4px;
+}
+
+.close-btn:hover {
+  color: #fff;
+}
+
+.settings-section {
+  margin-bottom: 16px;
+}
+
+.settings-section label {
+  display: block;
+  color: #ccc;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.volume-slider {
+  width: 100%;
+  height: 4px;
+  -webkit-appearance: none;
+  background: #3a3a4a;
+  border-radius: 2px;
+  outline: none;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #4c9aff;
+  cursor: pointer;
+}
+
+.quality-select {
+  width: 100%;
+  padding: 8px;
+  background: #2a2a3a;
+  border: 1px solid #3a3a4a;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.quality-select option {
+  background: #1e1e2e;
+}
+
+.quality-info {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #ffaa44;
+}
+
+.filters-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #ccc;
+}
+
+.filter-option input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.filter-option span {
+  user-select: none;
+}
+
+.settings-info {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #3a3a4a;
+  font-size: 11px;
+  color: #888;
+  text-align: center;
+}
+
+.settings-btn {
+  position: relative;
+}
+
+.settings-btn.active {
+  background: #4c9aff;
+}
+
+.video-call-container.fullscreen .call-settings-panel {
+  position: fixed;
+  bottom: 100px;
+  right: 30px;
 }
 
 @media (max-width: 768px) {

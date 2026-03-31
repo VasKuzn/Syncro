@@ -84,7 +84,6 @@ export const changePass = async (
             credentials: 'include'
         });
 
-        console.log('Password change response status:', response.status);
 
         if (!response.ok) {
             let errorMessage = `Ошибка ${response.status} при смене пароля`;

@@ -58,7 +58,6 @@ export const useGroupChatInitialization = (baseUrl: string) => {
             }
         }
 
-        console.log('Детальная информация о друзьях (все, включая не подтвержденных):', friendsList);
         return friendsList;
     }, [baseUrl]); // Добавляем baseUrl в зависимости
 
@@ -74,7 +73,6 @@ export const useGroupChatInitialization = (baseUrl: string) => {
                 // Загружаем связи дружбы
                 try {
                     const friendsData = await getFriends(userId, baseUrl);
-                    console.log('Загруженные связи дружбы:', friendsData);
 
                     // Преобразуем в список друзей с полной информацией (БЕЗ ФИЛЬТРАЦИИ)
                     const friendsList = await loadFriendDetails(friendsData, userId);

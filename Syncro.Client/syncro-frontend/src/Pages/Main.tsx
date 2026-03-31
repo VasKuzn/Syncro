@@ -39,16 +39,13 @@ const Main = () => {
             .build();
 
         newConnection.on("FriendsUpdated", () => {
-            console.log("Received friends update notification");
             refreshFriendsData(userId);
         });
         newConnection.on("AccountActivity", (activity: AccountActivity) => {
-            console.log('AccountActivity received on friends hub', activity);
             setFriends(prev => prev.map(f => f.id === activity.UserId ? { ...f, isOnline: activity.IsOnline } : f));
         });
 
         newConnection.on("OnlineFriends", (onlineIds: string[]) => {
-            console.log('OnlineFriends snapshot received on friends hub', onlineIds);
             setFriends(prev => prev.map(f => ({ ...f, isOnline: onlineIds.includes(f.id) })));
         });
 
@@ -72,7 +69,6 @@ const Main = () => {
                 .build();
 
             accConnection.on("AccountActivity", (activity: AccountActivity) => {
-                console.log('AccountActivity received', activity);
                 setFriends(prev => prev.map(f => f.id === activity.UserId ? { ...f, isOnline: activity.IsOnline } : f));
             });
 
@@ -101,7 +97,6 @@ const Main = () => {
                 .build();
 
             msgConnection.on("NewMessage", (message) => {
-                console.log("NewMessage", message);
                 const fromUserId = message.fromUserId;
                 setFriends(prev => prev.map(f => f.id === fromUserId ? { ...f, unreadCount: (f.unreadCount ?? 0) + 1 } : f));
             });

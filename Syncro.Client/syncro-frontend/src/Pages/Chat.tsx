@@ -18,6 +18,8 @@ import loadingIcon from '../assets/loadingicon.svg';
 import searchIcon from '../assets/search3.png';
 import arrowDownIcon from '../assets/arrow-down.png';
 import { useCsrf } from '../Contexts/CsrfProvider';
+import { VideoQuality } from '../Hooks/UseRtcConnection';
+import { AudioFilters } from '../Types/ChatTypes';
 
 const ChatPage = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -161,7 +163,13 @@ const ChatPage = () => {
     handleStartCall,
     handleAcceptCall,
     handleRejectCall,
-    handleEndCall
+    handleEndCall,
+    microphoneVolume,
+    audioFilters,
+    handleVolumeChange,
+    handleAudioFiltersChange,
+    handleQualityChange,
+    currentVideoQuality
   } = useCallManagement({
     currentFriend,
     currentUserId
@@ -235,6 +243,26 @@ const ChatPage = () => {
   }, []);
 
   useEffect(() => {
+    (window as any).onMicrophoneVolumeChange = (volume: number) => {
+      rtcConnection.setMicrophoneVolume(volume);
+    };
+
+    (window as any).onVideoQualityChange = (quality: VideoQuality) => {
+      rtcConnection.setVideoQuality(quality);
+    };
+
+    (window as any).onAudioFiltersChange = (filters: AudioFilters) => {
+      rtcConnection.applyAudioFilters(filters, microphoneVolume);
+    };
+
+    return () => {
+      delete (window as any).onMicrophoneVolumeChange;
+      delete (window as any).onVideoQualityChange;
+      delete (window as any).onAudioFiltersChange;
+    };
+  }, [rtcConnection, microphoneVolume]);
+
+  useEffect(() => {
     if (search.currentResultIndex >= 0 && search.searchResults.length > 0) {
       search.scrollToResult(search.currentResultIndex, messageRefs.current);
     }
@@ -246,14 +274,10 @@ const ChatPage = () => {
     mediaType: string;
     fileName: string;
   }) => {
-    // Очищаем значение немедленно, не дожидаясь завершения отправки
     setMessageInputValue('');
     setShowEmojiPicker(false);
-
-    // Отправляем сообщение асинхронно
     await sendMessage(text, media);
   }, [sendMessage]);
-
 
   return (
     <>
