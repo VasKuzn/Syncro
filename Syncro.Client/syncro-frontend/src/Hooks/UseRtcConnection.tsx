@@ -11,20 +11,20 @@ interface UseRtcConnectionParams {
 export type VideoQuality = 'low' | 'medium' | 'high';
 
 export const VIDEO_QUALITY_SETTINGS = {
-    'low': { // 480p
+    'low': {
         width: { exact: 854, ideal: 854 },
         height: { exact: 480, ideal: 480 },
-        bitrate: 500000 // 500 kbps
+        bitrate: 500000
     },
-    'medium': { // 720p
+    'medium': {
         width: { exact: 1280, ideal: 1280 },
         height: { exact: 720, ideal: 720 },
-        bitrate: 1500000 // 1.5 mbps
+        bitrate: 1500000
     },
-    'high': { // 1080p
+    'high': {
         width: { exact: 1920, ideal: 1920 },
         height: { exact: 1080, ideal: 1080 },
-        bitrate: 2500000 // 2.5 mbps
+        bitrate: 2500000
     }
 };
 
@@ -312,7 +312,6 @@ const UseRtcConnection = ({
         };
 
         peerConnection.onconnectionstatechange = () => {
-
             switch (peerConnection.connectionState) {
                 case "connected":
                     break;
@@ -366,7 +365,6 @@ const UseRtcConnection = ({
                 },
                 audio: audioConstraints
             });
-
 
             const audioContext = new AudioContext();
             const source = audioContext.createMediaStreamSource(stream);
@@ -540,7 +538,7 @@ const UseRtcConnection = ({
             const roomId = pendingOfferRef.current.roomId;
             const senderId = pendingOfferRef.current.senderId;
 
-
+            // Отправляем EndCall на сервер, чтобы уведомить другого участника
             if (connectionRef.current && roomId) {
                 connectionRef.current.invoke("EndCall", roomId)
                     .catch(err => console.error("Error ending call:", err));
@@ -550,8 +548,12 @@ const UseRtcConnection = ({
             if (roomId) {
                 pendingIceCandidatesRef.current.delete(roomId);
             }
+            // Очищаем локальное состояние
+            if (onCallEnded) {
+                onCallEnded(senderId);
+            }
         }
-    }, []);
+    }, [onCallEnded]);
 
     const handleReceiveOffer = useCallback(async (senderId: string, roomId: string, offerString: string) => {
         resetCallState(roomId);
@@ -559,6 +561,8 @@ const UseRtcConnection = ({
         try {
             const offer = JSON.parse(offerString) as RTCSessionDescriptionInit;
             pendingOfferRef.current = { senderId, offer, roomId };
+            // Устанавливаем roomId для последующей очистки
+            currentRoomIdRef.current = roomId;
 
             if (onIncomingCall) {
                 onIncomingCall(senderId, roomId);
@@ -617,14 +621,13 @@ const UseRtcConnection = ({
         }
     }, []);
 
-    const endCallInternal = useCallback(async (receiverId: string) => {
+    const endCallInternal = useCallback(async () => {
         if (isCallEndingRef.current) {
             return;
         }
 
         isCallEndingRef.current = true;
         try {
-
             if (peerConnectionRef.current) {
                 peerConnectionRef.current.onicecandidate = null;
                 peerConnectionRef.current.ontrack = null;
@@ -660,7 +663,6 @@ const UseRtcConnection = ({
 
             pendingOfferRef.current = null;
             pendingIceCandidatesRef.current.clear();
-            currentRoomIdRef.current = null;
 
             if (connectionRef.current?.state === "Connected" && currentRoomIdRef.current) {
                 try {
@@ -670,7 +672,12 @@ const UseRtcConnection = ({
                 }
             }
 
-            onCallEnded?.(receiverId);
+            const roomIdToNotify = currentRoomIdRef.current;
+            currentRoomIdRef.current = null;
+
+            if (roomIdToNotify) {
+                onCallEnded?.(roomIdToNotify);
+            }
         } catch (err) {
             console.error("Error ending call:", err);
         } finally {
@@ -710,6 +717,7 @@ const UseRtcConnection = ({
                 });
 
                 connection.on("CallEnded", (senderId: string) => {
+                    console.log("CallEnded received, senderId:", senderId);
                     if (peerConnectionRef.current) {
                         peerConnectionRef.current.close();
                         peerConnectionRef.current = null;

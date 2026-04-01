@@ -17,7 +17,6 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
     const [localStream, setLocalStream] = useState<MediaStream | null>(null);
     const [currentRoomId, setCurrentRoomId] = useState<string | null>(null);
 
-    // Состояния для настроек
     const [microphoneVolume, setMicrophoneVolume] = useState(1);
     const [audioFilters, setAudioFilters] = useState<AudioFilters>({
         echoCancellation: true,
@@ -28,6 +27,24 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
     const localStreamRef = useRef<MediaStream | null>(null);
     const remoteStreamRef = useRef<MediaStream | null>(null);
 
+    // Функция для очистки всего состояния звонка (не зависит от rtcConnection)
+    const cleanupCallState = useCallback(() => {
+        setInCall(false);
+        setShowCallModal(false);
+        setIncomingCall(false);
+        setCallInitiator(null);
+        setCurrentRoomId(null);
+
+        if (localStreamRef.current) {
+            localStreamRef.current.getTracks().forEach(track => track.stop());
+            localStreamRef.current = null;
+        }
+        remoteStreamRef.current = null;
+        setLocalStream(null);
+        setRemoteStream(null);
+    }, []);
+
+    // Параметры для RTC соединения
     const rtcParams = useMemo(() => ({
         onRemoteStream: (stream: MediaStream) => {
             remoteStreamRef.current = stream;
@@ -41,7 +58,8 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
             setLocalStream(stream);
         },
         onCallEnded: (senderId: string) => {
-            handleEndCall();
+            console.log("onCallEnded triggered, senderId:", senderId);
+            cleanupCallState();
         },
         onIncomingCall: (senderId: string, roomId: string) => {
             setCallInitiator(senderId);
@@ -49,9 +67,17 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
             setIncomingCall(true);
             setShowCallModal(true);
         }
-    }), []);
+    }), [cleanupCallState]);
 
     const rtcConnection = UseRtcConnection(rtcParams, baseUrl);
+
+    // Локальное завершение звонка (по кнопке)
+    const handleLocalEndCall = useCallback(() => {
+        if (currentFriend?.id) {
+            rtcConnection.endCall();
+        }
+        cleanupCallState();
+    }, [currentFriend?.id, rtcConnection, cleanupCallState]);
 
     const handleVolumeChange = useCallback((volume: number) => {
         setMicrophoneVolume(volume);
@@ -66,26 +92,6 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
     const handleQualityChange = useCallback((quality: VideoQuality) => {
         rtcConnection.setVideoQuality(quality);
     }, [rtcConnection]);
-
-    const handleEndCall = useCallback(() => {
-        if (currentFriend?.id) {
-            rtcConnection.endCall(currentFriend.id);
-        }
-
-        setInCall(false);
-        setShowCallModal(false);
-        setIncomingCall(false);
-        setCallInitiator(null);
-        setCurrentRoomId(null);
-
-        if (localStreamRef.current) {
-            localStreamRef.current.getTracks().forEach(track => track.stop());
-            localStreamRef.current = null;
-        }
-        remoteStreamRef.current = null;
-        setLocalStream(null);
-        setRemoteStream(null);
-    }, [currentFriend?.id, rtcConnection]);
 
     const handleStartCall = useCallback(async () => {
         if (!currentFriend?.id || !rtcConnection.isConnected) return;
@@ -105,9 +111,9 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
             setIncomingCall(false);
         } catch (error) {
             console.error("Failed to start call:", error);
-            handleEndCall();
+            handleLocalEndCall();
         }
-    }, [currentFriend?.id, rtcConnection, handleEndCall, audioFilters, microphoneVolume]);
+    }, [currentFriend?.id, rtcConnection, handleLocalEndCall, audioFilters, microphoneVolume]);
 
     const handleAcceptCall = useCallback(async () => {
         try {
@@ -122,20 +128,16 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
             setIncomingCall(false);
         } catch (error) {
             console.error("Failed to accept call:", error);
-            handleEndCall();
+            handleLocalEndCall();
         }
-    }, [rtcConnection, handleEndCall, audioFilters, microphoneVolume]);
+    }, [rtcConnection, handleLocalEndCall, audioFilters, microphoneVolume]);
 
     const handleRejectCall = useCallback(() => {
         if (callInitiator) {
             rtcConnection.rejectCall();
-            rtcConnection.endCall(callInitiator);
         }
-        setShowCallModal(false);
-        setIncomingCall(false);
-        setCallInitiator(null);
-        setCurrentRoomId(null);
-    }, [callInitiator, rtcConnection]);
+        cleanupCallState();
+    }, [callInitiator, rtcConnection, cleanupCallState]);
 
     return {
         showCallModal,
@@ -149,8 +151,7 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
         handleStartCall,
         handleAcceptCall,
         handleRejectCall,
-        handleEndCall,
-        // Настройки
+        handleEndCall: handleLocalEndCall,
         microphoneVolume,
         audioFilters,
         handleVolumeChange,
