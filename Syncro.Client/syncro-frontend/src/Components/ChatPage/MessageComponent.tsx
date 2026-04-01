@@ -24,6 +24,18 @@ function detectMediaCategory(mediaTypeOrEnum?: string | number | null, fileName?
     return 'other';
 }
 
+const formatDateTime = (date: Date): string => {
+    const formattedDate = date.toLocaleDateString('ru-RU', {
+        day: 'numeric',
+        month: 'short'
+    });
+    const formattedTime = date.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    return `${formattedDate} ${formattedTime}`;
+};
+
 const MediaRenderer = ({ url, category, fileName }: { url: string; category: string; fileName?: string | null }) => {
     if (!url) return null;
     if (category === 'image') {
@@ -122,7 +134,7 @@ const Message = ({
         }
     }
 
-    const formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const formattedDateTime = formatDateTime(date);
     const isMedia = !!mediaUrl;
     const category = detectMediaCategory(mediaType, fileName);
     const cursorClass = !isOwnMessage && onAvatarClick ? 'avatar-clickable' : 'avatar-default';
@@ -148,11 +160,12 @@ const Message = ({
                 <div className="content">
                     <div className="header">
                         {!hideProfileInfo && <span className="name">{accountNickname}</span>}
+                        <time className="time">{formattedDateTime}</time>
                     </div>
                     {isMedia ? (
                         <>
                             {messageContent && (
-                                <div className="message-media-bottom">
+                                <div className="message">
                                     {searchQuery ? highlightTextMatches(messageContent, searchQuery) : messageContent}
                                 </div>
                             )}
@@ -162,7 +175,6 @@ const Message = ({
                     ) : (
                         <p className="message">
                             {searchQuery ? highlightTextMatches(messageContent, searchQuery) : messageContent}
-                            <time className="time">{formattedTime}</time>
                         </p>
                     )}
                 </div>

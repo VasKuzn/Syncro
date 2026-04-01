@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 
 interface AudioFilters {
     echoCancellation: boolean;
@@ -26,6 +26,7 @@ const CallSettings: React.FC<CallSettingsProps> = ({
     const [isOpen, setIsOpen] = useState(false);
     const [volume, setVolume] = useState(currentVolume);
     const [filters, setFilters] = useState<AudioFilters>(currentFilters);
+    const settingsPanelRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         setVolume(currentVolume);
@@ -34,6 +35,25 @@ const CallSettings: React.FC<CallSettingsProps> = ({
     useEffect(() => {
         setFilters(currentFilters);
     }, [currentFilters]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (settingsPanelRef.current && !settingsPanelRef.current.contains(event.target as Node)) {
+                const settingsBtn = document.querySelector('.settings-btn');
+                if (settingsBtn && !settingsBtn.contains(event.target as Node)) {
+                    setIsOpen(false);
+                }
+            }
+        };
+
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isOpen]);
 
     const handleVolumeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const newVolume = parseFloat(e.target.value) / 100;
@@ -67,7 +87,11 @@ const CallSettings: React.FC<CallSettingsProps> = ({
             </button>
 
             {isOpen && (
-                <div className="call-settings-panel" onClick={(e) => e.stopPropagation()}>
+                <div
+                    ref={settingsPanelRef}
+                    className="call-settings-panel"
+                    onClick={(e) => e.stopPropagation()}
+                >
                     <div className="settings-header">
                         <h4>Настройки звонка</h4>
                         <button className="close-btn" onClick={() => setIsOpen(false)}>✕</button>
@@ -82,6 +106,8 @@ const CallSettings: React.FC<CallSettingsProps> = ({
                             step="1"
                             value={volume * 100}
                             onChange={handleVolumeChange}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onTouchStart={(e) => e.stopPropagation()}
                             className="volume-slider"
                         />
                     </div>

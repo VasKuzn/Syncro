@@ -28,6 +28,7 @@ const MessageInput = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isTypingRef = useRef(false);
+  const sendButtonRef = useRef<HTMLButtonElement>(null);
 
   const handleSend = () => {
     if ((value.trim() || selectedFile) && !disabled) {
@@ -37,10 +38,8 @@ const MessageInput = ({
         mediaType: selectedFile.type,
         mediaUrl: filePreview || ""
       } : undefined);
-      // Очищаем локальное состояние файла
       setSelectedFile(null);
       setFilePreview(null);
-      // ВАЖНО: Не очищаем 'value' здесь! Это должен сделать родительский компонент
     }
   };
 
@@ -66,6 +65,10 @@ const MessageInput = ({
       }
 
       e.target.value = "";
+
+      setTimeout(() => {
+        sendButtonRef.current?.focus();
+      }, 100);
     }
   };
 
@@ -73,6 +76,10 @@ const MessageInput = ({
     if (!disabled) {
       setSelectedFile(null);
       setFilePreview(null);
+      const inputElement = document.querySelector('.message-input-field') as HTMLInputElement;
+      if (inputElement) {
+        inputElement.focus();
+      }
     }
   };
 
@@ -200,6 +207,7 @@ const MessageInput = ({
       </button>
 
       <button
+        ref={sendButtonRef}
         className="send-button"
         onClick={handleSend}
         disabled={(!value.trim() && !selectedFile) || isUploading || disabled}
