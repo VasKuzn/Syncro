@@ -33,7 +33,7 @@ const ChatPage = () => {
   const [messageInputValue, setMessageInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [typingFriendNickname, setTypingFriendNickname] = useState<string | null>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const currentUserNicknameRef = useRef<string | null>(null);
 
   const {
