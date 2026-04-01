@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { VideoCallProps } from "../../Types/ChatTypes";
-import { useDraggable } from '../../Hooks/useDraggable';
 import CallSettings from '../../Utils/CallSettings';
 import { VideoQuality } from '../../Hooks/UseRtcConnection';
+import { UseDraggable } from '../../Hooks/useDraggable';
 
 interface AudioFilters {
   echoCancellation: boolean;
@@ -41,8 +41,24 @@ const VideoCall: React.FC<VideoCallProps> = ({
   const currentVideoTrackRef = useRef<MediaStreamTrack | null>(null);
   const screenStreamRef = useRef<MediaStream | null>(null);
 
-  const localVideoRef = useDraggable(layout === 'pip');
-  const localScreenRef = useDraggable(layout === 'pip');
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const localScreenRef = useRef<HTMLVideoElement>(null);
+  const localContainerRef = useRef<HTMLDivElement>(null);
+
+  UseDraggable(localContainerRef, layout === 'pip');
+
+  useEffect(() => {
+    if (layout !== 'pip' && localContainerRef.current) {
+      localContainerRef.current.style.position = '';
+      localContainerRef.current.style.left = '';
+      localContainerRef.current.style.top = '';
+      localContainerRef.current.style.right = '';
+      localContainerRef.current.style.bottom = '';
+      localContainerRef.current.style.zIndex = '';
+      localContainerRef.current.style.cursor = '';
+      localContainerRef.current.style.userSelect = '';
+    }
+  }, [layout]);
 
   const handleVolumeChange = useCallback((volume: number) => {
     setMicrophoneVolume(volume);
@@ -100,7 +116,7 @@ const VideoCall: React.FC<VideoCallProps> = ({
     } else {
       videoElement.srcObject = null;
     }
-  }, [localStream, localScreenOn, localVideoRef, localScreenRef]);
+  }, [localStream, localScreenOn]);
 
   useEffect(() => {
     updateLocalVideoElement();
@@ -116,7 +132,7 @@ const VideoCall: React.FC<VideoCallProps> = ({
         );
       }
     }
-  }, [localScreenOn, localScreenRef]);
+  }, [localScreenOn]);
 
   useEffect(() => {
     if (remoteStream) {
@@ -225,7 +241,6 @@ const VideoCall: React.FC<VideoCallProps> = ({
 
   const handleStopScreenShare = useCallback(async () => {
     try {
-
       if (screenStreamRef.current) {
         screenStreamRef.current.getTracks().forEach(track => track.stop());
         screenStreamRef.current = null;
@@ -323,7 +338,10 @@ const VideoCall: React.FC<VideoCallProps> = ({
             )}
         </div>
 
-        <div className={`video-box local ${speaking ? "speaking" : ""}`}>
+        <div
+          ref={localContainerRef}
+          className={`video-box local ${speaking ? "speaking" : ""}`}
+        >
           {localScreenOn ? (
             <video
               autoPlay

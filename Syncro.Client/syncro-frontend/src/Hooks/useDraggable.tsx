@@ -1,8 +1,9 @@
-// hooks/useDraggable.ts
-import { useRef, useEffect } from 'react';
+import { useEffect, useRef, RefObject } from 'react';
 
-export const useDraggable = (enabled: boolean = true) => {
-    const elementRef = useRef<HTMLVideoElement>(null);
+export const UseDraggable = (
+    elementRef: RefObject<HTMLElement | null>,
+    enabled: boolean = true
+) => {
     const dragOffsetRef = useRef({ x: 0, y: 0 });
     const isDraggingRef = useRef(false);
 
@@ -14,9 +15,6 @@ export const useDraggable = (enabled: boolean = true) => {
         if (!parent) return;
 
         const handleMouseDown = (e: MouseEvent) => {
-            // Проверяем, что клик был по drag-handle
-            if (!(e.target as HTMLElement).closest('.drag-handle')) return;
-
             e.preventDefault();
             isDraggingRef.current = true;
 
@@ -25,7 +23,7 @@ export const useDraggable = (enabled: boolean = true) => {
 
             dragOffsetRef.current = {
                 x: e.clientX - rect.left,
-                y: e.clientY - rect.top
+                y: e.clientY - rect.top,
             };
 
             element.style.transition = 'none';
@@ -35,7 +33,6 @@ export const useDraggable = (enabled: boolean = true) => {
 
         const handleMouseMove = (e: MouseEvent) => {
             if (!isDraggingRef.current) return;
-
             e.preventDefault();
 
             const parentRect = parent.getBoundingClientRect();
@@ -44,7 +41,6 @@ export const useDraggable = (enabled: boolean = true) => {
             let newX = e.clientX - dragOffsetRef.current.x - parentRect.left;
             let newY = e.clientY - dragOffsetRef.current.y - parentRect.top;
 
-            // Ограничения в пределах контейнера
             newX = Math.max(0, Math.min(newX, parentRect.width - elementRect.width));
             newY = Math.max(0, Math.min(newY, parentRect.height - elementRect.height));
 
@@ -58,7 +54,6 @@ export const useDraggable = (enabled: boolean = true) => {
 
         const handleMouseUp = () => {
             if (!isDraggingRef.current) return;
-
             isDraggingRef.current = false;
             element.style.transition = '';
             element.style.cursor = '';
@@ -74,7 +69,5 @@ export const useDraggable = (enabled: boolean = true) => {
             window.removeEventListener('mousemove', handleMouseMove);
             window.removeEventListener('mouseup', handleMouseUp);
         };
-    }, [enabled]);
-
-    return elementRef;
+    }, [enabled, elementRef]);
 };
