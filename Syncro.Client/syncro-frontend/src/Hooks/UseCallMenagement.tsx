@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo } from 'react';
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import UseRtcConnection, { VideoQuality } from './UseRtcConnection';
 import { UseCallManagementProps } from '../Types/ChatTypes';
 
@@ -26,25 +26,39 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
 
     const localStreamRef = useRef<MediaStream | null>(null);
     const remoteStreamRef = useRef<MediaStream | null>(null);
+    const waitingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    // Функция для очистки всего состояния звонка (не зависит от rtcConnection)
+    const clearWaitingTimeout = useCallback(() => {
+        if (waitingTimeoutRef.current) {
+            clearTimeout(waitingTimeoutRef.current);
+            waitingTimeoutRef.current = null;
+        }
+    }, []);
+
+    // Полная очистка всех медиа-ресурсов
+    const cleanupMediaTracks = useCallback(() => {
+        if (localStreamRef.current) {
+            localStreamRef.current.getTracks().forEach(track => track.stop());
+            localStreamRef.current = null;
+        }
+        if (remoteStreamRef.current) {
+            remoteStreamRef.current.getTracks().forEach(track => track.stop());
+            remoteStreamRef.current = null;
+        }
+        setLocalStream(null);
+        setRemoteStream(null);
+    }, []);
+
     const cleanupCallState = useCallback(() => {
+        clearWaitingTimeout();
         setInCall(false);
         setShowCallModal(false);
         setIncomingCall(false);
         setCallInitiator(null);
         setCurrentRoomId(null);
+        cleanupMediaTracks();
+    }, [clearWaitingTimeout, cleanupMediaTracks]);
 
-        if (localStreamRef.current) {
-            localStreamRef.current.getTracks().forEach(track => track.stop());
-            localStreamRef.current = null;
-        }
-        remoteStreamRef.current = null;
-        setLocalStream(null);
-        setRemoteStream(null);
-    }, []);
-
-    // Параметры для RTC соединения
     const rtcParams = useMemo(() => ({
         onRemoteStream: (stream: MediaStream) => {
             remoteStreamRef.current = stream;
@@ -52,6 +66,7 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
             stream.getTracks().forEach(track => {
                 track.enabled = true;
             });
+            clearWaitingTimeout();
         },
         onLocalStream: (stream: MediaStream) => {
             localStreamRef.current = stream;
@@ -67,17 +82,33 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
             setIncomingCall(true);
             setShowCallModal(true);
         }
-    }), [cleanupCallState]);
+    }), [cleanupCallState, clearWaitingTimeout]);
 
     const rtcConnection = UseRtcConnection(rtcParams, baseUrl);
 
-    // Локальное завершение звонка (по кнопке)
     const handleLocalEndCall = useCallback(() => {
+        clearWaitingTimeout();
         if (currentFriend?.id) {
             rtcConnection.endCall();
         }
         cleanupCallState();
-    }, [currentFriend?.id, rtcConnection, cleanupCallState]);
+    }, [currentFriend?.id, rtcConnection, cleanupCallState, clearWaitingTimeout]);
+
+    const startWaitingTimeout = useCallback(() => {
+        clearWaitingTimeout();
+        waitingTimeoutRef.current = setTimeout(() => {
+            handleLocalEndCall();
+        }, 5 * 60 * 1000);
+    }, [clearWaitingTimeout, handleLocalEndCall]);
+
+    useEffect(() => {
+        if (inCall && !remoteStream) {
+            startWaitingTimeout();
+        } else {
+            clearWaitingTimeout();
+        }
+        return () => clearWaitingTimeout();
+    }, [inCall, remoteStream, startWaitingTimeout, clearWaitingTimeout]);
 
     const handleVolumeChange = useCallback((volume: number) => {
         setMicrophoneVolume(volume);
@@ -93,8 +124,14 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
         rtcConnection.setVideoQuality(quality);
     }, [rtcConnection]);
 
+    // Быстрый старт звонка: сначала показываем окно, потом асинхронно получаем медиа и создаём offer
     const handleStartCall = useCallback(async () => {
         if (!currentFriend?.id || !rtcConnection.isConnected) return;
+
+        // Сразу показываем окно звонка
+        setInCall(true);
+        setShowCallModal(false);
+        setIncomingCall(false);
 
         try {
             await rtcConnection.getLocalStream(
@@ -106,9 +143,6 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
             if (roomId) {
                 setCurrentRoomId(roomId);
             }
-            setInCall(true);
-            setShowCallModal(false);
-            setIncomingCall(false);
         } catch (error) {
             console.error("Failed to start call:", error);
             handleLocalEndCall();
@@ -133,11 +167,14 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
     }, [rtcConnection, handleLocalEndCall, audioFilters, microphoneVolume]);
 
     const handleRejectCall = useCallback(() => {
+        clearWaitingTimeout();
         if (callInitiator) {
             rtcConnection.rejectCall();
         }
         cleanupCallState();
-    }, [callInitiator, rtcConnection, cleanupCallState]);
+    }, [callInitiator, rtcConnection, cleanupCallState, clearWaitingTimeout]);
+
+    const isWaitingForRemote = inCall && !remoteStream;
 
     return {
         showCallModal,
@@ -157,6 +194,7 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
         handleVolumeChange,
         handleAudioFiltersChange,
         handleQualityChange,
-        currentVideoQuality: rtcConnection.currentVideoQuality
+        currentVideoQuality: rtcConnection.currentVideoQuality,
+        isWaitingForRemote,
     };
 };

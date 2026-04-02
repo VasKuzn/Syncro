@@ -611,7 +611,7 @@ video::-webkit-media-controls-panel {
   flex-direction: column;
   border-radius: 0 0 12px 12px;
   /* Скругляем только нижние углы */
-  overflow: auto;
+  overflow: hidden;
   z-index: 10000;
   font-family: 'Arial', sans-serif;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
@@ -1930,4 +1930,27 @@ video::-webkit-media-controls-panel {
     width: 20px;
     height: 20px;
   }
+}
+
+.remote-avatar-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.waiting-text {
+  position: absolute;
+  bottom: 60px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 8px;
+  font-size: 14px;
+  border-radius: 4px;
+  pointer-events: none;
 }

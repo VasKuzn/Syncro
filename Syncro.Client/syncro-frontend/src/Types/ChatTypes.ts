@@ -90,6 +90,7 @@ export interface VideoCallProps {
     localStream: MediaStream | null;
     remoteStream: MediaStream | null;
     replaceVideoTrack?: (track: MediaStreamTrack) => void;
+    isWaitingForRemote?: boolean;
 }
 
 export interface AudioFilters {

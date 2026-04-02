@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { VideoCallProps } from "../../Types/ChatTypes";
 import CallSettings from '../../Utils/CallSettings';
 import { VideoQuality } from '../../Hooks/UseRtcConnection';
-import { UseDraggable } from '../../Hooks/useDraggable';
+import { UseDraggable } from '../../Hooks/UseDraggable';
 
 interface AudioFilters {
   echoCancellation: boolean;
@@ -19,6 +19,7 @@ const VideoCall: React.FC<VideoCallProps> = ({
   localStream,
   remoteStream,
   replaceVideoTrack,
+  isWaitingForRemote,
 }) => {
   const [localVideoOn, setLocalVideoOn] = useState(false);
   const [localScreenOn, setLocalScreenOn] = useState(false);
@@ -322,7 +323,12 @@ const VideoCall: React.FC<VideoCallProps> = ({
               className="video-stream"
             />
           ) : (
-            <img src={remoteAvatarUrl} className="video-avatar" alt="Remote user" />
+            <div className="remote-avatar-container">
+              <img src={remoteAvatarUrl} className="video-avatar" alt="Remote user" />
+              {isWaitingForRemote && (
+                <div className="waiting-text">Ждем подключения пользователя..</div>
+              )}
+            </div>
           )}
           <div className="user-name">{remoteUserName}</div>
           {remoteStream && remoteStream.getVideoTracks().some(t =>
