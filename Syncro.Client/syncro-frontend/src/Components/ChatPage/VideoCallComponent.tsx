@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { VideoCallProps } from "../../Types/ChatTypes";
 import CallSettings from '../../Utils/CallSettings';
 import { VideoQuality } from '../../Hooks/UseRtcConnection';
-import { UseDraggable } from '../../Hooks/UseDraggable';
+import { UseDraggable } from '../../Hooks/useDraggable';
 
 import micMuteSound from '../../assets/microphone_mute_sound.mp3';
 
