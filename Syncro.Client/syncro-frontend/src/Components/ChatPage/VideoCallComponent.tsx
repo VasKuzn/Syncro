@@ -4,6 +4,8 @@ import CallSettings from '../../Utils/CallSettings';
 import { VideoQuality } from '../../Hooks/UseRtcConnection';
 import { UseDraggable } from '../../Hooks/UseDraggable';
 
+import micMuteSound from '../../assets/microphone_mute_sound.mp3';
+
 interface AudioFilters {
   echoCancellation: boolean;
   noiseSuppression: boolean;
@@ -46,7 +48,28 @@ const VideoCall: React.FC<VideoCallProps> = ({
   const localScreenRef = useRef<HTMLVideoElement>(null);
   const localContainerRef = useRef<HTMLDivElement>(null);
 
+  const audioMicMute = useRef<HTMLAudioElement | null>(null);
+  const audioMicOn = useRef<HTMLAudioElement | null>(null);
+  const audioCamera = useRef<HTMLAudioElement | null>(null);
+
   UseDraggable(localContainerRef, layout === 'pip');
+
+  useEffect(() => {
+    audioMicMute.current = new Audio(micMuteSound);
+    audioMicOn.current = new Audio(micMuteSound);
+    audioCamera.current = new Audio(micMuteSound);
+
+    audioMicMute.current.load();
+    audioMicOn.current.load();
+    audioCamera.current.load();
+  }, []);
+
+  const playSound = useCallback((audioRef: React.MutableRefObject<HTMLAudioElement | null>) => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(err => console.warn("Playback failed:", err));
+    }
+  }, []);
 
   useEffect(() => {
     if (layout !== 'pip' && localContainerRef.current) {
@@ -156,9 +179,10 @@ const VideoCall: React.FC<VideoCallProps> = ({
   }, [remoteStream]);
 
   const handleToggleCamera = useCallback(() => {
-    if (localScreenOn) {
-      return;
-    }
+    if (localScreenOn) return;
+
+    // Мгновенный звук камеры
+    playSound(audioCamera);
 
     if (localStream) {
       const videoTracks = localStream.getVideoTracks();
@@ -187,7 +211,7 @@ const VideoCall: React.FC<VideoCallProps> = ({
           .catch(err => console.error("Error getting camera:", err));
       }
     }
-  }, [localStream, localScreenOn, replaceVideoTrack, updateLocalVideoElement]);
+  }, [localStream, localScreenOn, replaceVideoTrack, updateLocalVideoElement, playSound, audioCamera]);
 
   const handleToggleMic = useCallback(() => {
     if (localStream) {
@@ -198,9 +222,16 @@ const VideoCall: React.FC<VideoCallProps> = ({
           track.enabled = newState;
         });
         setMicOn(newState);
+
+        // Мгновенный звук микрофона
+        if (newState) {
+          playSound(audioMicOn);
+        } else {
+          playSound(audioMicMute);
+        }
       }
     }
-  }, [localStream]);
+  }, [localStream, playSound, audioMicOn, audioMicMute]);
 
   const handleToggleScreenShare = useCallback(async () => {
     if (!localScreenOn) {
@@ -377,7 +408,7 @@ const VideoCall: React.FC<VideoCallProps> = ({
       </div>
 
       <div className="video-controls">
-        <button onClick={handleToggleMic} title={`${localVideoOn ? "Выключить микрофон" : "Включить микрофон"}`} className={`control-btn ${micOn ? "" : "off"}`}>
+        <button onClick={handleToggleMic} title={`${micOn ? "Выключить микрофон" : "Включить микрофон"}`} className={`control-btn ${micOn ? "" : "off"}`}>
           <img
             src={micOn ? "/microphone_on_icon.png" : "/microphone_off_icon.png"}
             alt="Mic"

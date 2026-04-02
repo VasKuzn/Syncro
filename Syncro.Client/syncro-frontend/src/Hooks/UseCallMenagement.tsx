@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import UseRtcConnection, { VideoQuality } from './UseRtcConnection';
 import { UseCallManagementProps } from '../Types/ChatTypes';
+import endCallSound from '../assets/minimizing_call.mp3'; // ← импорт звука
 
 interface AudioFilters {
     echoCancellation: boolean;
@@ -35,7 +36,6 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
         }
     }, []);
 
-    // Полная очистка всех медиа-ресурсов
     const cleanupMediaTracks = useCallback(() => {
         if (localStreamRef.current) {
             localStreamRef.current.getTracks().forEach(track => track.stop());
@@ -63,9 +63,7 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
         onRemoteStream: (stream: MediaStream) => {
             remoteStreamRef.current = stream;
             setRemoteStream(stream);
-            stream.getTracks().forEach(track => {
-                track.enabled = true;
-            });
+            stream.getTracks().forEach(track => track.enabled = true);
             clearWaitingTimeout();
         },
         onLocalStream: (stream: MediaStream) => {
@@ -73,7 +71,12 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
             setLocalStream(stream);
         },
         onCallEnded: (senderId: string) => {
-            console.log("onCallEnded triggered, senderId:", senderId);
+            try {
+                const audio = new Audio(endCallSound);
+                audio.play().catch(err => console.warn("Failed to play end call sound:", err));
+            } catch (err) {
+                console.warn("Audio playback error:", err);
+            }
             cleanupCallState();
         },
         onIncomingCall: (senderId: string, roomId: string) => {
@@ -124,11 +127,9 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
         rtcConnection.setVideoQuality(quality);
     }, [rtcConnection]);
 
-    // Быстрый старт звонка: сначала показываем окно, потом асинхронно получаем медиа и создаём offer
     const handleStartCall = useCallback(async () => {
         if (!currentFriend?.id || !rtcConnection.isConnected) return;
 
-        // Сразу показываем окно звонка
         setInCall(true);
         setShowCallModal(false);
         setIncomingCall(false);
