@@ -1,6 +1,7 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import { CallWindowProps } from "../../Types/ChatTypes";
 import minimizingCallSound from "../../assets/minimizing_call.mp3";
+import callSound from "../../assets/call_sound.mp3"; // импорт рингтона
 
 const CallWindow: React.FC<CallWindowProps> = ({
   isIncoming,
@@ -9,12 +10,45 @@ const CallWindow: React.FC<CallWindowProps> = ({
   onAccept,
   onReject
 }) => {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const rejectSoundRef = useRef<HTMLAudioElement | null>(null);
+  const ringtoneRef = useRef<HTMLAudioElement | null>(null);
+
+  // Запускаем рингтон при монтировании окна
+  useEffect(() => {
+    if (ringtoneRef.current) {
+      ringtoneRef.current.loop = true;
+      ringtoneRef.current.play().catch(err => {
+        console.warn("Failed to play ringtone:", err);
+      });
+    }
+
+    // Останавливаем рингтон при размонтировании (если окно закрыто без действий)
+    return () => {
+      if (ringtoneRef.current) {
+        ringtoneRef.current.pause();
+        ringtoneRef.current.currentTime = 0;
+      }
+    };
+  }, []);
+
+  const stopRingtone = () => {
+    if (ringtoneRef.current) {
+      ringtoneRef.current.pause();
+      ringtoneRef.current.currentTime = 0;
+    }
+  };
+
+  const handleAccept = () => {
+    stopRingtone();
+    onAccept?.();
+  };
 
   const handleReject = () => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(err => {
+    stopRingtone();
+
+    if (rejectSoundRef.current) {
+      rejectSoundRef.current.currentTime = 0;
+      rejectSoundRef.current.play().catch(err => {
         console.warn("Failed to play reject sound:", err);
       });
     }
@@ -23,7 +57,11 @@ const CallWindow: React.FC<CallWindowProps> = ({
 
   return (
     <div className="call-window">
-      <audio ref={audioRef} src={minimizingCallSound} preload="auto" />
+      {/* Звук при отклонении */}
+      <audio ref={rejectSoundRef} src={minimizingCallSound} preload="auto" />
+      {/* Рингтон, играющий до завершения звонка */}
+      <audio ref={ringtoneRef} src={callSound} preload="auto" />
+
       <div className="call-content">
         <img src={avatarUrl} alt={userName} className="call-avatar" />
         <div className="call-info">
@@ -36,7 +74,7 @@ const CallWindow: React.FC<CallWindowProps> = ({
         <div className="call-buttons">
           {isIncoming ? (
             <>
-              <button className="btn accept" onClick={onAccept}>
+              <button className="btn accept" onClick={handleAccept}>
                 <img src="call_received_icon.png" alt="Принять" />
               </button>
               <button className="btn reject" onClick={handleReject}>
