@@ -155,7 +155,7 @@ class TurnServerRanker {
                 stats.isBlacklisted = true;
                 stats.blacklistUntil = Date.now() + this.config.blacklistDurationMs;
                 console.warn(
-                    `🐝 Server ${serverUrl} blacklisted for ${this.config.blacklistDurationMs / 1000}s (${stats.consecutiveFailures} consecutive failures)`
+                    `Server ${serverUrl} blacklisted for ${this.config.blacklistDurationMs / 1000}s (${stats.consecutiveFailures} consecutive failures)`
                 );
             }
 
@@ -178,7 +178,7 @@ class TurnServerRanker {
                 stats.isBlacklisted = false;
                 stats.blacklistUntil = 0;
                 stats.consecutiveFailures = 0; // Reset для перепроверки
-                console.log(`🐝 Server ${stats.url} removed from blacklist (checking again)`);
+                console.log(`Server ${stats.url} removed from blacklist (checking again)`);
             }
         });
 

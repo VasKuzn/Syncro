@@ -60,12 +60,13 @@ const UseRtcConnection = ({
     const turnServerRankerRef = useRef<TurnServerRanker | null>(null);
     const iceConnectionStartTimeRef = useRef<number | null>(null);
 
-    // Отслеживание для retry механизма
     const failedServersRef = useRef<Set<string>>(new Set());
     const connectionAttemptsRef = useRef<number>(0);
     const maxConnectionAttemptsRef = useRef<number>(3);
     const currentAttemptedServerRef = useRef<string | null>(null);
+    const iceCandidateBufferRef = useRef<Map<string, RTCIceCandidateInit[]>>(new Map());
 
+    const getLocalStreamLockRef = useRef<boolean>(false);
     const clearAnswerTimeout = useCallback(() => {
         if (answerTimeoutRef.current) {
             clearTimeout(answerTimeoutRef.current);
@@ -145,8 +146,10 @@ const UseRtcConnection = ({
         isCallEndingRef.current = false;
         if (roomId) {
             pendingIceCandidatesRef.current.delete(roomId);
+            iceCandidateBufferRef.current.delete(roomId);
         } else {
             pendingIceCandidatesRef.current.clear();
+            iceCandidateBufferRef.current.clear();
         }
         clearAnswerTimeout();
     }, [clearAnswerTimeout]);
@@ -299,10 +302,16 @@ const UseRtcConnection = ({
             }
 
             if (!event.candidate) return;
-            if (connectionRef.current?.state !== "Connected") return;
-            if (currentRoomIdRef.current) {
+
+            if (connectionRef.current?.state === "Connected" && currentRoomIdRef.current) {
                 connectionRef.current?.invoke("SendIceCandidate", currentRoomIdRef.current, JSON.stringify(event.candidate.toJSON()))
                     .catch(err => console.error("Error sending ICE candidate:", err));
+            } else {
+                if (!iceCandidateBufferRef.current.has(currentRoomIdRef.current || '')) {
+                    iceCandidateBufferRef.current.set(currentRoomIdRef.current || '', []);
+                }
+                iceCandidateBufferRef.current.get(currentRoomIdRef.current || '')?.push(event.candidate.toJSON());
+                console.log(`ICE candidate buffered (SignalR not ready)`);
             }
         };
 
@@ -321,7 +330,7 @@ const UseRtcConnection = ({
                         if (serverUrl) {
                             turnServerRankerRef.current.recordSuccess(serverUrl, latency);
                             turnServerRankerRef.current.logBeaconData(serverUrl, true, latency);
-                            console.log(`🐝 TURN server success: ${serverUrl}, latency: ${latency}ms`);
+                            console.log(`TURN server success: ${serverUrl}, latency: ${latency}ms`);
 
                             failedServersRef.current.clear();
                             connectionAttemptsRef.current = 0;
@@ -340,7 +349,7 @@ const UseRtcConnection = ({
         peerConnection.onconnectionstatechange = () => {
             switch (peerConnection.connectionState) {
                 case "failed":
-                    console.error("🐝 PeerConnection failed");
+                    console.error("PeerConnection failed");
 
                     if (turnServerRankerRef.current) {
                         const usedServer = serversToUse[0];
@@ -351,7 +360,7 @@ const UseRtcConnection = ({
                         if (serverUrl) {
                             turnServerRankerRef.current.recordFailure(serverUrl);
                             turnServerRankerRef.current.logBeaconData(serverUrl, false, 0);
-                            console.log(`🐝 TURN server failure: ${serverUrl}`);
+                            console.log(`TURN server failure: ${serverUrl}`);
 
                             failedServersRef.current.add(serverUrl);
                             currentAttemptedServerRef.current = serverUrl;
@@ -364,6 +373,11 @@ const UseRtcConnection = ({
                             `Retrying with different server (attempt ${connectionAttemptsRef.current + 1}/${maxConnectionAttemptsRef.current})`
                         );
 
+                        if (remoteStreamRef.current) {
+                            remoteStreamRef.current.getTracks().forEach(track => track.stop());
+                            remoteStreamRef.current = null;
+                        }
+
                         if (peerConnectionRef.current) {
                             peerConnectionRef.current.onicecandidate = null;
                             peerConnectionRef.current.ontrack = null;
@@ -371,6 +385,8 @@ const UseRtcConnection = ({
                             peerConnectionRef.current.close();
                             peerConnectionRef.current = null;
                         }
+
+                        iceCandidateBufferRef.current.delete(_roomId);
 
                         setTimeout(() => {
                             const newPeerConnection = initializePeerConnection(_roomId);
@@ -384,14 +400,14 @@ const UseRtcConnection = ({
                         }, 500);
                     } else {
                         console.error(
-                            `🐝 Failed all connection attempts (${maxConnectionAttemptsRef.current}). No more retries.`
+                            `Failed all connection attempts (${maxConnectionAttemptsRef.current}). No more retries.`
                         );
                         onCallEnded?.("connection_failed");
                     }
                     break;
 
                 case "disconnected":
-                    console.warn("🐝 PeerConnection disconnected");
+                    console.warn("PeerConnection disconnected");
                     break;
             }
         };
@@ -405,6 +421,23 @@ const UseRtcConnection = ({
         audioFilters?: { echoCancellation: boolean; noiseSuppression: boolean; autoGainControl: boolean },
         volume: number = 1
     ) => {
+        const startTime = Date.now();
+        while (getLocalStreamLockRef.current && Date.now() - startTime < 10000) {
+            await new Promise(resolve => setTimeout(resolve, 50));
+        }
+
+        if (localStreamRef.current) {
+            const allTracksActive = localStreamRef.current.getTracks().every(track => track.readyState === 'live');
+            if (allTracksActive) {
+                return localStreamRef.current;
+            } else {
+                localStreamRef.current.getTracks().forEach(track => track.stop());
+                localStreamRef.current = null;
+            }
+        }
+
+        getLocalStreamLockRef.current = true;
+
         try {
             const audioConstraints = audioFilters || { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
             const videoConstraints = VIDEO_QUALITY_SETTINGS[currentVideoQuality];
@@ -452,6 +485,8 @@ const UseRtcConnection = ({
                 if (onCallEnded) onCallEnded("local_error");
                 throw audioErr;
             }
+        } finally {
+            getLocalStreamLockRef.current = false;
         }
     }, [onLocalStream, currentVideoQuality, onCallEnded]);
 
@@ -489,6 +524,7 @@ const UseRtcConnection = ({
             }
             pendingOfferRef.current = null;
             pendingIceCandidatesRef.current.clear();
+            iceCandidateBufferRef.current.clear();
             failedServersRef.current.clear();
             connectionAttemptsRef.current = 0;
 
@@ -514,6 +550,8 @@ const UseRtcConnection = ({
             return;
         }
         try {
+            failedServersRef.current.clear();
+            connectionAttemptsRef.current = 0;
             const roomId = await connectionRef.current?.invoke<string>("CreateCall", receiverId);
             if (!roomId) throw new Error("Failed to create call room");
             currentRoomIdRef.current = roomId;
@@ -529,6 +567,9 @@ const UseRtcConnection = ({
             const offer = await peerConnection.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true });
             await peerConnection.setLocalDescription(offer);
             await connectionRef.current?.invoke("JoinCall", roomId);
+
+            setTimeout(() => flushBufferedIceCandidates(), 100);
+
             await connectionRef.current?.invoke("SendOffer", roomId, JSON.stringify(offer));
             clearAnswerTimeout();
             answerTimeoutRef.current = setTimeout(() => {
@@ -549,9 +590,14 @@ const UseRtcConnection = ({
         }
         const { offer, roomId } = pendingOfferRef.current;
         resetCallState(roomId);
+        failedServersRef.current.clear();
+        connectionAttemptsRef.current = 0;
         try {
             currentRoomIdRef.current = roomId;
             await connectionRef.current?.invoke("JoinCall", roomId);
+
+            setTimeout(() => flushBufferedIceCandidates(), 100);
+
             if (peerConnectionRef.current) {
                 peerConnectionRef.current.close();
                 peerConnectionRef.current = null;
@@ -592,7 +638,10 @@ const UseRtcConnection = ({
                 connectionRef.current.invoke("EndCall", roomId).catch(err => console.error(err));
             }
             pendingOfferRef.current = null;
-            if (roomId) pendingIceCandidatesRef.current.delete(roomId);
+            if (roomId) {
+                pendingIceCandidatesRef.current.delete(roomId);
+                iceCandidateBufferRef.current.delete(roomId);
+            }
             if (onCallEnded) onCallEnded(senderId);
         }
     }, [onCallEnded]);
@@ -646,6 +695,25 @@ const UseRtcConnection = ({
         }
     }, []);
 
+    const flushBufferedIceCandidates = useCallback(() => {
+        if (!connectionRef.current?.state || connectionRef.current.state !== "Connected") {
+            return;
+        }
+        if (!currentRoomIdRef.current) {
+            return;
+        }
+
+        const candidates = iceCandidateBufferRef.current.get(currentRoomIdRef.current) || [];
+        if (candidates.length > 0) {
+            console.log(`Flushing ${candidates.length} buffered ICE candidates for room ${currentRoomIdRef.current}`);
+            for (const candidate of candidates) {
+                connectionRef.current?.invoke("SendIceCandidate", currentRoomIdRef.current, JSON.stringify(candidate))
+                    .catch(err => console.warn("Failed to send buffered ICE candidate:", err));
+            }
+            iceCandidateBufferRef.current.delete(currentRoomIdRef.current);
+        }
+    }, []);
+
     // ====================== SIGNALR СОЕДИНЕНИЕ ======================
     useEffect(() => {
         if (initializationRef.current || connectionRef.current) return;
@@ -664,20 +732,46 @@ const UseRtcConnection = ({
                     console.log("CallEnded received, senderId:", senderId);
                     clearAnswerTimeout();
                     if (peerConnectionRef.current) {
+                        peerConnectionRef.current.onicecandidate = null;
+                        peerConnectionRef.current.ontrack = null;
+                        peerConnectionRef.current.onconnectionstatechange = null;
                         peerConnectionRef.current.close();
                         peerConnectionRef.current = null;
                     }
+                    if (audioContextRef.current) {
+                        audioContextRef.current.close().catch(() => { });
+                        audioContextRef.current = null;
+                        gainNodeRef.current = null;
+                        sourceNodeRef.current = null;
+                    }
+                    if (localStreamRef.current) {
+                        localStreamRef.current.getTracks().forEach(track => track.stop());
+                        localStreamRef.current = null;
+                    }
+                    if (processedStreamRef.current) {
+                        processedStreamRef.current.getTracks().forEach(track => track.stop());
+                        processedStreamRef.current = null;
+                    }
+                    if (remoteStreamRef.current) {
+                        remoteStreamRef.current.getTracks().forEach(track => track.stop());
+                        remoteStreamRef.current = null;
+                    }
                     failedServersRef.current.clear();
                     connectionAttemptsRef.current = 0;
-
-                    onCallEnded?.(senderId);
                     pendingOfferRef.current = null;
                     pendingIceCandidatesRef.current.clear();
+                    iceCandidateBufferRef.current.clear();
                     currentRoomIdRef.current = null;
+
+                    onCallEnded?.(senderId);
                 });
                 connection.onclose((error) => { console.warn("SignalR connection closed:", error); setIsConnected(false); });
                 connection.onreconnecting((error) => { console.warn("SignalR reconnecting:", error); setIsConnected(false); });
-                connection.onreconnected(() => setIsConnected(true));
+                connection.onreconnected(() => {
+                    console.log("SignalR reconnected");
+                    setIsConnected(true);
+                    setTimeout(() => flushBufferedIceCandidates(), 100);
+                });
                 await connection.start();
                 connectionRef.current = connection;
                 setIsConnected(true);
@@ -698,7 +792,7 @@ const UseRtcConnection = ({
                 }).catch(err => console.error("Error stopping connection:", err));
             }
         };
-    }, [handleReceiveOffer, handleReceiveAnswer, handleIceCandidate, onCallEnded, baseUrl, clearAnswerTimeout]);
+    }, [handleReceiveOffer, handleReceiveAnswer, handleIceCandidate, onCallEnded, baseUrl, clearAnswerTimeout, flushBufferedIceCandidates]);
 
     return {
         createOffer,
