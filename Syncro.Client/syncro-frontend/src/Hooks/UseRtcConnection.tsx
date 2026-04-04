@@ -60,6 +60,12 @@ const UseRtcConnection = ({
     const turnServerRankerRef = useRef<TurnServerRanker | null>(null);
     const iceConnectionStartTimeRef = useRef<number | null>(null);
 
+    // Отслеживание для retry механизма
+    const failedServersRef = useRef<Set<string>>(new Set());
+    const connectionAttemptsRef = useRef<number>(0);
+    const maxConnectionAttemptsRef = useRef<number>(3);
+    const currentAttemptedServerRef = useRef<string | null>(null);
+
     const clearAnswerTimeout = useCallback(() => {
         if (answerTimeoutRef.current) {
             clearTimeout(answerTimeoutRef.current);
@@ -243,13 +249,29 @@ const UseRtcConnection = ({
             turnServerRankerRef.current.initializeServers(iceServers);
         }
 
-        const rankedIceServers = turnServerRankerRef.current.rankServers(iceServers);
+        let rankedIceServers = turnServerRankerRef.current.rankServers(iceServers);
+
+        rankedIceServers = turnServerRankerRef.current.prioritizeByProvider(rankedIceServers);
+
+        const availableServers = rankedIceServers.filter(server => {
+            const urls = Array.isArray(server.urls) ? server.urls : [server.urls];
+            return !urls.some(url => failedServersRef.current.has(url));
+        });
+
+        if (availableServers.length === 0) {
+            console.warn('All TURN servers have been tried, resetting...');
+            failedServersRef.current.clear();
+            connectionAttemptsRef.current = 0;
+        }
+
+        const serversToUse = availableServers.length > 0 ? availableServers : rankedIceServers;
+
         const rankedConfig: RTCConfiguration = {
             ...ICE_SERVERS,
-            iceServers: rankedIceServers,
+            iceServers: serversToUse,
         };
 
-        console.log('🐝 TURN servers ranked:', rankedIceServers.map(s => {
+        console.log('TURN servers ranked:', serversToUse.map(s => {
             const urls = Array.isArray(s.urls) ? s.urls[0] : s.urls;
             const stats = turnServerRankerRef.current?.getStats().find(st => st.url === urls);
             const isBlacklisted = turnServerRankerRef.current?.isServerBlacklisted(urls);
@@ -257,14 +279,25 @@ const UseRtcConnection = ({
                 url: urls,
                 rating: stats?.rating ?? 'N/A',
                 consecutiveFailures: stats?.consecutiveFailures ?? 0,
-                status: isBlacklisted ? 'BLACKLISTED' : 'ACTIVE',
+                status: isBlacklisted ? 'BLACKLISTED' :
+                    failedServersRef.current.has(urls) ? 'TRIED' : 'ACTIVE',
             };
         }));
 
         iceConnectionStartTimeRef.current = Date.now();
         const peerConnection = new RTCPeerConnection(rankedConfig);
 
+        let firstIceCandidateReceived = false;
+
         peerConnection.onicecandidate = (event) => {
+            if (event.candidate) {
+                if (!firstIceCandidateReceived) {
+                    firstIceCandidateReceived = true;
+                    const candidateAddress = event.candidate.address || event.candidate.candidate;
+                    console.log(`ICE candidate from server: ${candidateAddress}`);
+                }
+            }
+
             if (!event.candidate) return;
             if (connectionRef.current?.state !== "Connected") return;
             if (currentRoomIdRef.current) {
@@ -279,10 +312,9 @@ const UseRtcConnection = ({
             if (!existingTrack) {
                 remoteStreamRef.current.addTrack(event.track);
                 if (remoteStreamRef.current.getTracks().length >= 2) {
-                    // 🐝 Успешное подключение! Логируем это
                     if (iceConnectionStartTimeRef.current && turnServerRankerRef.current) {
                         const latency = Date.now() - iceConnectionStartTimeRef.current;
-                        const usedServer = rankedIceServers[0];
+                        const usedServer = serversToUse[0];
                         const serverUrl = Array.isArray(usedServer?.urls)
                             ? usedServer.urls[0]
                             : usedServer?.urls;
@@ -290,6 +322,9 @@ const UseRtcConnection = ({
                             turnServerRankerRef.current.recordSuccess(serverUrl, latency);
                             turnServerRankerRef.current.logBeaconData(serverUrl, true, latency);
                             console.log(`🐝 TURN server success: ${serverUrl}, latency: ${latency}ms`);
+
+                            failedServersRef.current.clear();
+                            connectionAttemptsRef.current = 0;
                         }
                     }
                     onRemoteStream?.(remoteStreamRef.current);
@@ -305,32 +340,65 @@ const UseRtcConnection = ({
         peerConnection.onconnectionstatechange = () => {
             switch (peerConnection.connectionState) {
                 case "failed":
-                    console.error("PeerConnection failed");
-                    // 🐝 Ошибка подключения! Логируем неудачу
+                    console.error("🐝 PeerConnection failed");
+
                     if (turnServerRankerRef.current) {
-                        const usedServer = rankedIceServers[0];
+                        const usedServer = serversToUse[0];
                         const serverUrl = Array.isArray(usedServer?.urls)
                             ? usedServer.urls[0]
                             : usedServer?.urls;
+
                         if (serverUrl) {
                             turnServerRankerRef.current.recordFailure(serverUrl);
                             turnServerRankerRef.current.logBeaconData(serverUrl, false, 0);
                             console.log(`🐝 TURN server failure: ${serverUrl}`);
+
+                            failedServersRef.current.add(serverUrl);
+                            currentAttemptedServerRef.current = serverUrl;
                         }
                     }
-                    if (peerConnectionRef.current && currentRoomIdRef.current) {
-                        peerConnectionRef.current.restartIce();
+
+                    connectionAttemptsRef.current++;
+                    if (connectionAttemptsRef.current < maxConnectionAttemptsRef.current) {
+                        console.warn(
+                            `Retrying with different server (attempt ${connectionAttemptsRef.current + 1}/${maxConnectionAttemptsRef.current})`
+                        );
+
+                        if (peerConnectionRef.current) {
+                            peerConnectionRef.current.onicecandidate = null;
+                            peerConnectionRef.current.ontrack = null;
+                            peerConnectionRef.current.onconnectionstatechange = null;
+                            peerConnectionRef.current.close();
+                            peerConnectionRef.current = null;
+                        }
+
+                        setTimeout(() => {
+                            const newPeerConnection = initializePeerConnection(_roomId);
+                            if (localStreamRef.current) {
+                                localStreamRef.current.getTracks().forEach(track => {
+                                    if (!newPeerConnection.getSenders().find(s => s.track?.id === track.id)) {
+                                        newPeerConnection.addTrack(track, localStreamRef.current!);
+                                    }
+                                });
+                            }
+                        }, 500);
+                    } else {
+                        console.error(
+                            `🐝 Failed all connection attempts (${maxConnectionAttemptsRef.current}). No more retries.`
+                        );
+                        onCallEnded?.("connection_failed");
                     }
                     break;
+
                 case "disconnected":
-                    console.warn("PeerConnection disconnected");
+                    console.warn("🐝 PeerConnection disconnected");
                     break;
             }
         };
 
         peerConnectionRef.current = peerConnection;
         return peerConnection;
-    }, [onRemoteStream]);
+    }, [onRemoteStream, onCallEnded]);
 
     const getLocalStream = useCallback(async (
         constraints: MediaStreamConstraints = { video: true, audio: true },
@@ -421,6 +489,9 @@ const UseRtcConnection = ({
             }
             pendingOfferRef.current = null;
             pendingIceCandidatesRef.current.clear();
+            failedServersRef.current.clear();
+            connectionAttemptsRef.current = 0;
+
             if (connectionRef.current?.state === "Connected" && currentRoomIdRef.current) {
                 try {
                     await connectionRef.current.invoke("EndCall", currentRoomIdRef.current);
@@ -596,6 +667,9 @@ const UseRtcConnection = ({
                         peerConnectionRef.current.close();
                         peerConnectionRef.current = null;
                     }
+                    failedServersRef.current.clear();
+                    connectionAttemptsRef.current = 0;
+
                     onCallEnded?.(senderId);
                     pendingOfferRef.current = null;
                     pendingIceCandidatesRef.current.clear();

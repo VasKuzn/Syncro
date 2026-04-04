@@ -270,11 +270,47 @@ class TurnServerRanker {
     }
 
     /**
-     * Очищаем статистику
+     * Приоритизируем серверы: xirsys и metered с UDP вверху
+     * Это не меняет рейтинг, просто переупорядочивает для быстрого тестирования
      */
-    public clearStats(): void {
-        this.serverStats.clear();
-        localStorage.removeItem(this.STORAGE_KEY);
+    public prioritizeByProvider(iceServers: RTCIceServer[]): RTCIceServer[] {
+        const xirsysRegex = /xirsys/i;
+        const meteredRegex = /(metered|relay\.metered)/i;
+        const udpRegex = /udp/i;
+
+        return iceServers.sort((a, b) => {
+            const urlsA = Array.isArray(a.urls) ? a.urls : [a.urls];
+            const urlsB = Array.isArray(b.urls) ? b.urls : [b.urls];
+
+            const aUrls = urlsA.join('|');
+            const bUrls = urlsB.join('|');
+
+            const aIsXirsysUdp = xirsysRegex.test(aUrls) && urlsA.some(u => udpRegex.test(u));
+            const bIsXirsysUdp = xirsysRegex.test(bUrls) && urlsB.some(u => udpRegex.test(u));
+
+            if (aIsXirsysUdp && !bIsXirsysUdp) return -1;
+            if (!aIsXirsysUdp && bIsXirsysUdp) return 1;
+
+            const aIsMeteredUdp = meteredRegex.test(aUrls) && urlsA.some(u => udpRegex.test(u));
+            const bIsMeteredUdp = meteredRegex.test(bUrls) && urlsB.some(u => udpRegex.test(u));
+
+            if (aIsMeteredUdp && !bIsMeteredUdp) return -1;
+            if (!aIsMeteredUdp && bIsMeteredUdp) return 1;
+
+            const aIsXirsys = xirsysRegex.test(aUrls);
+            const bIsXirsys = xirsysRegex.test(bUrls);
+
+            if (aIsXirsys && !bIsXirsys) return -1;
+            if (!aIsXirsys && bIsXirsys) return 1;
+
+            const aIsMetered = meteredRegex.test(aUrls);
+            const bIsMetered = meteredRegex.test(bUrls);
+
+            if (aIsMetered && !bIsMetered) return -1;
+            if (!aIsMetered && bIsMetered) return 1;
+
+            return 0;
+        });
     }
 
     /**
