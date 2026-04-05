@@ -76,7 +76,6 @@ const UseRtcConnection = ({
 
     const ICE_SERVERS: RTCConfiguration = {
         iceServers: [
-            { urls: ["stun:fr-turn8.xirsys.com"] },
             {
                 username: "ZtBjMiIuQtl7QfBuI4H1IP8WWVSVTDC6RvowOWx498dHPODh04APzilXJoc2nsXDAAAAAGmwY_VNdVJSUlppaw==",
                 credential: "a0460dc0-1caf-11f1-8f22-be96737d4d7e",
@@ -89,33 +88,6 @@ const UseRtcConnection = ({
                     "turns:fr-turn8.xirsys.com:5349?transport=tcp"
                 ]
             },
-            {
-                urls: [
-                    "stun:stun.l.google.com:19302",
-                    "stun:stun.l.google.com:5349",
-                    "stun:stun1.l.google.com:3478",
-                    "stun:stun1.l.google.com:5349",
-                    "stun:stun2.l.google.com:19302",
-                    "stun:stun2.l.google.com:5349",
-                    "stun:stun3.l.google.com:3478",
-                    "stun:stun3.l.google.com:5349",
-                    "stun:stun4.l.google.com:19302",
-                    "stun:stun4.l.google.com:5349"
-                ]
-            },
-            {
-                urls: [
-                    "stun:stun.ekiga.net:3478",
-                    "stun:stun.ideasip.com:3478",
-                    "stun:stun.schlund.de:3478",
-                    "stun:stun.stunprotocol.org:3478",
-                    "stun:stun.voiparound.com:3478",
-                    "stun:stun.voipbuster.com:3478",
-                    "stun:stun.voipstunt.com:3478",
-                    "stun:stun.voxgratia.org:3478"
-                ]
-            },
-            { urls: ["stun:stun.relay.metered.ca:80"] },
             {
                 urls: [
                     "turn:global.relay.metered.ca:80",
