@@ -4,9 +4,10 @@ import React from 'react';
 
 import LoginComponent from '../Components/LoginPage/LoginComponents';
 import FooterComponent from '../Components/LoginPage/FooterComponent';
+import YandexAuthButton from '../Utils/YandexAuthButton';
 
 import { useNavigate } from 'react-router-dom';
-import { loginUser } from '../Services/AuthService';
+import { loginUser, loginWithYandex } from '../Services/AuthService';
 import { useAuthForm } from '../Hooks/UseAuthForm';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useCsrf } from '../Contexts/CsrfProvider';
@@ -46,6 +47,30 @@ const Login = () => {
         }
     };
 
+    // Успешный вход через Яндекс
+    const handleYandexSuccess = async (yandexToken: string) => {
+        try {
+            await loginWithYandex(yandexToken, baseUrl);
+            navigate('/main');
+        } catch (error) {
+            console.error('Ошибка входа через Яндекс:', error);
+            if (emailField.current) {
+                emailField.current.setCustomValidity(
+                    error instanceof Error ? error.message : 'Не удалось войти через Яндекс'
+                );
+                emailField.current.reportValidity();
+            }
+        }
+    };
+
+    const handleYandexError = (error: any) => {
+        console.error('Ошибка инициализации кнопки Яндекса:', error);
+        if (emailField.current) {
+            emailField.current.setCustomValidity('Не удалось загрузить кнопку входа через Яндекс');
+            emailField.current.reportValidity();
+        }
+    };
+
     return (
         <AnimatePresence>
             <motion.div
@@ -79,6 +104,15 @@ const Login = () => {
                     emailRef={emailField}
                     passwordRef={passwordField}
                 />
+
+                {/* Разделитель */}
+                <div style={{ textAlign: 'center', margin: '16px 0', color: '#666' }}>
+                    Alternative login
+                </div>
+
+                {/* Кнопка входа через Яндекс */}
+                <YandexAuthButton baseUrl={baseUrl} onSuccess={handleYandexSuccess} onError={handleYandexError} />
+
                 <FooterComponent />
             </motion.div>
         </AnimatePresence>

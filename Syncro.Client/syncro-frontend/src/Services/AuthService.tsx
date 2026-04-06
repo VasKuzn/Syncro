@@ -37,3 +37,20 @@ export const loginUser = async (email: string, password: string, baseUrl: string
         throw new Error((error as NetworkError).message || 'Ошибка сети');
     }
 };
+export const loginWithYandex = async (yandexToken: string, baseUrl: string) => {
+    const response = await fetch(`${baseUrl}/auth/yandex`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: yandexToken }),
+        credentials: 'include',
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Ошибка входа через Яндекс');
+    }
+
+    const data = await response.json();
+    localStorage.setItem('access_token', data.access_token);
+    return data;
+};

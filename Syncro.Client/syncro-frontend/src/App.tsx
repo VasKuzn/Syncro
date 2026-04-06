@@ -12,6 +12,7 @@ import ProtectedRoute from "./Components/ProtectedRoute";
 import GroupChatPage from './Pages/GroupChatPage';
 import GroupChatsComponent from "./Components/MainPage/GroupChatsComponent";
 import { CsrfProvider } from "./Contexts/CsrfProvider";
+import YandexTokenHandler from "./Services/YandexTokenHandler";
 
 
 const App = () => {
@@ -24,6 +25,7 @@ const App = () => {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot_password" element={<ForgotPassword />} />
           <Route path="/reset_password" element={<ResetPassword />} />
+          <Route path="/yandex-token" element={<YandexTokenHandler />} />
 
           <Route path="/main" element={
             <ProtectedRoute>
