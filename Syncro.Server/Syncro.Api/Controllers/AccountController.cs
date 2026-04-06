@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
 using Syncro.Application.TransferModels;
+using Syncro.Application.Services;
 using Syncro.Infrastructure.Data.DataBaseContext;
 using Syncro.Infrastructure.Exceptions;
 using Syncro.Infrastructure.Services;
@@ -13,16 +14,18 @@ namespace Syncro.Api.Controllers
     {
         private readonly IAccountService _accountService;
         private readonly IPersonalAccountInfoService _infoService;
+        private readonly IYandexOAuthService _yandexOAuthService;
         private readonly DataBaseContext _context;
         private readonly ILogger<AccountController> _logger;
         private readonly string _frontend_url;
 
         private readonly IEmailService _emailService;
 
-        public AccountController(IConfiguration configuration, IAccountService accountService, IPersonalAccountInfoService infoService, IEmailService emailService, DataBaseContext context, ILogger<AccountController> logger)
+        public AccountController(IConfiguration configuration, IAccountService accountService, IPersonalAccountInfoService infoService, IYandexOAuthService yandexOAuthService, IEmailService emailService, DataBaseContext context, ILogger<AccountController> logger)
         {
             _accountService = accountService;
             _infoService = infoService;
+            _yandexOAuthService = yandexOAuthService;
             _emailService = emailService;
             _context = context;
             _logger = logger;
@@ -224,6 +227,50 @@ namespace Syncro.Api.Controllers
                 return StatusCode(404, $"Аккаунт с таким email не найден");
             }
         }
+
+        // POST: api/accounts/yandex-auth
+        [HttpPost("yandex-auth")]
+        public async Task<IActionResult> YandexAuth([FromBody] Application.ModelsDTO.YandexAuthRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return StatusCode(400, new
+                {
+                    success = false,
+                    error = "Validation error",
+                    message = "Token is required"
+                });
+            }
+
+            try
+            {
+                var result = await _yandexOAuthService.AuthenticateWithYandexTokenAsync(request.Token);
+
+                // Устанавливаем access token в cookie
+                HttpContext.Response.Cookies.Append("access-token", result.AccessToken, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Strict
+                });
+
+                return Ok(new
+                {
+                    access_token = result.AccessToken,
+                    message = result.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(401, new
+                {
+                    success = false,
+                    error = "Authentication failed",
+                    message = "Failed to authenticate with Yandex"
+                });
+            }
+        }
+
         // GET: api/accounts/current - получение accountid из выданного jwt
         [HttpGet("current")]
         [Authorize]

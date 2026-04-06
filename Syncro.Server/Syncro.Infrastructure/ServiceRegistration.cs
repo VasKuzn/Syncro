@@ -9,6 +9,7 @@ using Syncro.Application.Interfaces.CouchBaseStorage;
 using Syncro.Infrastructure.Encryption.Interfaces;
 using Syncro.Infrastructure.Encryption.Repositories;
 using Syncro.Infrastructure.Encryption.Services;
+using Syncro.Application.Services;
 
 public static class ServiceRegistration
 {
@@ -29,6 +30,8 @@ public static class ServiceRegistration
         services.AddScoped<ISectorPermissionsService, SectorPermissionsService>();
         services.AddScoped<IPersonalAccountInfoService, PersonalAccountInfoService>();
         services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<IYandexOAuthService, YandexOAuthService>();
+        services.AddHttpClient<IYandexOAuthService, YandexOAuthService>();
     }
     public static void AddCoreRepositoriesExtension(this IServiceCollection services, IConfiguration configuration)
     {
