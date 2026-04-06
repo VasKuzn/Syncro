@@ -105,13 +105,15 @@ const Login = () => {
                     passwordRef={passwordField}
                 />
 
-                {/* Разделитель */}
                 <div style={{ textAlign: 'center', margin: '16px 0', color: '#666' }}>
                     Alternative login
                 </div>
 
-                {/* Кнопка входа через Яндекс */}
-                <YandexAuthButton baseUrl={baseUrl} onSuccess={handleYandexSuccess} onError={handleYandexError} />
+                <YandexAuthButton
+                    baseUrl={baseUrl}
+                    onSuccess={handleYandexSuccess}
+                    onError={handleYandexError}
+                />
 
                 <FooterComponent />
             </motion.div>

@@ -38,7 +38,7 @@ export const loginUser = async (email: string, password: string, baseUrl: string
     }
 };
 export const loginWithYandex = async (yandexToken: string, baseUrl: string) => {
-    const response = await fetch(`${baseUrl}/auth/yandex`, {
+    const response = await fetch(`${baseUrl}/api/accounts/yandex-auth`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: yandexToken }),
