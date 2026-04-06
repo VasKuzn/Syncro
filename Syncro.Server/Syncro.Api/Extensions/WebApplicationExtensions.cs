@@ -49,7 +49,7 @@ namespace Syncro.Api.Extensions
                 "/videochathub",
                 "/swagger"
             };
-            string cspPolicy = "default - src 'self'; script - src 'self'; style - src 'self'; img - src 'self' data: https:; font - src 'self'; connect - src 'self'; frame - ancestors 'none'; base - uri 'self'; form - action 'self'";
+            string cspPolicy = "default-src 'self'; script-src 'self' yastatic.net mc.yandex.ru 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' login.yandex.ru mc.yandex.com mc.yandex.ru; frame-src 'self' https://autofill.yandex.ru; frame-ancestors 'none'; base-uri 'self'; form-action 'self'";
             app.UseMiddleware<CspMiddleware>(cspPolicy);
             app.UseMiddleware<AntiDirectAccessMiddleware>(excludedPaths);
 

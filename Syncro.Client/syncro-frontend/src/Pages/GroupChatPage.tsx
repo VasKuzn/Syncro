@@ -169,7 +169,6 @@ const GroupChatPage = () => {
                             <div className="group-info-header">
                                 <div
                                     className="group-profile-preview"
-                                    style={{ cursor: 'pointer' }}
                                 >
                                     <img
                                         src={group.conferenceAvatar || logo}

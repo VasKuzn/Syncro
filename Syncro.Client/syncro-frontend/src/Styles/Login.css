@@ -458,3 +458,15 @@ input::placeholder {
 .downside-elements {
   padding: 0 0 0 31px;
 }
+
+.yandex-button {
+  display: flex;
+  justify-content: center;
+  min-height: 40px;
+}
+
+.alternative-login {
+  text-align: center;
+  margin: 16px 0;
+  color: #666;
+}

@@ -109,7 +109,7 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
         };
     }, [baseUrl, onSuccess, onError]);
 
-    return <div id={containerId} style={{ display: 'flex', justifyContent: 'center', minHeight: '40px' }} />;
+    return <div id={containerId} className="yandex-button" />;
 };
 
 export default YandexAuthButton;

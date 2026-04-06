@@ -66,7 +66,6 @@ const Login = () => {
     const handleYandexError = (error: any) => {
         console.error('Ошибка инициализации кнопки Яндекса:', error);
         if (emailField.current) {
-            emailField.current.setCustomValidity('Не удалось загрузить кнопку входа через Яндекс');
             emailField.current.reportValidity();
         }
     };
@@ -105,7 +104,7 @@ const Login = () => {
                     passwordRef={passwordField}
                 />
 
-                <div style={{ textAlign: 'center', margin: '16px 0', color: '#666' }}>
+                <div className="alternative-login">
                     Alternative login
                 </div>
 
