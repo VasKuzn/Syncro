@@ -17,7 +17,6 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
     const containerId = 'yandex-auth-button-container';
     const isInitialized = useRef(false);
     const scriptLoaded = useRef(false);
-    const initAttempts = useRef(0);
 
     useEffect(() => {
         if (!document.getElementById('yandex-sdk-styles')) {
@@ -37,32 +36,25 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
             document.head.appendChild(style);
         }
 
-        const cleanContainer = () => {
+        const initYandexButton = () => {
+            if (isInitialized.current) return;
             const container = document.getElementById(containerId);
-            if (container) {
-                container.innerHTML = '';
+            if (!container) {
+                setTimeout(initYandexButton, 50);
+                return;
             }
+            if (!window.YaAuthSuggest) {
+                setTimeout(initYandexButton, 50);
+                return;
+            }
+
+            isInitialized.current = true;
+
             document.querySelectorAll('.yaPersonalButton').forEach((btn) => {
                 if (btn.parentElement?.id !== containerId) {
                     btn.remove();
                 }
             });
-        };
-
-        const initYandexButton = () => {
-            if (isInitialized.current) return;
-
-            const container = document.getElementById(containerId);
-            if (!container) {
-                initAttempts.current++;
-                if (initAttempts.current < 10) {
-                    setTimeout(initYandexButton, 200);
-                }
-                return;
-            }
-
-            cleanContainer();
-            isInitialized.current = true;
 
             try {
                 window.YaAuthSuggest.init(
@@ -71,7 +63,7 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
                         response_type: 'token',
                         redirect_uri: `${baseUrl}/main`,
                     },
-                    `${baseUrl}`,
+                    baseUrl,
                     {
                         view: 'button',
                         parentId: containerId,
@@ -82,9 +74,18 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
                         buttonIcon: 'ya',
                     }
                 )
-                    .then((result: any) => result.handler())
+                    .then((result: any) => {
+                        if (result && typeof result.handler === 'function') {
+                            return result.handler();
+                        }
+                        throw new Error('Invalid result from YaAuthSuggest.init');
+                    })
                     .then((data: any) => {
-                        onSuccess(data.access_token);
+                        if (data && data.access_token) {
+                            onSuccess(data.access_token);
+                        } else {
+                            throw new Error('No access token received');
+                        }
                     })
                     .catch((err: any) => {
                         if (err?.code !== 'in_progress' && err?.message !== 'Already initialized') {
@@ -101,6 +102,7 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
             }
         };
 
+        // Загрузка SDK
         if (!window.__yaAuthSuggestLoaded && !scriptLoaded.current) {
             scriptLoaded.current = true;
             window.__yaAuthSuggestLoaded = true;
@@ -113,18 +115,15 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
                 onError(new Error('Failed to load Yandex SDK'));
             };
             script.onload = () => {
-                if (window.YaAuthSuggest && !isInitialized.current) {
-                    setTimeout(initYandexButton, 100);
-                }
+                initYandexButton();
             };
             document.body.appendChild(script);
         } else if (window.YaAuthSuggest && !isInitialized.current) {
-            setTimeout(initYandexButton, 100);
+            initYandexButton();
         }
 
         return () => {
             isInitialized.current = false;
-            cleanContainer();
         };
     }, [baseUrl, onSuccess, onError]);
 
