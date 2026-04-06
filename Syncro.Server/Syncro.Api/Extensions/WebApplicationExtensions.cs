@@ -49,8 +49,22 @@ namespace Syncro.Api.Extensions
                 "/videochathub",
                 "/swagger"
             };
-            //string cspPolicy = "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' yastatic.net mc.yandex.ru mc.yandex.com mc.admetrica.ru; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https: mc.yandex.ru mc.yandex.com mc.admetrica.ru avatars.mds.yandex.net; font-src 'self' data:; connect-src 'self' https: mc.yandex.ru mc.yandex.com autofill.yandex.ru login.yandex.ru suggest-maps.yandex.net; frame-src 'self' https://autofill.yandex.ru; frame-ancestors 'none'; base-uri 'self'; form-action 'self'";
-            //app.UseMiddleware<CspMiddleware>(cspPolicy);
+            string cspPolicy =
+                "default-src 'self'; " +
+                "script-src 'self' 'unsafe-eval' 'unsafe-inline' " +
+                    "yastatic.net mc.yandex.ru mc.yandex.com mc.yandex.md mc.admetrica.ru; " +
+                "style-src 'self' 'unsafe-inline'; " +
+                "img-src 'self' data: blob: https: " +
+                    "mc.yandex.ru mc.yandex.com mc.yandex.md mc.admetrica.ru avatars.mds.yandex.net; " +
+                "font-src 'self' data:; " +
+                "connect-src 'self' " +
+                    "mc.yandex.ru mc.yandex.com mc.yandex.md " +
+                    "autofill.yandex.ru login.yandex.ru suggest-maps.yandex.net; " +
+                "frame-src 'self' https://autofill.yandex.ru; " +
+                "frame-ancestors 'none'; " +
+                "base-uri 'self'; " +
+                "form-action 'self'";
+            app.UseMiddleware<CspMiddleware>(cspPolicy);
             app.UseMiddleware<AntiDirectAccessMiddleware>(excludedPaths);
 
         }
