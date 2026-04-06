@@ -54,20 +54,13 @@ const Login = () => {
             navigate('/main');
         } catch (error) {
             console.error('Ошибка входа через Яндекс:', error);
-            if (emailField.current) {
-                emailField.current.setCustomValidity(
-                    error instanceof Error ? error.message : 'Не удалось войти через Яндекс'
-                );
-                emailField.current.reportValidity();
-            }
+            // Не показываем ошибку в основную форму, только логируем
         }
     };
 
     const handleYandexError = (error: any) => {
         console.error('Ошибка инициализации кнопки Яндекса:', error);
-        if (emailField.current) {
-            emailField.current.reportValidity();
-        }
+        // Не показываем ошибку в основную форму, только логируем
     };
 
     return (
