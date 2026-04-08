@@ -17,42 +17,10 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
     const initialized = useRef(false);
     const popupRef = useRef<Window | null>(null);
 
+    // Регистрируем listener для сообщений от popup ОДИН РАЗ на монтирование
     useEffect(() => {
-        if (initialized.current) return;
-        initialized.current = true;
+        console.log('Setting up message listener');
 
-        console.log('YandexAuthButton useEffect started');
-
-        const scriptId = 'yandex-auth-script';
-        let scriptElement = document.getElementById(scriptId) as HTMLScriptElement | null;
-
-        // Если скрипт уже загружен
-        if (scriptElement) {
-            console.log('Script already loaded, initializing button');
-            initButton();
-            return;
-        }
-
-        // Загружаем скрипт
-        const script = document.createElement('script');
-        script.id = scriptId;
-        script.src = 'https://yastatic.net/s3/passport-sdk/autofill/v1/sdk-suggest-latest.js';
-        script.async = true;
-
-        script.onload = () => {
-            console.log('Yandex script loaded successfully');
-            initButton();
-        };
-
-        script.onerror = (error) => {
-            console.error('Failed to load Yandex SDK:', error);
-            onError(new Error('Failed to load Yandex SDK'));
-        };
-
-        document.head.appendChild(script);
-        console.log('Script appended to head');
-
-        // Слушаем сообщения от popup окна
         const handleMessage = (event: MessageEvent) => {
             console.log('=== postMessage received in parent ===');
             console.log('Message data:', event.data);
@@ -73,12 +41,27 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
         };
 
         window.addEventListener('message', handleMessage);
+        console.log('Message listener registered');
 
+        // Cleanup
         return () => {
+            console.log('Removing message listener');
             window.removeEventListener('message', handleMessage);
         };
+    }, [onSuccess, onError]); // Зависит только от callbacks
 
-        function initButton() {
+    // Инициализируем Yandex SDK в отдельном useEffect
+    useEffect(() => {
+        if (initialized.current) return;
+        initialized.current = true;
+
+        console.log('YandexAuthButton SDK initialization started');
+
+        const scriptId = 'yandex-auth-script';
+        let scriptElement = document.getElementById(scriptId) as HTMLScriptElement | null;
+
+        // Функция инициализации кнопки
+        const initButton = () => {
             console.log('initButton called');
             console.log('window.YaAuthSuggest:', window.YaAuthSuggest);
 
@@ -134,8 +117,39 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
                     console.error('Yandex error:', error, error?.message);
                     onError(error);
                 });
+        };
+
+        // Если скрипт уже загружен
+        if (scriptElement) {
+            console.log('Script already loaded, initializing button');
+            initButton();
+            return;
         }
-    }, [baseUrl, onSuccess, onError]);
+
+        // Загружаем скрипт
+        const script = document.createElement('script');
+        script.id = scriptId;
+        script.src = 'https://yastatic.net/s3/passport-sdk/autofill/v1/sdk-suggest-latest.js';
+        script.async = true;
+
+        script.onload = () => {
+            console.log('Yandex script loaded successfully');
+            initButton();
+        };
+
+        script.onerror = (error) => {
+            console.error('Failed to load Yandex SDK:', error);
+            onError(new Error('Failed to load Yandex SDK'));
+        };
+
+        document.head.appendChild(script);
+        console.log('Script appended to head');
+
+        // Cleanup для этого useEffect
+        return () => {
+            // Удаляем скрипт если нужно
+        };
+    }, [baseUrl, onError]);
 
     return (
         <div
