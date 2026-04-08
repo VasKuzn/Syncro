@@ -111,7 +111,7 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
                 minHeight: '48px',
                 position: 'relative',
                 display: 'inline-block',
-                width: '100%',
+                width: '15%',
             }}
         />
     );
