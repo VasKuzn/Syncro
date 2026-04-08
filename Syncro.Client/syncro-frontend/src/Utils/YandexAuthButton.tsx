@@ -110,14 +110,8 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
             style={{
                 minHeight: '48px',
                 position: 'relative',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                margin: '10px 0',
-                padding: '5px',
-                border: '2px solid red',
-                borderRadius: '4px',
-                backgroundColor: 'rgba(255, 0, 0, 0.05)',
+                display: 'inline-block',
+                width: '100%',
             }}
         />
     );
