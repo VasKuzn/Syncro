@@ -46,7 +46,7 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
                     response_type: 'token',
                     redirect_uri: `${baseUrl}/main`,
                 },
-                baseUrl,
+                `${baseUrl}/login`,
                 {
                     view: 'button',
                     parentId: containerId,
