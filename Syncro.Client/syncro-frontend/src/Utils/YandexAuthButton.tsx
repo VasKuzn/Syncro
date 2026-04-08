@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 declare global {
     interface Window {
@@ -14,13 +14,17 @@ interface YandexAuthButtonProps {
 
 const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess, onError }) => {
     const containerId = 'yandex-auth-button-container';
+    const initialized = useRef(false);
 
     useEffect(() => {
+        if (initialized.current) return;
+        initialized.current = true;
+
         console.log('YandexAuthButton useEffect started');
-        
+
         const scriptId = 'yandex-auth-script';
         let scriptElement = document.getElementById(scriptId) as HTMLScriptElement | null;
-        
+
         // Если скрипт уже загружен
         if (scriptElement) {
             console.log('Script already loaded, initializing button');
@@ -33,37 +37,31 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
         script.id = scriptId;
         script.src = 'https://yastatic.net/s3/passport-sdk/autofill/v1/sdk-suggest-latest.js';
         script.async = true;
-        
+
         script.onload = () => {
             console.log('Yandex script loaded successfully');
             initButton();
         };
-        
+
         script.onerror = (error) => {
             console.error('Failed to load Yandex SDK:', error);
             onError(new Error('Failed to load Yandex SDK'));
         };
-        
+
         document.head.appendChild(script);
         console.log('Script appended to head');
 
         function initButton() {
             console.log('initButton called');
             console.log('window.YaAuthSuggest:', window.YaAuthSuggest);
-            
+
             if (!window.YaAuthSuggest) {
                 console.log('YaAuthSuggest not available yet, retrying...');
                 setTimeout(initButton, 200);
                 return;
             }
 
-            console.log('Initializing YaAuthSuggest with params:', {
-                client_id: 'd1c31a817b354a18af1857c5326982a8',
-                response_type: 'token',
-                redirect_uri: `${baseUrl}/yandex-token`,
-                tokenPageOrigin: baseUrl,
-                containerId,
-            });
+            console.log('Initializing YaAuthSuggest');
 
             window.YaAuthSuggest.init(
                 {
@@ -93,6 +91,11 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
                     }
                 })
                 .catch((error: any) => {
+                    // Игнорируем ошибку in_progress - это нормально для Яндекса
+                    if (error?.code === 'in_progress') {
+                        console.log('Yandex auth already in progress, ignoring');
+                        return;
+                    }
                     console.error('Full Yandex auth error:', error);
                     onError(error);
                 });
