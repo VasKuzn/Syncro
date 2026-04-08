@@ -82,11 +82,13 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
             )
                 .then((result: any) => {
                     console.log('YaAuthSuggest.init success, result:', result);
+                    console.log('Calling handler...');
                     return result.handler();
                 })
                 .then((data: any) => {
                     console.log('Handler result:', data);
                     if (data?.access_token) {
+                        console.log('Got access token:', data.access_token);
                         onSuccess(data.access_token);
                     }
                 })
@@ -102,7 +104,23 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
         }
     }, [baseUrl, onSuccess, onError]);
 
-    return <div id={containerId} style={{ minHeight: '48px' }} />;
+    return (
+        <div
+            id={containerId}
+            style={{
+                minHeight: '48px',
+                position: 'relative',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                margin: '10px 0',
+                padding: '5px',
+                border: '2px solid red',
+                borderRadius: '4px',
+                backgroundColor: 'rgba(255, 0, 0, 0.05)',
+            }}
+        />
+    );
 };
 
 export default YandexAuthButton;
