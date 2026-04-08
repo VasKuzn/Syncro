@@ -52,8 +52,7 @@ const YandexTokenHandler = () => {
 
                 // Отправляем токен в родительское окно
                 if (window.opener) {
-                    console.log('window.opener exists:', !!window.opener);
-                    console.log('window.opener location:', window.opener.location.href);
+                    console.log('window.opener exists');
 
                     const messagePayload = {
                         type: 'yandex-auth-complete',
@@ -61,13 +60,7 @@ const YandexTokenHandler = () => {
                         access_token: accessToken
                     };
 
-                    console.log('Sending postMessage with payload:', messagePayload);
-                    console.log('Target origin: *');
-
-                    window.opener.postMessage(messagePayload, '*');
-                    console.log('✅ postMessage sent successfully');
-
-                    // Закрываем окно через 1 секунду
+                    console.log('Sending postMessage...');
                     setTimeout(() => {
                         console.log('Closing popup window');
                         window.close();
@@ -86,8 +79,7 @@ const YandexTokenHandler = () => {
                         {
                             type: 'yandex-auth-complete',
                             status: 'error',
-                            error: 'Failed to process token',
-                            errorDetails: String(error)
+                            error: 'Failed to process token'
                         },
                         '*'
                     );
@@ -99,7 +91,7 @@ const YandexTokenHandler = () => {
         // Пытаемся обработать токен сразу и через небольшую задержку (для асинхронного редиректа)
         console.log('Setting up token handler');
         handleToken();
-        const timeoutId = setTimeout(handleToken, 500);
+        const timeoutId = setTimeout(handleToken, 2000);
 
         return () => {
             clearTimeout(timeoutId);
