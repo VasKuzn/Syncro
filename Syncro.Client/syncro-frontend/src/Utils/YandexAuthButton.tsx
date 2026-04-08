@@ -81,24 +81,24 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
                 }
             )
                 .then((result: any) => {
-                    console.log('YaAuthSuggest.init success, result:', result);
-                    console.log('Calling handler...');
+                    console.log('YaAuthSuggest.init success');
+                    console.log('Calling handler() - button should appear now...');
                     return result.handler();
                 })
                 .then((data: any) => {
-                    console.log('Handler result:', data);
+                    console.log('User completed auth, got token data:', data);
                     if (data?.access_token) {
-                        console.log('Got access token:', data.access_token);
+                        console.log('Passing token to onSuccess');
                         onSuccess(data.access_token);
                     }
                 })
                 .catch((error: any) => {
-                    // Игнорируем ошибку in_progress - это нормально для Яндекса
+                    // in_progress - игнорируем
                     if (error?.code === 'in_progress') {
-                        console.log('Yandex auth already in progress, ignoring');
+                        console.log('Auth in progress, ignoring');
                         return;
                     }
-                    console.error('Full Yandex auth error:', error);
+                    console.error('Yandex error:', error, error?.message);
                     onError(error);
                 });
         }
