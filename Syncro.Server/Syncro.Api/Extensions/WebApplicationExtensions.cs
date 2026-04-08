@@ -29,13 +29,13 @@ namespace Syncro.Api.Extensions
             string cspPolicy =
                 "default-src 'self'; " +
                 "script-src 'self' 'unsafe-eval' 'unsafe-inline' " +
-                    "yastatic.net mc.yandex.ru mc.yandex.com mc.yandex.md mc.admetrica.ru; " +
+                    "yastatic.net *.yandex.ru *.yandex.com *.yandex.md mc.admetrica.ru; " +
                 "style-src 'self' 'unsafe-inline'; " +
                 "img-src 'self' data: blob: https: " +
-                    "mc.yandex.ru mc.yandex.com mc.yandex.md mc.admetrica.ru avatars.mds.yandex.net; " +
+                    "*.yandex.ru *.yandex.com *.yandex.md mc.admetrica.ru avatars.mds.yandex.net; " +
                 "font-src 'self' data:; " +
                 "connect-src 'self' " +
-                    "mc.yandex.ru mc.yandex.com mc.yandex.md " +
+                    "*.yandex.ru *.yandex.com *.yandex.md " +
                     "autofill.yandex.ru login.yandex.ru suggest-maps.yandex.net; " +
                 "frame-src 'self' https://autofill.yandex.ru; " +
                 "frame-ancestors 'none'; " +
