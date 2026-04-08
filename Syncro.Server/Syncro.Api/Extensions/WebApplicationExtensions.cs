@@ -26,6 +26,7 @@ namespace Syncro.Api.Extensions
                                        Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
                 });
             }
+            /*
             string cspPolicy =
                 "default-src 'self'; " +
                 "script-src 'self' 'unsafe-eval' 'unsafe-inline' " +
@@ -41,6 +42,8 @@ namespace Syncro.Api.Extensions
                 "frame-ancestors 'none'; " +
                 "base-uri 'self'; " +
                 "form-action 'self'";
+            */
+            string cspPolicy = "default-src *; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline';";
             app.UseMiddleware<CspMiddleware>(cspPolicy);
 
             app.UseCors("FrontendPolicy");
