@@ -1,9 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 
 declare global {
     interface Window {
         YaAuthSuggest: any;
-        __yaAuthSuggestLoaded?: boolean;
     }
 }
 
@@ -15,24 +14,31 @@ interface YandexAuthButtonProps {
 
 const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess, onError }) => {
     const containerId = 'yandex-auth-button-container';
-    const isInitialized = useRef(false);
-    const scriptLoaded = useRef(false);
 
     useEffect(() => {
-        const initYandexButton = () => {
-            if (isInitialized.current) return;
+        // Загружаем скрипт один раз
+        const scriptId = 'yandex-auth-script';
+        if (document.getElementById(scriptId)) {
+            initButton();
+            return;
+        }
 
-            const container = document.getElementById(containerId);
-            if (!container) {
-                setTimeout(initYandexButton, 100);
-                return;
-            }
+        const script = document.createElement('script');
+        script.id = scriptId;
+        script.src = 'https://yastatic.net/s3/passport-sdk/autofill/v1/sdk-suggest-latest.js';
+        script.async = true;
+        script.onload = initButton;
+        script.onerror = () => {
+            console.error('Failed to load Yandex SDK');
+            onError(new Error('Failed to load Yandex SDK'));
+        };
+        document.head.appendChild(script);
+
+        function initButton() {
             if (!window.YaAuthSuggest) {
-                setTimeout(initYandexButton, 100);
+                setTimeout(initButton, 100);
                 return;
             }
-
-            isInitialized.current = true;
 
             window.YaAuthSuggest.init(
                 {
@@ -47,48 +53,21 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
                     buttonSize: 's',
                     buttonView: 'additional',
                     buttonTheme: 'dark',
-                    buttonBorderRadius: '20',
+                    buttonBorderRadius: 20,
                     buttonIcon: 'ya',
                 }
             )
-                .then((result: any) => {
-                    if (!document.getElementById(containerId)) {
-                        throw new Error('Container disappeared');
-                    }
-                    return result.handler();
-                })
+                .then((result: any) => result.handler())
                 .then((data: any) => {
                     if (data?.access_token) {
                         onSuccess(data.access_token);
                     }
                 })
-                .catch((err: any) => {
-                    if (err?.code !== 'in_progress') {
-                        console.error('Yandex error:', err);
-                        onError(err);
-                    }
-                    if (err?.code === 'in_progress') {
-                        isInitialized.current = false;
-                    }
+                .catch((error: any) => {
+                    console.error('Yandex auth error:', error);
+                    onError(error);
                 });
-        };
-
-        if (!window.__yaAuthSuggestLoaded && !scriptLoaded.current) {
-            scriptLoaded.current = true;
-            window.__yaAuthSuggestLoaded = true;
-            const script = document.createElement('script');
-            script.src = 'https://yastatic.net/s3/passport-sdk/autofill/v1/sdk-suggest-with-polyfills-latest.js';
-            script.async = true;
-            script.onload = () => initYandexButton();
-            script.onerror = () => onError(new Error('Failed to load Yandex SDK'));
-            document.body.appendChild(script);
-        } else if (window.YaAuthSuggest && !isInitialized.current) {
-            initYandexButton();
         }
-
-        return () => {
-            isInitialized.current = false;
-        };
     }, [baseUrl, onSuccess, onError]);
 
     return <div id={containerId} />;

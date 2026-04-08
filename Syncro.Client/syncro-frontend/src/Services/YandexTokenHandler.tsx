@@ -3,12 +3,14 @@ import { useEffect } from 'react';
 const YandexTokenHandler = () => {
     useEffect(() => {
         const script = document.createElement('script');
-        script.src = 'https://yastatic.net/s3/passport-sdk/autofill/v1/sdk-suggest-token-latest.js';
+        script.src = 'https://yastatic.net/s3/passport-sdk/autofill/v1/sdk-suggest-token.js';
         script.async = true;
         document.body.appendChild(script);
 
         return () => {
-            document.body.removeChild(script);
+            if (document.body.contains(script)) {
+                document.body.removeChild(script);
+            }
         };
     }, []);
 
