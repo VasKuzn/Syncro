@@ -61,10 +61,17 @@ const YandexTokenHandler = () => {
                     };
 
                     console.log('Sending postMessage...');
+                    try {
+                        window.opener.postMessage(messagePayload, '*');
+                        console.log('✅ postMessage sent successfully');
+                    } catch (err) {
+                        console.error('Failed to send postMessage:', err);
+                    }
+
                     setTimeout(() => {
                         console.log('Closing popup window');
                         window.close();
-                    }, 5000);
+                    }, 1000);
                 } else {
                     console.error('No parent window found - not in popup');
                     // Если это не popup, то просто показываем сообщение
