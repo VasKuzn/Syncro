@@ -15,7 +15,12 @@ export const loginUser = async (email: string, password: string, baseUrl: string
 
         if (response.ok) {
             // Успех (200 OK)
-            return await response.json();
+            const data = await response.json();
+            // Если в ответе есть access_token, сохраняем его
+            if (data.access_token) {
+                localStorage.setItem('access_token', data.access_token);
+            }
+            return data;
         } else if (response.status === 400) {
             // Ошибка валидации (400 Bad Request)
             const data = await response.json();
@@ -38,19 +43,32 @@ export const loginUser = async (email: string, password: string, baseUrl: string
     }
 };
 export const loginWithYandex = async (yandexToken: string, baseUrl: string) => {
+    console.log('loginWithYandex called with token:', yandexToken?.substring(0, 20) + '...');
+
     const response = await fetch(`${baseUrl}/api/accounts/yandex-auth`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ token: yandexToken }),
         credentials: 'include',
     });
 
+    console.log('Yandex auth response status:', response.status);
+
     if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Ошибка входа через Яндекс');
+        const error = await response.json().catch(() => ({ message: 'Unknown error' }));
+        console.error('Yandex auth error:', error);
+        throw new Error(error.message || error.error || 'Ошибка входа через Яндекс');
     }
 
     const data = await response.json();
+    console.log('Got response from Yandex auth:', data);
+
+    if (!data.access_token) {
+        throw new Error('No access token in response');
+    }
+
     localStorage.setItem('access_token', data.access_token);
     return data;
 };

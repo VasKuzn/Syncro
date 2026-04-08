@@ -15,6 +15,7 @@ interface YandexAuthButtonProps {
 const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess, onError }) => {
     const containerId = 'yandex-auth-button-container';
     const initialized = useRef(false);
+    const popupRef = useRef<Window | null>(null);
 
     useEffect(() => {
         if (initialized.current) return;
@@ -51,6 +52,28 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
         document.head.appendChild(script);
         console.log('Script appended to head');
 
+        // Слушаем сообщения от popup окна
+        const handleMessage = (event: MessageEvent) => {
+            console.log('Received message:', event.data);
+
+            if (event.data.type === 'yandex-auth-complete') {
+                if (event.data.status === 'success' && event.data.access_token) {
+                    console.log('Got token from popup, passing to onSuccess');
+                    onSuccess(event.data.access_token);
+                } else if (event.data.status === 'error') {
+                    console.error('Auth error from popup:', event.data.error);
+                    onError(new Error(event.data.error || 'Authorization failed'));
+                }
+                popupRef.current = null;
+            }
+        };
+
+        window.addEventListener('message', handleMessage);
+
+        return () => {
+            window.removeEventListener('message', handleMessage);
+        };
+
         function initButton() {
             console.log('initButton called');
             console.log('window.YaAuthSuggest:', window.YaAuthSuggest);
@@ -63,11 +86,17 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
 
             console.log('Initializing YaAuthSuggest');
 
+            // redirect_uri должна быть полный URL фронтенда
+            const frontendUrl = window.location.origin;
+            const redirectUri = `${frontendUrl}/yandex-token`;
+
+            console.log('Redirect URI:', redirectUri);
+
             window.YaAuthSuggest.init(
                 {
                     client_id: 'd1c31a817b354a18af1857c5326982a8',
                     response_type: 'token',
-                    redirect_uri: `${baseUrl}/yandex-token`,
+                    redirect_uri: redirectUri,
                 },
                 baseUrl,
                 {
@@ -82,14 +111,14 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
             )
                 .then((result: any) => {
                     console.log('YaAuthSuggest.init success');
-                    console.log('Calling handler() - button should appear now...');
+                    console.log('Setting up button handler');
                     return result.handler();
                 })
                 .then((data: any) => {
-                    console.log('User completed auth, got token data:', data);
-                    if (data?.access_token) {
-                        console.log('Passing token to onSuccess');
-                        onSuccess(data.access_token);
+                    console.log('Handler called, opening popup window');
+                    // Яндекс откривает popup автоматически, сохраняем ссылку
+                    if (window.opener) {
+                        popupRef.current = window.opener;
                     }
                 })
                 .catch((error: any) => {

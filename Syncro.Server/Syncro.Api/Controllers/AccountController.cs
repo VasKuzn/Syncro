@@ -218,7 +218,11 @@ namespace Syncro.Api.Controllers
                         Secure = true,
                         SameSite = SameSiteMode.Strict
                     });
-                    return Ok(new { Message = "Logged in successfully" });
+                    return Ok(new
+                    {
+                        message = "Logged in successfully",
+                        access_token = result.Value
+                    });
                 }
                 return StatusCode(401, $"User unauthorized error: {result.Error}");
             }
@@ -232,8 +236,11 @@ namespace Syncro.Api.Controllers
         [HttpPost("yandex-auth")]
         public async Task<IActionResult> YandexAuth([FromBody] Application.ModelsDTO.YandexAuthRequest request)
         {
+            _logger.LogInformation("YandexAuth endpoint called");
+
             if (!ModelState.IsValid)
             {
+                _logger.LogWarning("ModelState invalid for YandexAuth");
                 return StatusCode(400, new
                 {
                     success = false,
@@ -244,9 +251,24 @@ namespace Syncro.Api.Controllers
 
             try
             {
+                if (string.IsNullOrEmpty(request.Token))
+                {
+                    _logger.LogWarning("Token is null or empty");
+                    return StatusCode(400, new
+                    {
+                        success = false,
+                        error = "Validation error",
+                        message = "Token cannot be null or empty"
+                    });
+                }
+
+                _logger.LogInformation("Authenticating with Yandex token: {tokenPreview}", request.Token.Substring(0, Math.Min(20, request.Token.Length)) + "...");
+
                 var result = await _yandexOAuthService.AuthenticateWithYandexTokenAsync(request.Token);
 
-                // Устанавливаем access token в cookie
+                _logger.LogInformation("Yandex authentication successful, setting cookie");
+
+                // Устанавливаем access token в cookie (как в обычном login)
                 HttpContext.Response.Cookies.Append("access-token", result.AccessToken, new CookieOptions
                 {
                     HttpOnly = true,
@@ -254,19 +276,22 @@ namespace Syncro.Api.Controllers
                     SameSite = SameSiteMode.Strict
                 });
 
+                _logger.LogInformation("Cookie set, returning response");
+
                 return Ok(new
                 {
                     access_token = result.AccessToken,
                     message = result.Message
                 });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Error during Yandex authentication: {message}", ex.Message);
                 return StatusCode(401, new
                 {
                     success = false,
                     error = "Authentication failed",
-                    message = "Failed to authenticate with Yandex"
+                    message = ex.Message
                 });
             }
         }
