@@ -22,21 +22,28 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
         console.log('Setting up message listener');
 
         const handleMessage = (event: MessageEvent) => {
-            console.log('=== postMessage received in parent ===');
-            console.log('Message data:', event.data);
-            console.log('Message origin:', event.origin);
+            const dataStr = JSON.stringify(event.data);
+            console.log('📨 Message received');
+            console.log('  - Data:', event.data);
+            console.log('  - Data type:', typeof event.data);
+            console.log('  - Data.type:', event.data?.type);
+            console.log('  - Origin:', event.origin);
+            console.log('  - Is yandex-auth-complete?', event.data?.type === 'yandex-auth-complete');
 
-            if (event.data.type === 'yandex-auth-complete') {
-                if (event.data.status === 'success' && event.data.access_token) {
+            if (event.data?.type === 'yandex-auth-complete') {
+                console.log('🎯 Matched yandex-auth-complete!');
+                if (event.data?.status === 'success' && event.data?.access_token) {
                     console.log('✅ Got token from popup!');
                     console.log('Token length:', event.data.access_token.length);
                     console.log('Calling onSuccess callback...');
                     onSuccess(event.data.access_token);
-                } else if (event.data.status === 'error') {
+                } else if (event.data?.status === 'error') {
                     console.error('❌ Auth error from popup:', event.data.error);
                     onError(new Error(event.data.error || 'Authorization failed'));
                 }
                 popupRef.current = null;
+            } else {
+                console.log('⏭️  Skipping (not yandex-auth-complete)');
             }
         };
 

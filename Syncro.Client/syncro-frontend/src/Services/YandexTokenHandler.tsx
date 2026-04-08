@@ -52,22 +52,26 @@ const YandexTokenHandler = () => {
 
                 // Отправляем токен в родительское окно
                 if (window.opener) {
-                    console.log('Sending token to parent window');
-                    window.opener.postMessage(
-                        {
-                            type: 'yandex-auth-complete',
-                            status: 'success',
-                            access_token: accessToken
-                        },
-                        '*'
-                    );
-                    console.log('Message sent to parent');
+                    console.log('window.opener exists:', !!window.opener);
+                    console.log('window.opener location:', window.opener.location.href);
+
+                    const messagePayload = {
+                        type: 'yandex-auth-complete',
+                        status: 'success',
+                        access_token: accessToken
+                    };
+
+                    console.log('Sending postMessage with payload:', messagePayload);
+                    console.log('Target origin: *');
+
+                    window.opener.postMessage(messagePayload, '*');
+                    console.log('✅ postMessage sent successfully');
 
                     // Закрываем окно через 1 секунду
                     setTimeout(() => {
                         console.log('Closing popup window');
                         window.close();
-                    }, 1000);
+                    }, 5000);
                 } else {
                     console.error('No parent window found - not in popup');
                     // Если это не popup, то просто показываем сообщение
