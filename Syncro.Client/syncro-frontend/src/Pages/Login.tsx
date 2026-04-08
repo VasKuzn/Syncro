@@ -49,11 +49,22 @@ const Login = () => {
 
     // Успешный вход через Яндекс
     const handleYandexSuccess = async (yandexToken: string) => {
+        console.log('=== handleYandexSuccess called ===');
+        console.log('Token received:', yandexToken?.substring(0, 30) + '...');
+        console.log('BaseUrl:', baseUrl);
+
         try {
-            await loginWithYandex(yandexToken, baseUrl);
+            console.log('Calling loginWithYandex...');
+            const result = await loginWithYandex(yandexToken, baseUrl);
+            console.log('loginWithYandex returned:', result);
+            console.log('Navigating to /main...');
             navigate('/main');
         } catch (error) {
-            console.error('Ошибка входа через Яндекс:', error);
+            console.error('❌ Ошибка входа через Яндекс:', error);
+            console.error('Error details:', {
+                message: error instanceof Error ? error.message : String(error),
+                stack: error instanceof Error ? error.stack : undefined,
+            });
             // Не показываем ошибку в основную форму, только логируем
         }
     };

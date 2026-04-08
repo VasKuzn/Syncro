@@ -54,14 +54,18 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
 
         // Слушаем сообщения от popup окна
         const handleMessage = (event: MessageEvent) => {
-            console.log('Received message:', event.data);
+            console.log('=== postMessage received in parent ===');
+            console.log('Message data:', event.data);
+            console.log('Message origin:', event.origin);
 
             if (event.data.type === 'yandex-auth-complete') {
                 if (event.data.status === 'success' && event.data.access_token) {
-                    console.log('Got token from popup, passing to onSuccess');
+                    console.log('✅ Got token from popup!');
+                    console.log('Token length:', event.data.access_token.length);
+                    console.log('Calling onSuccess callback...');
                     onSuccess(event.data.access_token);
                 } else if (event.data.status === 'error') {
-                    console.error('Auth error from popup:', event.data.error);
+                    console.error('❌ Auth error from popup:', event.data.error);
                     onError(new Error(event.data.error || 'Authorization failed'));
                 }
                 popupRef.current = null;
