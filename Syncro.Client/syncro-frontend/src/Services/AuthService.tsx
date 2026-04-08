@@ -44,6 +44,7 @@ export const loginUser = async (email: string, password: string, baseUrl: string
 };
 export const loginWithYandex = async (yandexToken: string, baseUrl: string) => {
     console.log('loginWithYandex called with token:', yandexToken?.substring(0, 20) + '...');
+    console.log('Sending to endpoint:', baseUrl + '/api/accounts/yandex-auth');
 
     const response = await fetch(`${baseUrl}/api/accounts/yandex-auth`, {
         method: 'POST',
@@ -55,6 +56,10 @@ export const loginWithYandex = async (yandexToken: string, baseUrl: string) => {
     });
 
     console.log('Yandex auth response status:', response.status);
+    console.log('Response headers:', {
+        'content-type': response.headers.get('content-type'),
+        'set-cookie': response.headers.get('set-cookie'),
+    });
 
     if (!response.ok) {
         const error = await response.json().catch(() => ({ message: 'Unknown error' }));
@@ -69,6 +74,15 @@ export const loginWithYandex = async (yandexToken: string, baseUrl: string) => {
         throw new Error('No access token in response');
     }
 
+    console.log('Saving access_token to localStorage');
     localStorage.setItem('access_token', data.access_token);
+
+    // Проверим что сохранилось
+    const savedToken = localStorage.getItem('access_token');
+    console.log('Saved token in localStorage:', !!savedToken, 'Length:', savedToken?.length);
+
+    // Также проверим cookies
+    console.log('Document cookies:', document.cookie);
+
     return data;
 };

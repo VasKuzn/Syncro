@@ -212,12 +212,18 @@ namespace Syncro.Api.Controllers
 
                 if (result.IsSuccess)
                 {
-                    HttpContext.Response.Cookies.Append("access-token", result.Value, new CookieOptions
+                    var isHttps = HttpContext.Request.IsHttps;
+                    var cookieOptions = new CookieOptions
                     {
                         HttpOnly = true,
-                        Secure = true,
-                        SameSite = SameSiteMode.Strict
-                    });
+                        Secure = isHttps,
+                        SameSite = isHttps ? SameSiteMode.None : SameSiteMode.Lax,
+                        Path = "/",
+                        Expires = DateTimeOffset.UtcNow.AddHours(672)
+                    };
+                    HttpContext.Response.Cookies.Append("access-token", result.Value, cookieOptions);
+                    _logger.LogInformation("Cookie set for login endpoint (IsHttps: {isHttps}, SameSite: {sameSite})", isHttps, isHttps ? "None" : "Lax");
+
                     return Ok(new
                     {
                         message = "Logged in successfully",
@@ -269,14 +275,18 @@ namespace Syncro.Api.Controllers
                 _logger.LogInformation("Yandex authentication successful, setting cookie");
 
                 // Устанавливаем access token в cookie (как в обычном login)
-                HttpContext.Response.Cookies.Append("access-token", result.AccessToken, new CookieOptions
+                var isHttps = HttpContext.Request.IsHttps;
+                var cookieOptions = new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.Strict
-                });
+                    Secure = isHttps,
+                    SameSite = isHttps ? SameSiteMode.None : SameSiteMode.Lax,
+                    Path = "/",
+                    Expires = DateTimeOffset.UtcNow.AddHours(672)
+                };
+                HttpContext.Response.Cookies.Append("access-token", result.AccessToken, cookieOptions);
 
-                _logger.LogInformation("Cookie set, returning response");
+                _logger.LogInformation("Cookie set for yandex-auth endpoint (IsHttps: {isHttps}, SameSite: {sameSite})", isHttps, isHttps ? "None" : "Lax");
 
                 return Ok(new
                 {
