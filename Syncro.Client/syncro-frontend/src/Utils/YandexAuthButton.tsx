@@ -39,7 +39,6 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
                     client_id: 'd1c31a817b354a18af1857c5326982a8',
                     response_type: 'token',
                     redirect_uri: `${baseUrl}/main`,
-                    prompt: 'consent',
                 },
                 baseUrl,
                 {
