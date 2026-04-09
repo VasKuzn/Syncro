@@ -70,10 +70,18 @@ namespace Syncro.Infrastructure.Services
                     // Создаем нового пользователя
                     _logger.LogInformation($"Создали нового");
                     account = await CreateYandexUserAsync(yandexUser);
+                    _logger.LogInformation($"{account.Id}");
+                    _logger.LogInformation($"{account.firstname}");
+                    _logger.LogInformation($"{account.lastname}");
+                    _logger.LogInformation($"{account.nickname}");
+                    _logger.LogInformation($"{account.email}");
+                    _logger.LogInformation($"{account.phonenumber}");
+                    _logger.LogInformation($"{account.password}");
                 }
 
                 // Генерируем JWT token
                 var accessToken = GenerateAccessToken(account);
+                _logger.LogInformation($"{accessToken} - access token");
 
                 return new YandexAuthResponse
                 {
@@ -111,7 +119,15 @@ namespace Syncro.Infrastructure.Services
             var content = await response.Content.ReadAsStringAsync();
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
             var yandexUser = JsonSerializer.Deserialize<YandexUserResponse>(content, options);
-            _logger.LogInformation($"{yandexUser} - пользователь такой");
+            _logger.LogInformation($"пользователь такой");
+            _logger.LogInformation($"{yandexUser.Login} - логин");
+            _logger.LogInformation($"{yandexUser.Id} - id");
+            _logger.LogInformation($"{yandexUser.Emails} - emails");
+            _logger.LogInformation($"{yandexUser.DefaultEmail} - default email");
+            _logger.LogInformation($"{yandexUser.FirstName} - Имя");
+            _logger.LogInformation($"{yandexUser.LastName} - Фамилия");
+            _logger.LogInformation($"{yandexUser.RealName} - Реальное имя?");
+            _logger.LogInformation($"{yandexUser.DefaultPhone} - телефон");
             return yandexUser;
         }
 
