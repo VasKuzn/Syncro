@@ -89,7 +89,7 @@ namespace Syncro.Infrastructure.Services
                     Message = existingAccount != null ? "Login successful" : "Account created and logged in successfully"
                 };
             }
-            catch (System.Net.Http.HttpRequestException ex)
+            catch (HttpRequestException ex)
             {
                 _logger.LogError($"HTTP error while communicating with Yandex: {ex.Message}");
                 throw new Exception($"Failed to contact Yandex authentication service: {ex.Message}");
@@ -122,21 +122,18 @@ namespace Syncro.Infrastructure.Services
             _logger.LogInformation($"пользователь такой");
             _logger.LogInformation($"{yandexUser.Login} - логин");
             _logger.LogInformation($"{yandexUser.Id} - id");
-            _logger.LogInformation($"{yandexUser.Emails} - emails");
             _logger.LogInformation($"{yandexUser.DefaultEmail} - default email");
             _logger.LogInformation($"{yandexUser.FirstName} - Имя");
             _logger.LogInformation($"{yandexUser.LastName} - Фамилия");
             _logger.LogInformation($"{yandexUser.RealName} - Реальное имя?");
-            _logger.LogInformation($"{yandexUser.DefaultPhone} - телефон");
+            _logger.LogInformation($"{yandexUser.DefaultPhone.Number} - телефон");
             return yandexUser;
         }
 
         private async Task<AccountModel> CreateYandexUserAsync(YandexUserResponse yandexUser)
         {
-            // Генерируем уникальный никнейм если нужен
-            var nickname = GenerateUniqueNickname(yandexUser);
+            var nickname = await GenerateUniqueNicknameAsync(yandexUser);
 
-            // Генерируем случайный пароль (он не будет использоваться, но нужен для модели)
             var randomPassword = GenerateRandomPassword();
             var hashedPassword = BCrypt.Net.BCrypt.EnhancedHashPassword(randomPassword);
 
@@ -175,40 +172,47 @@ namespace Syncro.Infrastructure.Services
             return updatedAccount;
         }
 
-        private string GenerateUniqueNickname(YandexUserResponse yandexUser)
+        private async Task<string> GenerateUniqueNicknameAsync(YandexUserResponse yandexUser)
         {
-            var baseNickname = yandexUser.DisplayName ?? yandexUser.Login ?? $"user_{Guid.NewGuid().ToString().Substring(0, 8)}";
+            _logger.LogInformation($"Попали в метод генерации никнейма");
+            string baseNickname = !string.IsNullOrWhiteSpace(yandexUser.Login)
+                ? yandexUser.Login
+                : $"user_{Guid.NewGuid():N}";
 
-            // Если никнейм уже занят, добавляем случайный суффикс
-            var nickname = baseNickname;
-            var attemptCount = 0;
-
-            while (attemptCount < 10)
+            async Task<bool> IsNicknameTaken(string nickname)
             {
                 try
                 {
-                    _accountService.GetAccountByNicknameAsync(nickname).Wait();
-                    // Если не выкинулось исключение, никнейм занят
-                    nickname = $"{baseNickname}_{Guid.NewGuid().ToString().Substring(0, 6)}";
-                    attemptCount++;
+                    await _accountService.GetAccountByNicknameAsync(nickname);
+                    return true;
                 }
                 catch (ArgumentException)
                 {
-                    // Никнейм свободен
-                    break;
+                    return false;
                 }
             }
 
-            if (attemptCount >= 10)
+            if (!await IsNicknameTaken(baseNickname))
             {
-                nickname = $"user_{Guid.NewGuid().ToString().Substring(0, 8)}";
+                _logger.LogInformation($"Вернули никнейм {baseNickname} - базовый");
+                return baseNickname;
             }
 
-            return nickname;
+
+            for (int suffix = 1; suffix <= 10000; suffix++)
+            {
+                string candidate = $"{baseNickname}_{suffix}";
+                if (!await IsNicknameTaken(candidate))
+                    _logger.LogInformation($"Вернули никнейм {candidate} - измененный");
+                return candidate;
+            }
+            _logger.LogInformation($"Вернули никнейм рандомный");
+            return $"{baseNickname}_{Guid.NewGuid():N[..8]}";
         }
 
         private string GenerateRandomPassword()
         {
+            _logger.LogInformation($"Генерим пароль");
             const string validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
             var random = new Random();
             var password = new System.Text.StringBuilder();
@@ -217,12 +221,13 @@ namespace Syncro.Infrastructure.Services
             {
                 password.Append(validChars[random.Next(validChars.Length)]);
             }
-
+            _logger.LogInformation($"{password.ToString()} - Итоговый пароль");
             return password.ToString();
         }
 
         private string GenerateAccessToken(AccountModel account)
         {
+            _logger.LogInformation($"Генерим токен");
             return _jwtProvider.GenerateToken(account);
         }
     }
