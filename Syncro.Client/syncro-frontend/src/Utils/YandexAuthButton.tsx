@@ -20,10 +20,8 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
         if (initialized.current) return;
         initialized.current = true;
 
-        console.log('YandexAuthButton initialization');
-
         const scriptId = 'yandex-auth-script';
-        let scriptElement = document.getElementById(scriptId) as HTMLScriptElement | null;
+        const existingScript = document.getElementById(scriptId) as HTMLScriptElement | null;
 
         const initButton = () => {
             if (!window.YaAuthSuggest) {
@@ -31,14 +29,11 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
                 return;
             }
 
-            const redirectUri = `${window.location.origin}/yandex-token`;
-            console.log('Redirect URI:', redirectUri);
-
             window.YaAuthSuggest.init(
                 {
                     client_id: 'd1c31a817b354a18af1857c5326982a8',
                     response_type: 'token',
-                    redirect_uri: redirectUri,
+                    redirect_uri: `${window.location.origin}/yandex-token`,
                 },
                 window.location.origin,
                 {
@@ -51,12 +46,8 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
                     buttonIcon: 'ya',
                 }
             )
-                .then((result: any) => {
-                    console.log('SDK init success, calling handler()');
-                    return result.handler(); // открывает popup и возвращает Promise
-                })
+                .then((result: any) => result.handler())
                 .then((data: any) => {
-                    console.log('Handler resolved with:', data);
                     if (data?.access_token) {
                         onSuccess(data.access_token);
                     } else {
@@ -64,13 +55,13 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
                     }
                 })
                 .catch((error: any) => {
-                    if (error?.code === 'in_progress') return;
-                    console.error('Yandex error:', error);
-                    onError(error);
+                    if (error?.code !== 'in_progress') {
+                        onError(error);
+                    }
                 });
         };
 
-        if (scriptElement) {
+        if (existingScript) {
             initButton();
             return;
         }
