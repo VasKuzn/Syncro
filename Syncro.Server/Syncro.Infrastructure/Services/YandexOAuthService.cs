@@ -36,22 +36,24 @@ namespace Syncro.Infrastructure.Services
         {
             try
             {
-                // Запрос информации о пользователе у Yandex
+                _logger.LogInformation($"Начали получать инфу от яндекса");
                 var yandexUser = await GetYandexUserInfoAsync(yandexToken);
-
+                _logger.LogInformation($"Закончили получать инфу от яндекса");
                 if (yandexUser == null || string.IsNullOrEmpty(yandexUser.DefaultEmail))
                 {
                     throw new Exception("Failed to retrieve user info from Yandex or email is missing");
                 }
-
+                _logger.LogInformation($"Проверка есть ли пользователь у нас в БД");
                 // Проверяем существует ли уже пользователь с этим email
                 AccountModel? existingAccount = null;
                 try
                 {
                     existingAccount = await _accountService.GetAccountByEmailAsync(yandexUser.DefaultEmail);
+                    _logger.LogInformation($"ЕСТЬ");
                 }
                 catch (ArgumentException)
                 {
+                    _logger.LogInformation($"НЕТ");
                     // Пользователь не найден - это нормально
                 }
 
@@ -59,12 +61,14 @@ namespace Syncro.Infrastructure.Services
 
                 if (existingAccount != null)
                 {
+                    _logger.LogInformation($"Обновили существующего");
                     // Обновляем существующего пользователя информацией из Yandex
                     account = await UpdateYandexUserAsync(existingAccount.Id, yandexUser);
                 }
                 else
                 {
                     // Создаем нового пользователя
+                    _logger.LogInformation($"Создали нового");
                     account = await CreateYandexUserAsync(yandexUser);
                 }
 
@@ -107,7 +111,7 @@ namespace Syncro.Infrastructure.Services
             var content = await response.Content.ReadAsStringAsync();
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
             var yandexUser = JsonSerializer.Deserialize<YandexUserResponse>(content, options);
-
+            _logger.LogInformation($"{yandexUser} - пользователь такой");
             return yandexUser;
         }
 
