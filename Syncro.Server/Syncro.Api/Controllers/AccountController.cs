@@ -222,7 +222,6 @@ namespace Syncro.Api.Controllers
                         Expires = DateTimeOffset.UtcNow.AddHours(672)
                     };
                     HttpContext.Response.Cookies.Append("access-token", result.Value, cookieOptions);
-                    _logger.LogInformation("Cookie set for login endpoint (IsHttps: {isHttps}, SameSite: {sameSite})", isHttps, isHttps ? "None" : "Lax");
 
                     return Ok(new
                     {
@@ -242,11 +241,8 @@ namespace Syncro.Api.Controllers
         [HttpPost("yandex-auth")]
         public async Task<IActionResult> YandexAuth([FromBody] Application.ModelsDTO.YandexAuthRequest request)
         {
-            _logger.LogInformation("YandexAuth endpoint called");
-
             if (!ModelState.IsValid)
             {
-                _logger.LogWarning("ModelState invalid for YandexAuth");
                 return StatusCode(400, new
                 {
                     success = false,
@@ -259,7 +255,6 @@ namespace Syncro.Api.Controllers
             {
                 if (string.IsNullOrEmpty(request.Token))
                 {
-                    _logger.LogWarning("Token is null or empty");
                     return StatusCode(400, new
                     {
                         success = false,
@@ -268,13 +263,9 @@ namespace Syncro.Api.Controllers
                     });
                 }
 
-                _logger.LogInformation("Authenticating with Yandex token: {tokenPreview}", request.Token.Substring(0, Math.Min(20, request.Token.Length)) + "...");
-
                 var result = await _yandexOAuthService.AuthenticateWithYandexTokenAsync(request.Token);
 
-                _logger.LogInformation("Yandex authentication successful, setting cookie");
 
-                // Устанавливаем access token в cookie (как в обычном login)
                 var isHttps = HttpContext.Request.IsHttps;
                 var cookieOptions = new CookieOptions
                 {
@@ -285,8 +276,6 @@ namespace Syncro.Api.Controllers
                     Expires = DateTimeOffset.UtcNow.AddHours(672)
                 };
                 HttpContext.Response.Cookies.Append("access-token", result.AccessToken, cookieOptions);
-
-                _logger.LogInformation("Cookie set for yandex-auth endpoint (IsHttps: {isHttps}, SameSite: {sameSite})", isHttps, isHttps ? "None" : "Lax");
 
                 return Ok(new
                 {

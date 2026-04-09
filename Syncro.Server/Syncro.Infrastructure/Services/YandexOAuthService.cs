@@ -1,11 +1,7 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using Syncro.Application.Services;
-using Syncro.Application.ModelsDTO;
 using Syncro.Application.JWT;
-using Syncro.Domain.Models;
-using Syncro.Infrastructure.Exceptions;
 
 namespace Syncro.Infrastructure.Services
 {
@@ -36,52 +32,34 @@ namespace Syncro.Infrastructure.Services
         {
             try
             {
-                _logger.LogInformation($"Начали получать инфу от яндекса");
                 var yandexUser = await GetYandexUserInfoAsync(yandexToken);
-                _logger.LogInformation($"Закончили получать инфу от яндекса");
+
                 if (yandexUser == null || string.IsNullOrEmpty(yandexUser.DefaultEmail))
                 {
                     throw new Exception("Failed to retrieve user info from Yandex or email is missing");
                 }
-                _logger.LogInformation($"Проверка есть ли пользователь у нас в БД");
-                // Проверяем существует ли уже пользователь с этим email
+
                 AccountModel? existingAccount = null;
                 try
                 {
                     existingAccount = await _accountService.GetAccountByEmailAsync(yandexUser.DefaultEmail);
-                    _logger.LogInformation($"ЕСТЬ");
                 }
                 catch (ArgumentException)
                 {
-                    _logger.LogInformation($"НЕТ");
-                    // Пользователь не найден - это нормально
                 }
 
                 AccountModel account;
 
                 if (existingAccount != null)
                 {
-                    _logger.LogInformation($"Обновили существующего");
-                    // Обновляем существующего пользователя информацией из Yandex
                     account = await UpdateYandexUserAsync(existingAccount.Id, yandexUser);
                 }
                 else
                 {
-                    // Создаем нового пользователя
-                    _logger.LogInformation($"Создали нового");
                     account = await CreateYandexUserAsync(yandexUser);
-                    _logger.LogInformation($"{account.Id}");
-                    _logger.LogInformation($"{account.firstname}");
-                    _logger.LogInformation($"{account.lastname}");
-                    _logger.LogInformation($"{account.nickname}");
-                    _logger.LogInformation($"{account.email}");
-                    _logger.LogInformation($"{account.phonenumber}");
-                    _logger.LogInformation($"{account.password}");
                 }
 
-                // Генерируем JWT token
                 var accessToken = GenerateAccessToken(account);
-                _logger.LogInformation($"{accessToken} - access token");
 
                 return new YandexAuthResponse
                 {
@@ -119,14 +97,6 @@ namespace Syncro.Infrastructure.Services
             var content = await response.Content.ReadAsStringAsync();
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
             var yandexUser = JsonSerializer.Deserialize<YandexUserResponse>(content, options);
-            _logger.LogInformation($"пользователь такой");
-            _logger.LogInformation($"{yandexUser.Login} - логин");
-            _logger.LogInformation($"{yandexUser.Id} - id");
-            _logger.LogInformation($"{yandexUser.DefaultEmail} - default email");
-            _logger.LogInformation($"{yandexUser.FirstName} - Имя");
-            _logger.LogInformation($"{yandexUser.LastName} - Фамилия");
-            _logger.LogInformation($"{yandexUser.RealName} - Реальное имя?");
-            _logger.LogInformation($"{yandexUser.DefaultPhone.Number} - телефон");
             return yandexUser;
         }
 
@@ -151,8 +121,6 @@ namespace Syncro.Infrastructure.Services
             var createdAccount = await _accountService.CreateAccountAsync(newAccount);
             await _personalAccountInfoService.CreatePersonalAccountInfoAsync(createdAccount.Id);
 
-            _logger.LogInformation($"New user created from Yandex OAuth: {createdAccount.Id}");
-
             return createdAccount;
         }
 
@@ -167,14 +135,11 @@ namespace Syncro.Infrastructure.Services
 
             var updatedAccount = await _accountService.UpdateAccountPartialAsync(accountId, updateDto);
 
-            _logger.LogInformation($"User updated from Yandex OAuth: {accountId}");
-
             return updatedAccount;
         }
 
         private async Task<string> GenerateUniqueNicknameAsync(YandexUserResponse yandexUser)
         {
-            _logger.LogInformation($"Попали в метод генерации никнейма");
             string baseNickname = !string.IsNullOrWhiteSpace(yandexUser.Login)
                 ? yandexUser.Login
                 : $"user_{Guid.NewGuid():N}";
@@ -194,7 +159,6 @@ namespace Syncro.Infrastructure.Services
 
             if (!await IsNicknameTaken(baseNickname))
             {
-                _logger.LogInformation($"Вернули никнейм {baseNickname} - базовый");
                 return baseNickname;
             }
 
@@ -203,16 +167,13 @@ namespace Syncro.Infrastructure.Services
             {
                 string candidate = $"{baseNickname}_{suffix}";
                 if (!await IsNicknameTaken(candidate))
-                    _logger.LogInformation($"Вернули никнейм {candidate} - измененный");
-                return candidate;
+                    return candidate;
             }
-            _logger.LogInformation($"Вернули никнейм рандомный");
             return $"{baseNickname}_{Guid.NewGuid():N[..8]}";
         }
 
         private string GenerateRandomPassword()
         {
-            _logger.LogInformation($"Генерим пароль");
             const string validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
             var random = new Random();
             var password = new System.Text.StringBuilder();
@@ -221,13 +182,11 @@ namespace Syncro.Infrastructure.Services
             {
                 password.Append(validChars[random.Next(validChars.Length)]);
             }
-            _logger.LogInformation($"{password.ToString()} - Итоговый пароль");
             return password.ToString();
         }
 
         private string GenerateAccessToken(AccountModel account)
         {
-            _logger.LogInformation($"Генерим токен");
             return _jwtProvider.GenerateToken(account);
         }
     }
