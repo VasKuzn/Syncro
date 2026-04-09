@@ -43,46 +43,42 @@ export const loginUser = async (email: string, password: string, baseUrl: string
     }
 };
 export const loginWithYandex = async (yandexToken: string, baseUrl: string) => {
-    console.log('loginWithYandex called with token:', yandexToken?.substring(0, 20) + '...');
-    console.log('Sending to endpoint:', baseUrl + '/api/accounts/yandex-auth');
+    console.log('loginWithYandex called');
 
-    const response = await fetch(`${baseUrl}/api/accounts/yandex-auth`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token: yandexToken }),
-        credentials: 'include',
-    });
+    try {
+        const response = await fetch(`${baseUrl}/api/accounts/yandex-auth`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: yandexToken }),
+            credentials: 'include',
+        });
 
-    console.log('Yandex auth response status:', response.status);
-    console.log('Response headers:', {
-        'content-type': response.headers.get('content-type'),
-        'set-cookie': response.headers.get('set-cookie'),
-    });
+        // Логируем статус и заголовки для отладки
+        console.log('Yandex auth response status:', response.status);
 
-    if (!response.ok) {
-        const error = await response.json().catch(() => ({ message: 'Unknown error' }));
-        console.error('Yandex auth error:', error);
-        throw new Error(error.message || error.error || 'Ошибка входа через Яндекс');
+        if (!response.ok) {
+            let errorMessage = `Ошибка ${response.status}`;
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.message || errorData.error || errorMessage;
+            } catch {
+                // Игнорируем ошибку парсинга JSON
+            }
+            throw new Error(errorMessage);
+        }
+
+        const data = await response.json();
+        console.log('Yandex auth success, access_token received:', !!data.access_token);
+
+        if (!data.access_token) {
+            throw new Error('Сервер не вернул токен доступа');
+        }
+
+        // Сохраняем токен (cookie уже установлен бэкендом, но localStorage может пригодиться)
+        localStorage.setItem('access_token', data.access_token);
+        return data;
+    } catch (error) {
+        console.error('loginWithYandex failed:', error);
+        throw error;
     }
-
-    const data = await response.json();
-    console.log('Got response from Yandex auth:', data);
-
-    if (!data.access_token) {
-        throw new Error('No access token in response');
-    }
-
-    console.log('Saving access_token to localStorage');
-    localStorage.setItem('access_token', data.access_token);
-
-    // Проверим что сохранилось
-    const savedToken = localStorage.getItem('access_token');
-    console.log('Saved token in localStorage:', !!savedToken, 'Length:', savedToken?.length);
-
-    // Также проверим cookies
-    console.log('Document cookies:', document.cookie);
-
-    return data;
 };

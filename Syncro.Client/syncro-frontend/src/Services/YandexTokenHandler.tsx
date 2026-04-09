@@ -1,110 +1,51 @@
+// YandexTokenHandler.tsx
 import { useEffect } from 'react';
+
+declare global {
+    interface Window {
+        YaSendSuggestToken?: (origin: string, options?: { flag: boolean }) => void;
+    }
+}
 
 const YandexTokenHandler = () => {
     useEffect(() => {
-        // Загружаем Yandex скрипт для обработки токена
-        const script = document.createElement('script');
-        script.src = 'https://yastatic.net/s3/passport-sdk/autofill/v1/sdk-suggest-token.js';
-        script.async = true;
-        document.body.appendChild(script);
+        const scriptId = 'yandex-suggest-token-script';
+        let scriptElement = document.getElementById(scriptId) as HTMLScriptElement | null;
 
-        // Обрабатываем токен из URL параметров
-        const handleToken = () => {
-            try {
-                console.log('handleToken called, location:', window.location.href);
-
-                // Получаем access_token из query параметров или хеша
-                const params = new URLSearchParams(window.location.search);
-                const hashParams = new URLSearchParams(window.location.hash.substring(1));
-
-                const accessToken = params.get('access_token') || hashParams.get('access_token');
-                const error = params.get('error') || hashParams.get('error');
-                const errorDescription = params.get('error_description') || hashParams.get('error_description');
-
-                console.log('Token found:', !!accessToken, 'Error found:', !!error);
-
-                if (error) {
-                    console.error('Yandex OAuth error:', error, errorDescription);
-                    if (window.opener) {
-                        window.opener.postMessage(
-                            {
-                                type: 'yandex-auth-complete',
-                                status: 'error',
-                                error: error,
-                                errorDescription: errorDescription
-                            },
-                            '*'
-                        );
-                    }
-                    setTimeout(() => {
-                        console.log('Closing window due to error');
-                        window.close();
-                    }, 2000);
-                    return;
-                }
-
-                if (!accessToken) {
-                    console.warn('No access token found in URL, waiting...');
-                    return;
-                }
-
-                console.log('Got access token from Yandex, length:', accessToken.length);
-
-                // Отправляем токен в родительское окно
-                if (window.opener) {
-                    console.log('window.opener exists');
-
-                    const messagePayload = {
-                        type: 'yandex-auth-complete',
-                        status: 'success',
-                        access_token: accessToken
-                    };
-
-                    console.log('Sending postMessage...');
-                    try {
-                        window.opener.postMessage(messagePayload, '*');
-                        console.log('✅ postMessage sent successfully');
-                    } catch (err) {
-                        console.error('Failed to send postMessage:', err);
-                    }
-
-                    setTimeout(() => {
-                        console.log('Closing popup window');
-                        window.close();
-                    }, 1000);
-                } else {
-                    console.error('No parent window found - not in popup');
-                    // Если это не popup, то просто показываем сообщение
-                    if (accessToken) {
-                        console.log('Token available but no parent window');
-                    }
-                }
-            } catch (error) {
-                console.error('Error handling Yandex token:', error);
-                if (window.opener) {
-                    window.opener.postMessage(
-                        {
-                            type: 'yandex-auth-complete',
-                            status: 'error',
-                            error: 'Failed to process token'
-                        },
-                        '*'
-                    );
-                }
-                setTimeout(() => window.close(), 2000);
+        const initTokenHandler = () => {
+            if (window.YaSendSuggestToken) {
+                console.log('Calling YaSendSuggestToken with origin:', window.location.origin);
+                window.YaSendSuggestToken(window.location.origin, { flag: true });
+            } else {
+                console.warn('YaSendSuggestToken not available yet, retrying...');
+                setTimeout(initTokenHandler, 100);
             }
         };
 
-        // Пытаемся обработать токен сразу и через небольшую задержку (для асинхронного редиректа)
-        console.log('Setting up token handler');
-        handleToken();
-        const timeoutId = setTimeout(handleToken, 2000);
+        if (scriptElement) {
+            initTokenHandler();
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.id = scriptId;
+        script.src = 'https://yastatic.net/s3/passport-sdk/autofill/v1/sdk-suggest-token-latest.js';
+        script.async = true;
+
+        script.onload = () => {
+            console.log('Yandex suggest-token script loaded');
+            initTokenHandler();
+        };
+
+        script.onerror = (error) => {
+            console.error('Failed to load Yandex suggest-token script:', error);
+        };
+
+        document.head.appendChild(script);
 
         return () => {
-            clearTimeout(timeoutId);
-            if (document.body.contains(script)) {
-                document.body.removeChild(script);
-            }
+            // Не удаляем скрипт при размонтировании, чтобы избежать повторной загрузки при навигации
+            // (обычно этот компонент рендерится только один раз в popup окне)
         };
     }, []);
 
