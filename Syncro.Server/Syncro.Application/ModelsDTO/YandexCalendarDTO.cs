@@ -18,5 +18,8 @@ namespace Syncro.Application.ModelsDTO
         public DateTime Start { get; set; }
         public DateTime End { get; set; }
         public string Location { get; set; }
+
+        public string? Etag { get; set; } // Добавьте это поле
+        public string? Url { get; set; }  // Полезно для обновления/удаления
     }
 }

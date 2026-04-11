@@ -5,6 +5,7 @@ import { FriendDetails } from "./FriendDetails";
 import { emptyFilterMessages } from "../../Constants/FriendFilterMessages";
 import loadingIcon from '../../assets/usersicon.svg';
 import FriendItem from "./FriendItem";
+import { useNavigate } from "react-router-dom";
 
 const FriendsComponent = ({ friends, onFriendAdded, setFriends, baseUrl, csrfToken }: FriendProps) => {
     const [isLoading, setIsLoading] = useState(false);
@@ -14,6 +15,7 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends, baseUrl, csrfTok
     const [searchQuery, setSearchQuery] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedFriendForModal, setSelectedFriendForModal] = useState<Friend | null>(null);
+    const navigate = useNavigate();
 
     const addFriendInputRef = useRef<HTMLInputElement>(null);
     const searchInputRef = useRef<HTMLInputElement>(null);
@@ -117,7 +119,7 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends, baseUrl, csrfTok
         }
     };
     const openCalendar = async () => {
-
+        navigate('/calendar', { state: { friends, baseUrl } });
     }
     const handleFriendClick = (friend: ShortFriend) => {
         const fullFriend = friends.find(f => f.id === friend.id);
