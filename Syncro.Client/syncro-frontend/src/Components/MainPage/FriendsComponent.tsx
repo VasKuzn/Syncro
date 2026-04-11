@@ -119,8 +119,29 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends, baseUrl, csrfTok
         }
     };
     const openCalendar = async () => {
-        navigate('/calendar', { state: { friends, baseUrl } });
-    }
+        setIsLoading(true);
+        try {
+            const response = await fetch(`${baseUrl}/api/calendar/settings`, {
+                credentials: 'include'
+            });
+            if (!response.ok) {
+                throw new Error('CalDAV credentials not configured');
+            }
+            const data = await response.json();
+            if (!data.email || !data.password) {
+                throw new Error('CalDAV credentials missing');
+            }
+            navigate('/calendar', { state: { friends, baseUrl } });
+        } catch (error) {
+            setNotification({
+                message: 'Привяжите данные о календаре в настройках аккаунта',
+                isError: true
+            });
+            setTimeout(() => setNotification(null), 3500);
+        } finally {
+            setIsLoading(false);
+        }
+    };
     const handleFriendClick = (friend: ShortFriend) => {
         const fullFriend = friends.find(f => f.id === friend.id);
         if (fullFriend) {

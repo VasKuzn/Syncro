@@ -62,12 +62,22 @@ namespace Syncro.Infrastructure.Services
             return await _client.CreateEventAsync(calendarUrl, eventData);
         }
 
-        public async Task UpdateEventAsync(string eventUrl, string summary,
-            DateTime start, DateTime end, string etag, string? description = null, string? location = null)
+        public async Task UpdateEventAsync(string eventUrl, string summary, DateTime start, DateTime end, string etag, string calendarUrl, string? description = null, string? location = null)
         {
             eventUrl = EnsureAbsoluteUrl(eventUrl);
+            calendarUrl = EnsureAbsoluteUrl(calendarUrl);
+
             var updatedData = ICalendarGenerator.CreateSimpleEvent(summary, start, end, description, location);
-            await _client.UpdateEventAsync(eventUrl, updatedData, etag);
+            string newEventUrl = await _client.CreateEventAsync(calendarUrl, updatedData);
+
+            try
+            {
+                await _client.DeleteEventAsync(eventUrl, etag);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Warning: Failed to delete old event {eventUrl}: {ex.Message}");
+            }
         }
 
         public async Task DeleteEventAsync(string eventUrl, string etag)

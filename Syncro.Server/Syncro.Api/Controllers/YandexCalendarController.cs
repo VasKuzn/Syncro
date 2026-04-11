@@ -1,10 +1,5 @@
 // Syncro.Api/Controllers/YandexCalendarController.cs
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Syncro.Application.Services;
-using Syncro.Application.TransferModels;
 using Syncro.Infrastructure.Data.DataBaseContext;
 using Syncro.Infrastructure.Services;
 
@@ -194,10 +189,11 @@ namespace Syncro.Api.Controllers
                     dto.Start,
                     dto.End,
                     dto.Etag,
+                    dto.CalendarUrl,
                     dto.Description,
                     dto.Location
                 );
-                return Ok(new { message = "Event updated successfully." });
+                return Ok(new { message = "Event updated successfully (recreated)." });
             }
             catch (Exception ex)
             {

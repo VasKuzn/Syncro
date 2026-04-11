@@ -11,7 +11,6 @@ const Calendar: React.FC<CalendarProps> = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    // Извлекаем данные из state, переданного при navigate
     const state = location.state as { friends?: Friend[]; baseUrl?: string } | null;
     const friends: Friend[] = state?.friends || [];
     const baseUrl: string = state?.baseUrl || import.meta.env.VITE_API_BASE_URL || '';
@@ -23,18 +22,15 @@ const Calendar: React.FC<CalendarProps> = () => {
     const [error, setError] = useState<string | null>(null);
     const [notification, setNotification] = useState<{ message: string; isError: boolean } | null>(null);
 
-    // Фильтр по дате
     const [dateRange, setDateRange] = useState({
         start: new Date().toISOString().split('T')[0],
         end: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
     });
 
-    // Модальные окна
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
 
-    // Форма создания/редактирования
     const [formData, setFormData] = useState({
         summary: '',
         description: '',
@@ -44,23 +40,18 @@ const Calendar: React.FC<CalendarProps> = () => {
         friendId: ''
     });
 
-    // Если нет baseUrl – редиректим или показываем ошибку
     useEffect(() => {
         if (!baseUrl) {
             console.error('Calendar: baseUrl is missing');
-            // Можно вернуться назад
-            // navigate(-1);
         }
     }, [baseUrl, navigate]);
 
-    // Загрузка списка календарей
     useEffect(() => {
         if (baseUrl) {
             loadCalendars();
         }
     }, [baseUrl]);
 
-    // Загрузка событий при смене календаря или дат
     useEffect(() => {
         if (selectedCalendar && baseUrl) {
             loadEvents();
@@ -199,13 +190,23 @@ const Calendar: React.FC<CalendarProps> = () => {
         }
     };
 
+    const toLocalDateTimeInputValue = (isoString: string): string => {
+        const date = new Date(isoString);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    };
+
     const openEditModal = (event: CalendarEvent) => {
         setSelectedEvent(event);
         setFormData({
             summary: event.summary || '',
             description: event.description || '',
-            start: event.start.slice(0, 16),
-            end: event.end.slice(0, 16),
+            start: toLocalDateTimeInputValue(event.start),
+            end: toLocalDateTimeInputValue(event.end),
             location: event.location || '',
             friendId: ''
         });
@@ -314,7 +315,6 @@ const Calendar: React.FC<CalendarProps> = () => {
                 ))}
             </div>
 
-            {/* Модальное окно создания */}
             {showCreateModal && (
                 <div className="modal-overlay">
                     <div className="modal">
@@ -371,7 +371,6 @@ const Calendar: React.FC<CalendarProps> = () => {
                 </div>
             )}
 
-            {/* Модальное окно редактирования */}
             {showEditModal && selectedEvent && (
                 <div className="modal-overlay">
                     <div className="modal">
