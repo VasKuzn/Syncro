@@ -15,6 +15,9 @@ namespace Syncro.Infrastructure.Data.Configurations
             builder.Property(x => x.lastname).IsRequired(false);
             builder.Property(x => x.phonenumber).HasMaxLength(20).IsRequired(false);
             builder.Property(x => x.avatar).IsRequired(false);
+
+            builder.Property(x => x.yandexCalendarLogin).IsRequired(false);
+            builder.Property(x => x.yandexCalendarPassword).IsRequired(false);
         }
     }
 }

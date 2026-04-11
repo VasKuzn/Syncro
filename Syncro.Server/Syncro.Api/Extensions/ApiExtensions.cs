@@ -51,6 +51,8 @@ namespace Syncro.Api.Extensions
         {
             services.AddWebControllers(configuration);
             services.AddSwaggerGen();
+            services.AddDataProtection();
+            services.AddHttpContextAccessor();
             services.AddAuthenticationServices(configuration);
             services.AddCorsPolicy(configuration);
         }

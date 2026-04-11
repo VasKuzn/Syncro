@@ -375,6 +375,7 @@
   border: 1.5px solid rgba(59, 130, 246, 0.3);
   transition: all 0.3s ease;
   overflow: hidden;
+  margin-bottom: 10px;
 }
 
 .setting-input-box:focus-within {

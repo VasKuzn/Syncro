@@ -12,6 +12,9 @@ namespace Syncro.Application.ModelsDTO
         public string? avatar { get; set; }
         public int? country { get; set; }
 
+        public string? yandexCalendarLogin { get; set; }
+        public string? yandexCalendarPassword { get; set; }
+
         public IFormFile? AvatarFile { get; set; }
 
         public bool HasAnyUpdates()
@@ -23,7 +26,9 @@ namespace Syncro.Application.ModelsDTO
                    !string.IsNullOrEmpty(phonenumber) ||
                    !string.IsNullOrEmpty(avatar) ||
                    country.HasValue ||
-                   AvatarFile != null;
+                   AvatarFile != null ||
+                   !string.IsNullOrEmpty(yandexCalendarLogin) ||
+                   !string.IsNullOrEmpty(yandexCalendarPassword);
         }
     }
 }

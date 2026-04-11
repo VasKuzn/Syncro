@@ -151,7 +151,12 @@ namespace Syncro.Infrastructure.Services
             if (!string.IsNullOrEmpty(updateDto.phonenumber))
                 existingAccount.phonenumber = updateDto.phonenumber;
 
-            // Обработка аватара
+            if (!string.IsNullOrEmpty(updateDto.yandexCalendarLogin))
+                existingAccount.yandexCalendarLogin = updateDto.yandexCalendarLogin;
+
+            if (!string.IsNullOrEmpty(updateDto.yandexCalendarPassword))
+                existingAccount.yandexCalendarPassword = updateDto.yandexCalendarPassword;
+
             if (updateDto.AvatarFile != null && updateDto.AvatarFile.Length > 0)
             {
                 var result = await _selectelStorageService.UploadAvatarFileAsync(updateDto.AvatarFile, accountId);

@@ -35,12 +35,16 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
     const [showAIModal, setShowAIModal] = useState(false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const [saveSuccess, setSaveSuccess] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Группировка полей по секциям для рендеринга
-    const [saveSuccess, setSaveSuccess] = useState(false);
+    const [caldavConfig, setCaldavConfig] = useState({
+        email: '',
+        password: ''
+    });
+    const [isSavingCalDav, setIsSavingCalDav] = useState(false);
+    const [isCheckingCalDav, setIsCheckingCalDav] = useState(false);
 
-    // Обработчики аватара
     const handleAvatarClick = () => {
         setShowAvatarModal(true);
     };
@@ -71,7 +75,6 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
         }
     };
 
-    // Обработчики выхода
     const handleLogoutClick = () => {
         setShowLogoutModal(true);
     };
@@ -118,6 +121,68 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
         await onSubmit(e);
         setSaveSuccess(true);
         setTimeout(() => setSaveSuccess(false), 3000);
+    };
+
+    const handleCaldavInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setCaldavConfig(prev => ({
+            ...prev,
+            [e.target.name]: e.target.value
+        }));
+    };
+
+    const saveCaldavSettings = async () => {
+        if (!caldavConfig.email || !caldavConfig.password) {
+            alert('Заполните email и пароль');
+            return;
+        }
+        setIsSavingCalDav(true);
+        try {
+            const response = await fetch(`${baseUrl}/api/calendar/settings`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    email: caldavConfig.email,
+                    password: caldavConfig.password
+                })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || 'Ошибка сохранения');
+            }
+
+            alert('✅ Настройки Яндекс Календаря сохранены');
+        } catch (error: any) {
+            console.error('Save CalDAV settings error:', error);
+            alert(`❌ Ошибка сохранения: ${error.message}`);
+        } finally {
+            setIsSavingCalDav(false);
+        }
+    };
+
+    const checkCaldavConnection = async () => {
+        setIsCheckingCalDav(true);
+        try {
+            const response = await fetch(`${baseUrl}/api/calendar/check`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: "include"
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                console.log('Календари:', data.calendars);
+                alert(`✅ Подключение успешно! Найдено ${data.calendars?.length ?? 0} календарей.`);
+            } else {
+                throw new Error(data.error || 'Неизвестная ошибка');
+            }
+        } catch (error: any) {
+            console.error('CalDAV error:', error);
+            alert(`❌ Ошибка подключения: ${error.message}`);
+        } finally {
+            setIsCheckingCalDav(false);
+        }
     };
 
     return (
@@ -293,6 +358,63 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
                             onClick={handleChangePassword}
                         >
                             Изменить пароль
+                        </button>
+                    </div>
+                </section>
+
+                <section className="settings-section">
+                    <div className="section-header">
+                        <h2 className="section-title">Интеграция с Яндекс Календарём</h2>
+                    </div>
+
+                    <div className="settings-field">
+                        <label htmlFor="caldav-email" className="setting-label">Email почты Yandex</label>
+                        <div className="setting-input-box">
+                            <input
+                                id="caldav-email"
+                                name="email"
+                                className="setting-input"
+                                value={caldavConfig.email}
+                                onChange={handleCaldavInputChange}
+                                placeholder="your@yandex.ru"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="settings-field">
+                        <label htmlFor="caldav-password" className="setting-label">Пароль приложения</label>
+                        <div className="setting-input-box">
+                            <input
+                                id="caldav-password"
+                                name="password"
+                                type="password"
+                                className="setting-input"
+                                value={caldavConfig.password}
+                                onChange={handleCaldavInputChange}
+                                placeholder="Пароль приложения Яндекса"
+                            />
+                        </div>
+                        <p className="setting-hint">
+                            Создайте пароль приложения в настройках Яндекс ID → Безопасность → Пароли приложений! Вводите пароль, а не имя пароля
+                        </p>
+                    </div>
+
+                    <div className="settings-actions" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                        <button
+                            className="settings-button settings-button-secondary"
+                            type="button"
+                            onClick={saveCaldavSettings}
+                            disabled={isSavingCalDav}
+                        >
+                            {isSavingCalDav ? 'Сохранение...' : 'Сохранить настройки Yandex'}
+                        </button>
+                        <button
+                            className="settings-button settings-button-secondary"
+                            type="button"
+                            onClick={checkCaldavConnection}
+                            disabled={isCheckingCalDav}
+                        >
+                            {isCheckingCalDav ? 'Проверка...' : 'Проверить подключение Yandex'}
                         </button>
                     </div>
                 </section>

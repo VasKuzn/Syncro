@@ -170,7 +170,7 @@ body {
     flex-direction: column;
     justify-items: center;
     align-items: center;
-    z-index:3;
+    z-index: 3;
 }
 
 .group-chat-list {
@@ -266,6 +266,15 @@ body {
 .button-friends-status.add {
     background-color: #3B82F6;
     color: white;
+}
+
+.button-friends-status.calendar {
+    background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+    color: white;
+}
+
+.button-friends-status.calendar:hover {
+    background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 500%);
 }
 
 .button-friends-status:hover {

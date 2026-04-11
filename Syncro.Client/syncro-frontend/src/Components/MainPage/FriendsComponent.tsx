@@ -116,7 +116,9 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends, baseUrl, csrfTok
             setTimeout(() => setNotification(null), 3500);
         }
     };
+    const openCalendar = async () => {
 
+    }
     const handleFriendClick = (friend: ShortFriend) => {
         const fullFriend = friends.find(f => f.id === friend.id);
         if (fullFriend) {
@@ -343,6 +345,11 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends, baseUrl, csrfTok
                         </>
                     ) : 'Отправить запрос дружбы'}
                 </button>
+                <button
+                    className={`button-friends-status calendar`}
+                    onClick={openCalendar}
+                    disabled={isLoading}
+                >Календарь</button>
             </div>
 
             <div className="friends-list">
