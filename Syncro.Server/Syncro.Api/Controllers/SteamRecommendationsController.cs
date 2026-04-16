@@ -74,6 +74,29 @@ namespace Syncro.Api.Controllers
                 var recommendation = await _steamRecommendationService.GetSteamRecommendationByAccountIdAsync(userId);
                 if (recommendation == null)
                     return NotFound(new { message = "Steam recommendation not found for current user" });
+
+                bool needRefresh = false;
+                if (recommendation.LastTimeUpdated == DateTime.MinValue)
+                {
+                    needRefresh = true;
+                }
+                else if ((DateTime.UtcNow - recommendation.LastTimeUpdated).TotalDays >= 3)
+                {
+                    needRefresh = true;
+                }
+
+                if (needRefresh)
+                {
+                    try
+                    {
+                        recommendation = await _steamRecommendationService.RefreshGamesFromSteamAsync(userId);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to refresh games from Steam for user {UserId}, returning stale data", userId);
+                    }
+                }
+
                 return Ok(recommendation);
             }
             catch (UnauthorizedAccessException ex)

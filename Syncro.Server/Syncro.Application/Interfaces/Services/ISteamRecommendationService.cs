@@ -8,5 +8,6 @@ namespace Syncro.Application.Repositories
         Task<bool> DeleteSteamRecommendationAsync(Guid steamRecommendationId);
         Task<List<Guid>> GetSteamRecommendationsByAccountGamesAsync(Guid accountId);
         Task<SteamRecommendationModel> UpsertSteamIdAsync(Guid accountId, string steamId);
+        Task<SteamRecommendationModel> RefreshGamesFromSteamAsync(Guid accountId);
     }
 }
