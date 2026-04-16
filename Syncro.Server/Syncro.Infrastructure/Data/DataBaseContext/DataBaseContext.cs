@@ -24,6 +24,7 @@ namespace Syncro.Infrastructure.Data.DataBaseContext
         public DbSet<GroupEncryptionKey> GroupEncryptionKeys { get; set; }
 
         public DbSet<PasswordResetTokenModel> PasswordResetToken { get; set; }
+        public DbSet<SteamRecommendationModel> SteamRecommendations { get; set; }
 
         public DataBaseContext(DbContextOptions options) : base(options)
         {

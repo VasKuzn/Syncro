@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Syncro.Infrastructure.Data.DataBaseContext;
@@ -11,9 +12,11 @@ using Syncro.Infrastructure.Data.DataBaseContext;
 namespace Syncro.Infrastructure.Migrations
 {
     [DbContext(typeof(DataBaseContext))]
-    partial class DataBaseContextModelSnapshot : ModelSnapshot
+    [Migration("20260414204342_SteamRecommendationAddition")]
+    partial class SteamRecommendationAddition
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -482,6 +485,11 @@ namespace Syncro.Infrastructure.Migrations
 
             modelBuilder.Entity("Syncro.Domain.Models.SteamRecommendationModel", b =>
                 {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
                     b.Property<Guid>("AccountId")
                         .HasColumnType("uuid");
 
@@ -501,7 +509,7 @@ namespace Syncro.Infrastructure.Migrations
                     b.Property<string>("ThirdGame")
                         .HasColumnType("text");
 
-                    b.HasKey("AccountId");
+                    b.HasKey("Id");
 
                     b.ToTable("SteamRecommendations", (string)null);
                 });
@@ -769,15 +777,6 @@ namespace Syncro.Infrastructure.Migrations
                     b.HasOne("Syncro.Domain.Models.AccountModel", null)
                         .WithMany()
                         .HasForeignKey("ownerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Syncro.Domain.Models.SteamRecommendationModel", b =>
-                {
-                    b.HasOne("Syncro.Domain.Models.AccountModel", null)
-                        .WithOne()
-                        .HasForeignKey("Syncro.Domain.Models.SteamRecommendationModel", "AccountId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

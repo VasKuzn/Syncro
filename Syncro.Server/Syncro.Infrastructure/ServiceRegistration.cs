@@ -32,6 +32,7 @@ public static class ServiceRegistration
         services.AddScoped<IYandexOAuthService, YandexOAuthService>();
         services.AddHttpClient<IYandexOAuthService, YandexOAuthService>();
         services.AddScoped<IProtectionService, DataProtectionService>();
+        services.AddScoped<ISteamRecommendationService, SteamRecommendationService>();
     }
     public static void AddCoreRepositoriesExtension(this IServiceCollection services, IConfiguration configuration)
     {
@@ -48,6 +49,7 @@ public static class ServiceRegistration
         services.AddScoped<ISectorRepository, SectorRepository>();
         services.AddScoped<ISectorPermissionsRepository, SectorPermissionsRepository>();
         services.AddScoped<IPersonalAccountInfoRepository, PersonalAccountInfoRepository>();
+        services.AddScoped<ISteamRecommendationRepository, SteamRecommendationRepository>();
     }
 
     public static void AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)

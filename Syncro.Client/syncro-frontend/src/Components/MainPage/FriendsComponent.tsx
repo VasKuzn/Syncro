@@ -142,6 +142,43 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends, baseUrl, csrfTok
             setIsLoading(false);
         }
     };
+    const openRecommendations = async () => {
+        setIsLoading(true);
+        try {
+            const steamRecResponse = await fetch(`${baseUrl}/api/steamrecommendations/me`, {
+                credentials: 'include'
+            });
+            if (!steamRecResponse.ok) {
+                throw new Error('Steam ID not configured');
+            }
+            const steamData = await steamRecResponse.json();
+            const steamId = steamData.steamId;
+
+            const apiKeyResponse = await fetch(`${baseUrl}/api/steamrecommendations/apikey`, {
+                credentials: 'include'
+            });
+            if (!apiKeyResponse.ok) {
+                throw new Error('Failed to get Steam API key');
+            }
+            const { apiKey } = await apiKeyResponse.json();
+
+            const steamApiUrl = `https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/?key=${apiKey}&steamid=${steamId}&format=json`;
+            const steamApiResponse = await fetch(steamApiUrl);
+            const gamesData = await steamApiResponse.json();
+            const games = gamesData.response?.games || [];
+
+            navigate('/steamrecommendations', { state: { games, baseUrl } });
+        } catch (error) {
+            setNotification({
+                message: 'Привяжите данные о Steam в настройках аккаунта',
+                isError: true
+            });
+            setTimeout(() => setNotification(null), 3500);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const handleFriendClick = (friend: ShortFriend) => {
         const fullFriend = friends.find(f => f.id === friend.id);
         if (fullFriend) {
@@ -373,6 +410,11 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends, baseUrl, csrfTok
                     onClick={openCalendar}
                     disabled={isLoading}
                 >Календарь</button>
+                <button
+                    className={`button-friends-status calendar`}
+                    onClick={openRecommendations}
+                    disabled={isLoading}
+                >Рекомендации Steam</button>
             </div>
 
             <div className="friends-list">

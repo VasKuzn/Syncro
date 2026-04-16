@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { SettingsComponentProps } from "../../Types/SettingsProps";
 import SettingsAddAvatarComponent from './SettingsAddAvatarComponent';
 import AIGenerationModal from './AIGenerationModal';
@@ -44,6 +44,10 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
     });
     const [isSavingCalDav, setIsSavingCalDav] = useState(false);
     const [isCheckingCalDav, setIsCheckingCalDav] = useState(false);
+    const [steamId, setSteamId] = useState('');
+    const [isSavingSteam, setIsSavingSteam] = useState(false);
+    const [steamSaveSuccess, setSteamSaveSuccess] = useState(false);
+    const [steamError, setSteamError] = useState<string | null>(null);
 
     const handleAvatarClick = () => {
         setShowAvatarModal(true);
@@ -158,6 +162,64 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
             alert(`❌ Ошибка сохранения: ${error.message}`);
         } finally {
             setIsSavingCalDav(false);
+        }
+    };
+
+    useEffect(() => {
+        const fetchSteamId = async () => {
+            try {
+                const response = await fetch(`${baseUrl}/api/steamrecommendations/me`, {
+                    credentials: 'include'
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setSteamId(data.steamId || '');
+                } else if (response.status === 404) {
+                    setSteamId('');
+                } else {
+                    console.error('Failed to fetch steam id');
+                }
+            } catch (error) {
+                console.error('Error fetching steam id:', error);
+            }
+        };
+        fetchSteamId();
+    }, [baseUrl]);
+
+    const handleSteamIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSteamId(e.target.value);
+        setSteamError(null);
+    };
+
+    const saveSteamSettings = async () => {
+        if (!steamId || steamId.trim() === '') {
+            setSteamError('Введите Steam ID');
+            return;
+        }
+        if (!/^\d{17}$/.test(steamId)) {
+            setSteamError('Steam ID должен состоять из 17 цифр');
+            return;
+        }
+        setIsSavingSteam(true);
+        setSteamError(null);
+        try {
+            const response = await fetch(`${baseUrl}/api/steamrecommendations/me`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ steamId: steamId.trim() })
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Ошибка сохранения');
+            }
+            setSteamSaveSuccess(true);
+            setTimeout(() => setSteamSaveSuccess(false), 3000);
+        } catch (error: any) {
+            console.error('Save Steam settings error:', error);
+            setSteamError(error.message);
+        } finally {
+            setIsSavingSteam(false);
         }
     };
 
@@ -362,6 +424,12 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
                     </div>
                 </section>
 
+                <div className="settings-actions">
+                    <button className="settings-button settings-button-primary" type="submit">
+                        Сохранить изменения профиля
+                    </button>
+                </div>
+
                 <section className="settings-section">
                     <div className="section-header">
                         <h2 className="section-title">Интеграция с Яндекс Календарём</h2>
@@ -419,11 +487,47 @@ const SettingsComponent: React.FC<EnhancedSettingsComponentProps> = ({
                     </div>
                 </section>
 
-                <div className="settings-actions">
-                    <button className="settings-button settings-button-primary" type="submit">
-                        Сохранить все изменения
-                    </button>
-                </div>
+                <section className="settings-section">
+                    <div className="section-header">
+                        <h2 className="section-title">Интеграция со Steam</h2>
+                    </div>
+
+                    <div className="settings-field">
+                        <label htmlFor="steam-id" className="setting-label">Ваш Steam ID</label>
+                        <div className="setting-input-box">
+                            <input
+                                id="steam-id"
+                                name="steamId"
+                                className="setting-input"
+                                value={steamId}
+                                onChange={handleSteamIdChange}
+                                placeholder="Например: 76561198000000000"
+                                maxLength={17}
+                                pattern="\d*"
+                            />
+                        </div>
+                        <p className="setting-hint">
+                            Steam ID состоит из 17 цифр. Найдите его в клиенте Steam: «Об аккаунте» → «Steam ID».
+                        </p>
+                        {steamError && (
+                            <p className="setting-error">{steamError}</p>
+                        )}
+                        {steamSaveSuccess && (
+                            <p className="setting-success">Steam ID успешно сохранён</p>
+                        )}
+                    </div>
+
+                    <div className="settings-actions" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                        <button
+                            className="settings-button settings-button-secondary"
+                            type="button"
+                            onClick={saveSteamSettings}
+                            disabled={isSavingSteam}
+                        >
+                            {isSavingSteam ? 'Сохранение...' : 'Сохранить Steam ID'}
+                        </button>
+                    </div>
+                </section>
 
                 <section className="settings-section settings-danger-zone">
                     <div className="section-header">

@@ -49,6 +49,7 @@ services:
       Email__EmailServer: ${EMAIL_SERVER}
       Email__EmailPort: ${EMAIL_PORT}
       Frontend_Url__Url: ${FRONTEND_URL:-https://syncro-test.ru}
+      Steam__ApiKey: ${STEAM_API_KEY}
     ports:
       - "127.0.0.1:5000:5000"
     depends_on:
