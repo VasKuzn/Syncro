@@ -145,32 +145,35 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends, baseUrl, csrfTok
     const openRecommendations = async () => {
         setIsLoading(true);
         try {
+            // 1. Проверяем, привязан ли Steam ID у пользователя
             const steamRecResponse = await fetch(`${baseUrl}/api/steamrecommendations/me`, {
                 credentials: 'include'
             });
             if (!steamRecResponse.ok) {
                 throw new Error('Steam ID not configured');
             }
-            const steamData = await steamRecResponse.json();
-            const steamId = steamData.steamId;
 
-            const apiKeyResponse = await fetch(`${baseUrl}/api/steamrecommendations/apikey`, {
+            // 2. Получаем игры через серверный прокси
+            const gamesResponse = await fetch(`${baseUrl}/api/steamrecommendations/games`, {
                 credentials: 'include'
             });
-            if (!apiKeyResponse.ok) {
-                throw new Error('Failed to get Steam API key');
+            if (!gamesResponse.ok) {
+                const errorData = await gamesResponse.json();
+                throw new Error(errorData.message || 'Failed to fetch games from Steam');
             }
-            const { apiKey } = await apiKeyResponse.json();
 
-            const steamApiUrl = `https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/?key=${apiKey}&steamid=${steamId}&format=json`;
-            const steamApiResponse = await fetch(steamApiUrl);
-            const gamesData = await steamApiResponse.json();
-            const games = gamesData.response?.games || [];
+            const gamesData = await gamesResponse.json();
+            // gamesData – это JSON-строка, которую вернул Steam API, парсим её
+            const parsedData = typeof gamesData === 'string' ? JSON.parse(gamesData) : gamesData;
+            const games = parsedData.response?.games || [];
 
             navigate('/steamrecommendations', { state: { games, baseUrl } });
-        } catch (error) {
+        } catch (error: any) {
+            console.error(error);
             setNotification({
-                message: 'Привяжите данные о Steam в настройках аккаунта',
+                message: error.message === 'Steam ID not configured'
+                    ? 'Привяжите Steam ID в настройках аккаунта'
+                    : 'Не удалось загрузить игры из Steam. Проверьте настройки.',
                 isError: true
             });
             setTimeout(() => setNotification(null), 3500);

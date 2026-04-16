@@ -32,22 +32,36 @@ namespace Syncro.Api.Controllers
                 throw new UnauthorizedAccessException("User is not authenticated.");
             return userId;
         }
-        [HttpGet("apikey")]
-        public ActionResult<object> GetSteamApiKey()
+        [HttpGet("games")]
+        public async Task<ActionResult<object>> GetRecentlyPlayedGames()
         {
             try
             {
+                var userId = GetCurrentUserId();
+                var recommendation = await _steamRecommendationService.GetSteamRecommendationByAccountIdAsync(userId);
+                if (recommendation == null || string.IsNullOrEmpty(recommendation.SteamId))
+                    return BadRequest(new { message = "Steam ID не привязан в настройках аккаунта" });
+
+                var steamId = recommendation.SteamId;
                 var apiKey = _configuration["Steam:ApiKey"];
                 if (string.IsNullOrEmpty(apiKey))
-                {
-                    return NotFound(new { message = "Steam API key not configured on server" });
-                }
-                return Ok(new { apiKey });
+                    return StatusCode(500, new { message = "Steam API key не настроен на сервере" });
+
+                using var httpClient = new HttpClient();
+                var steamUrl = $"https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/?key={apiKey}&steamid={steamId}&format=json";
+
+                var response = await httpClient.GetAsync(steamUrl);
+                var content = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                    return StatusCode((int)response.StatusCode, new { message = "Ошибка при запросе к Steam API", details = content });
+
+                return Ok(content);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving Steam API key");
-                return StatusCode(500, new { message = "Internal server error" });
+                _logger.LogError(ex, "Error fetching games from Steam API");
+                return StatusCode(500, new { message = "Внутренняя ошибка сервера" });
             }
         }
         // GET: api/steamrecommendations/me
