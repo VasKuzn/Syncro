@@ -200,23 +200,66 @@ namespace Syncro.Api.Controllers
 
         // GET: api/steamrecommendations/{accountId}/matches
         [HttpGet("{accountId}/matches")]
-        public async Task<ActionResult<List<AccountNoPasswordWithIdModel>>> GetMatchesByAccountGames(Guid accountId)
+        public async Task<ActionResult<List<SteamMatchAccountModel>>> GetMatchesByAccountGames(Guid accountId)
         {
             try
             {
-                var matchingAccountIds = await _steamRecommendationService.GetSteamRecommendationsByAccountGamesAsync(accountId);
-                var accountModels = new List<AccountNoPasswordWithIdModel>();
-                foreach (var id in matchingAccountIds)
+                // 1. Получаем текущего пользователя и его игры
+                var currentUserRecommendation = await _steamRecommendationService
+                    .GetSteamRecommendationByAccountIdAsync(accountId);
+                if (currentUserRecommendation == null)
+                    return NotFound(new { message = "Steam recommendation not found for current user" });
+
+                var currentUserGameIds = new List<int>();
+                if (int.TryParse(currentUserRecommendation.FirstGame, out int fg)) currentUserGameIds.Add(fg);
+                if (int.TryParse(currentUserRecommendation.SecondGame, out int sg)) currentUserGameIds.Add(sg);
+                if (int.TryParse(currentUserRecommendation.ThirdGame, out int tg)) currentUserGameIds.Add(tg);
+
+                // 2. Получаем ID аккаунтов с совпадениями (уже отфильтровано репозиторием)
+                var matchingAccountIds = await _steamRecommendationService
+                    .GetSteamRecommendationsByAccountGamesAsync(accountId);
+
+                // 3. Исключаем самого себя
+                matchingAccountIds = matchingAccountIds.Where(id => id != accountId).ToList();
+
+                var result = new List<SteamMatchAccountModel>();
+
+                foreach (var matchedAccountId in matchingAccountIds)
                 {
-                    var userAccount = await _accountService.GetAccountByIdAsync(id);
+                    var userAccount = await _accountService.GetAccountByIdAsync(matchedAccountId);
                     var mapped = TranferModelsMapper.AccountNoPasswordWithIdModelMapMapper(userAccount);
-                    accountModels.Add(mapped);
+
+                    // Загружаем рекомендации этого пользователя для определения общих игр
+                    var otherRecommendation = await _steamRecommendationService
+                        .GetSteamRecommendationByAccountIdAsync(matchedAccountId);
+
+                    var commonAppIds = new List<int>();
+                    if (otherRecommendation != null)
+                    {
+                        var otherGameIds = new List<int>();
+                        if (int.TryParse(otherRecommendation.FirstGame, out int ofg)) otherGameIds.Add(ofg);
+                        if (int.TryParse(otherRecommendation.SecondGame, out int osg)) otherGameIds.Add(osg);
+                        if (int.TryParse(otherRecommendation.ThirdGame, out int otg)) otherGameIds.Add(otg);
+
+                        commonAppIds = currentUserGameIds.Intersect(otherGameIds).ToList();
+                    }
+
+                    var matchModel = new SteamMatchAccountModel
+                    {
+                        id = mapped.id,
+                        nickname = mapped.nickname,
+                        email = mapped.email,
+                        firstname = mapped.firstname,
+                        lastname = mapped.lastname,
+                        phonenumber = mapped.phonenumber,
+                        avatar = mapped.avatar,
+                        CommonGameAppIds = commonAppIds
+                    };
+
+                    result.Add(matchModel);
                 }
-                return Ok(accountModels);
-            }
-            catch (ArgumentException ex)
-            {
-                return NotFound(new { message = ex.Message });
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -230,5 +273,9 @@ namespace Syncro.Api.Controllers
     {
         [System.ComponentModel.DataAnnotations.Required]
         public string SteamId { get; set; }
+    }
+    public class SteamMatchAccountModel : AccountNoPasswordWithIdModel
+    {
+        public List<int> CommonGameAppIds { get; set; } = new();
     }
 }

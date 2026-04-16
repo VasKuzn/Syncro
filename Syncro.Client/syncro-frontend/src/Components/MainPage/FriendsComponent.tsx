@@ -167,7 +167,7 @@ const FriendsComponent = ({ friends, onFriendAdded, setFriends, baseUrl, csrfTok
             const parsedData = typeof gamesData === 'string' ? JSON.parse(gamesData) : gamesData;
             const games = parsedData.response?.games || [];
 
-            navigate('/steamrecommendations', { state: { games, baseUrl } });
+            navigate('/steamrecommendations', { state: { games, baseUrl, csrfToken } });
         } catch (error: any) {
             console.error(error);
             setNotification({
