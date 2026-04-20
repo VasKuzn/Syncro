@@ -288,8 +288,10 @@ const VideoCall: React.FC<ExtendedVideoCallProps> = ({
     };
 
     const handleVideoChanged = (newVideoUrl: string, changedBy?: string) => {
-      console.log('VideoCall: CinemaVideoChanged event received:', newVideoUrl, 'Changed by:', changedBy);
-      setCinemaVideoUrl(newVideoUrl);
+      console.log('VideoCall: CinemaVideoChanged event received:', newVideoUrl);
+      setTimeout(() => {
+        setCinemaVideoUrl(newVideoUrl);
+      }, 50);
     };
 
     signalRConnection.on('CinemaModeStarted', handleCinemaStarted);
