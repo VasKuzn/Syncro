@@ -160,6 +160,8 @@ const ChatPage = () => {
     remoteStream,
     localStream,
     rtcConnection,
+    currentRoomId,
+    isWaitingForRemote,
     handleStartCall,
     handleAcceptCall,
     handleRejectCall,
@@ -447,6 +449,10 @@ const ChatPage = () => {
                     localStream={localStream}
                     remoteStream={remoteStream}
                     replaceVideoTrack={rtcConnection.replaceVideoTrack}
+                    roomId={currentRoomId || ''}
+                    signalRConnection={rtcConnection.videoChatHubConnection}
+                    currentUserId={currentUserId || ''}
+                    isWaitingForRemote={isWaitingForRemote}
                   />
                 </motion.div>
               )}

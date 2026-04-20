@@ -779,6 +779,7 @@ const UseRtcConnection = ({
         applyAudioFilters,
         currentVideoQuality,
         currentVolume,
+        videoChatHubConnection: connectionRef.current,
     };
 };
 

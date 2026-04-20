@@ -183,6 +183,72 @@ namespace Syncro.Api.Hubs
                 Console.WriteLine($"Call ended in room {roomId}");
             }
         }
+        public async Task StartCinemaMode(string roomId, string videoUrl)
+        {
+            var userId = Context.UserIdentifier;
+            Console.WriteLine($"StartCinemaMode: Room {roomId}, URL {videoUrl}, User {userId}");
+
+            if (_activeCalls.TryGetValue(roomId, out var callRoom) && callRoom.Participants.Contains(userId))
+            {
+                // Отправляем всем участникам комнаты, включая инициатора
+                await Clients.Group(roomId).SendAsync("CinemaModeStarted", videoUrl, userId);
+                Console.WriteLine($"StartCinemaMode: Cinema mode started in room {roomId}");
+            }
+            else
+            {
+                Console.WriteLine($"StartCinemaMode: User {userId} not authorized for room {roomId}");
+            }
+        }
+
+        public async Task StopCinemaMode(string roomId)
+        {
+            var userId = Context.UserIdentifier;
+            Console.WriteLine($"StopCinemaMode: Room {roomId}, User {userId}");
+
+            if (_activeCalls.TryGetValue(roomId, out var callRoom) && callRoom.Participants.Contains(userId))
+            {
+                await Clients.Group(roomId).SendAsync("CinemaModeStopped", userId);
+                Console.WriteLine($"StopCinemaMode: Cinema mode stopped in room {roomId}");
+            }
+            else
+            {
+                Console.WriteLine($"StopCinemaMode: User {userId} not authorized for room {roomId}");
+            }
+        }
+
+        public async Task SyncPlayerAction(string roomId, string action, double data)
+        {
+            var userId = Context.UserIdentifier;
+            Console.WriteLine($"SyncPlayerAction: Room {roomId}, Action {action}, Data {data}, User {userId}");
+
+            if (_activeCalls.TryGetValue(roomId, out var callRoom) && callRoom.Participants.Contains(userId))
+            {
+                // Отправляем действие остальным участникам комнаты
+                await Clients.OthersInGroup(roomId).SendAsync("PlayerActionReceived", action, data, userId);
+                Console.WriteLine($"SyncPlayerAction: Sent to others in group");
+            }
+            else
+            {
+                Console.WriteLine($"SyncPlayerAction: User {userId} not authorized for room {roomId}");
+            }
+        }
+
+        public async Task ChangeCinemaVideo(string roomId, string newVideoUrl)
+        {
+            var userId = Context.UserIdentifier;
+            Console.WriteLine($"ChangeCinemaVideo: Room {roomId}, URL {newVideoUrl}, User {userId}");
+
+            if (_activeCalls.TryGetValue(roomId, out var callRoom) && callRoom.Participants.Contains(userId))
+            {
+                // Отправляем новый URL всем в комнате
+                await Clients.Group(roomId).SendAsync("CinemaVideoChanged", newVideoUrl, userId);
+                Console.WriteLine($"ChangeCinemaVideo: Video changed in room {roomId}");
+            }
+            else
+            {
+                Console.WriteLine($"ChangeCinemaVideo: User {userId} not authorized for room {roomId}");
+            }
+        }
     }
 
     public class CallRoom
