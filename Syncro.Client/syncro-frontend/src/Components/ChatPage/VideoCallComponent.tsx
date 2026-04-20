@@ -351,13 +351,18 @@ const VideoCall: React.FC<ExtendedVideoCallProps> = ({
     console.log('VideoCall: New URL prompt result:', newUrl);
 
     if (newUrl && newUrl.trim()) {
+      // Оптимистичное обновление локального URL (немедленный фидбэк)
+      setCinemaVideoUrl(newUrl);
+
       if (signalRConnection) {
         console.log('VideoCall: Changing cinema video to:', newUrl);
         signalRConnection.invoke('ChangeCinemaVideo', roomId, newUrl)
-          .catch((err: any) => console.error('VideoCall: Error changing cinema video:', err));
+          .catch((err: any) => {
+            console.error('VideoCall: Error changing cinema video:', err);
+            // В случае ошибки можно откатить, но оставим как есть
+          });
       } else {
         console.warn('VideoCall: No connection, changing video locally');
-        setCinemaVideoUrl(newUrl);
       }
     }
   }, [isCinemaInitiator, signalRConnection, roomId]);
@@ -405,17 +410,15 @@ const VideoCall: React.FC<ExtendedVideoCallProps> = ({
         {cinemaActive && cinemaVideoUrl && (
           <div className="video-box cinema">
             <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-              {/* Используем YouTubeCinema только при наличии signalRConnection */}
               {signalRConnection ? (
                 <YouTubeCinema
-                  key={cinemaVideoUrl}
+                  key={cinemaVideoUrl}  // ← Гарантирует пересоздание при смене ссылки
                   videoUrl={cinemaVideoUrl}
                   roomId={roomId}
                   connection={signalRConnection}
                   isInitiator={isCinemaInitiator}
                 />
               ) : (
-                // Локальный fallback — простой iframe без синхронизации
                 <iframe
                   width="100%"
                   height="100%"
