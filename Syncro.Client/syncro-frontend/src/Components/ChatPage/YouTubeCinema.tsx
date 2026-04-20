@@ -24,17 +24,16 @@ const YouTubeCinema: React.FC<YouTubeCinemaProps> = ({
     const lastRemoteSyncTimeRef = useRef<number>(0);
     const apiLoadingRef = useRef(false);
     const playerInitTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
+    const isMountedRef = useRef(true);
 
     const videoId = extractYouTubeVideoId(videoUrl);
 
-    // Функция проверки готовности плеера к работе
     const isPlayerFunctional = useCallback(() => {
         return playerRef.current &&
             typeof playerRef.current.playVideo === 'function' &&
             typeof playerRef.current.getPlayerState === 'function';
     }, []);
 
-    // Применение удалённой команды
     const applyRemoteAction = useCallback((action: string, data: number) => {
         if (!isPlayerFunctional()) {
             console.warn('YouTubeCinema: Player not functional, caching action', action);
@@ -46,18 +45,15 @@ const YouTubeCinema: React.FC<YouTubeCinemaProps> = ({
             switch (action) {
                 case 'play':
                     playerRef.current.playVideo();
-                    console.log('YouTubeCinema: Remote play');
                     break;
                 case 'pause':
                     playerRef.current.pauseVideo();
-                    console.log('YouTubeCinema: Remote pause');
                     break;
                 case 'seek':
                     const seekTime = Math.max(0, data);
                     playerRef.current.seekTo(seekTime, true);
                     lastRemoteSyncTimeRef.current = seekTime;
                     lastLocalTimeRef.current = seekTime;
-                    console.log('YouTubeCinema: Remote seek to', seekTime);
                     break;
                 default:
                     console.warn('YouTubeCinema: Unknown action', action);
@@ -69,27 +65,22 @@ const YouTubeCinema: React.FC<YouTubeCinemaProps> = ({
         }
     }, [isPlayerFunctional]);
 
-    // Загрузка YouTube API
     useEffect(() => {
         if (!(window as any).YT && !apiLoadingRef.current) {
             apiLoadingRef.current = true;
-            console.log('YouTubeCinema: Loading YouTube API script');
             const tag = document.createElement('script');
             tag.src = 'https://www.youtube.com/iframe_api';
             tag.async = true;
             document.head.appendChild(tag);
             (window as any).onYouTubeIframeAPIReady = () => {
-                console.log('YouTubeCinema: YouTube API ready');
                 window.dispatchEvent(new Event('youtube-api-ready'));
             };
         }
     }, []);
 
-    // Создание плеера при изменении videoId
     useEffect(() => {
         if (!videoId || !containerRef.current) return;
 
-        // Очищаем старый плеер
         if (playerRef.current) {
             try {
                 playerRef.current.destroy();
@@ -103,8 +94,7 @@ const YouTubeCinema: React.FC<YouTubeCinemaProps> = ({
         if (playerInitTimerRef.current) clearTimeout(playerInitTimerRef.current);
 
         const initPlayer = () => {
-            if (!containerRef.current) return;
-            // Очищаем контейнер перед вставкой нового плеера
+            if (!containerRef.current || !isMountedRef.current) return;
             containerRef.current.innerHTML = '';
             try {
                 playerRef.current = new (window as any).YT.Player(containerRef.current, {
@@ -119,9 +109,8 @@ const YouTubeCinema: React.FC<YouTubeCinemaProps> = ({
                     },
                     events: {
                         onReady: () => {
-                            console.log('YouTubeCinema: Player ready');
+                            if (!isMountedRef.current) return;
                             setPlayerReady(true);
-                            // Применяем отложенное действие, если есть
                             if (pendingActionRef.current) {
                                 const { action, data } = pendingActionRef.current;
                                 applyRemoteAction(action, data);
@@ -129,14 +118,13 @@ const YouTubeCinema: React.FC<YouTubeCinemaProps> = ({
                             }
                         },
                         onStateChange: (event: any) => {
-                            if (!isPlayerFunctional() || !connection || isSyncingFromRemote.current) return;
+                            if (!isMountedRef.current || !isPlayerFunctional() || !connection || isSyncingFromRemote.current) return;
                             const state = event.data;
                             let action = '';
                             if (state === 1) action = 'play';
                             else if (state === 2) action = 'pause';
                             else if (state === 0) action = 'ended';
                             if (action) {
-                                console.log('YouTubeCinema: Sending action', action);
                                 connection.invoke('SyncPlayerAction', roomId, action, 0)
                                     .catch((err: any) => console.error('Error sending action', err));
                             }
@@ -144,11 +132,11 @@ const YouTubeCinema: React.FC<YouTubeCinemaProps> = ({
                         onError: (error: any) => console.error('YouTube player error', error),
                     },
                 });
-                console.log('YouTubeCinema: Player created for', videoId);
             } catch (err) {
                 console.error('YouTubeCinema: Failed to create player', err);
-                // Повторная попытка через 500 мс
-                playerInitTimerRef.current = setTimeout(initPlayer, 500);
+                if (isMountedRef.current) {
+                    playerInitTimerRef.current = setTimeout(initPlayer, 500);
+                }
             }
         };
 
@@ -173,43 +161,34 @@ const YouTubeCinema: React.FC<YouTubeCinemaProps> = ({
                 }
                 playerRef.current = null;
             }
-            if (containerRef.current) {
-                containerRef.current.innerHTML = '';
-            }
         };
     }, [videoId, applyRemoteAction, connection, roomId, isPlayerFunctional]);
 
-    // Подписка на события SignalR
     useEffect(() => {
         if (!connection) return;
 
         const handler = (action: string, data: number, senderId?: string) => {
-            console.log('YouTubeCinema: Received', action, data, 'from', senderId);
             applyRemoteAction(action, data);
         };
 
         connection.on('PlayerActionReceived', handler);
-        console.log('YouTubeCinema: Subscribed to PlayerActionReceived');
 
         return () => {
             connection.off('PlayerActionReceived', handler);
-            console.log('YouTubeCinema: Unsubscribed from PlayerActionReceived');
         };
     }, [connection, applyRemoteAction]);
 
-    // Отслеживание локальной перемотки
     useEffect(() => {
         if (!playerReady || !connection || !isPlayerFunctional()) return;
 
         const interval = setInterval(() => {
-            if (!isPlayerFunctional() || isSyncingFromRemote.current) return;
+            if (!isMountedRef.current || !isPlayerFunctional() || isSyncingFromRemote.current) return;
             try {
                 const state = playerRef.current.getPlayerState();
-                if (state === 1) { // PLAYING
+                if (state === 1) {
                     const currentTime = playerRef.current.getCurrentTime();
                     const diff = Math.abs(currentTime - lastLocalTimeRef.current);
                     if (diff > 1.0 && Math.abs(currentTime - lastRemoteSyncTimeRef.current) > 0.5) {
-                        console.log('YouTubeCinema: Sending seek', currentTime);
                         connection.invoke('SyncPlayerAction', roomId, 'seek', currentTime)
                             .catch(console.error);
                         lastLocalTimeRef.current = currentTime;
@@ -224,6 +203,13 @@ const YouTubeCinema: React.FC<YouTubeCinemaProps> = ({
 
         return () => clearInterval(interval);
     }, [playerReady, connection, roomId, isPlayerFunctional]);
+
+    useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
 
     if (!videoId) return <div className="youtube-error">Неверная ссылка на YouTube видео</div>;
 

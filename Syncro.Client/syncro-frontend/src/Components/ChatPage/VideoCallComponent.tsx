@@ -41,7 +41,6 @@ const VideoCall: React.FC<ExtendedVideoCallProps> = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [layout, setLayout] = useState<'grid' | 'pip'>('grid');
 
-  // Состояние кинотеатра (YouTube)
   const [cinemaActive, setCinemaActive] = useState(false);
   const [cinemaVideoUrl, setCinemaVideoUrl] = useState<string | null>(null);
   const [isCinemaInitiator, setIsCinemaInitiator] = useState(false);
@@ -264,7 +263,6 @@ const VideoCall: React.FC<ExtendedVideoCallProps> = ({
 
   const toggleLayout = useCallback(() => setLayout(prev => prev === 'grid' ? 'pip' : 'grid'), []);
 
-  // === Логика кинотеатра (YouTube) ===
   useEffect(() => {
     if (!signalRConnection) {
       console.warn('VideoCall: SignalR connection not available for cinema mode');
@@ -340,32 +338,25 @@ const VideoCall: React.FC<ExtendedVideoCallProps> = ({
   }, [cinemaActive, signalRConnection, roomId]);
 
   const handleChangeCinemaVideo = useCallback(() => {
-    console.log('VideoCall: handleChangeCinemaVideo called. IsInitiator:', isCinemaInitiator);
-
     if (!isCinemaInitiator) {
       console.warn('VideoCall: Only initiator can change video');
       return;
     }
 
     const newUrl = prompt('Введите новую ссылку на YouTube видео:');
-    console.log('VideoCall: New URL prompt result:', newUrl);
+    if (!newUrl?.trim()) return;
 
-    if (newUrl && newUrl.trim()) {
-      // Оптимистичное обновление локального URL (немедленный фидбэк)
-      setCinemaVideoUrl(newUrl);
-
-      if (signalRConnection) {
-        console.log('VideoCall: Changing cinema video to:', newUrl);
-        signalRConnection.invoke('ChangeCinemaVideo', roomId, newUrl)
-          .catch((err: any) => {
-            console.error('VideoCall: Error changing cinema video:', err);
-            // В случае ошибки можно откатить, но оставим как есть
-          });
-      } else {
-        console.warn('VideoCall: No connection, changing video locally');
-      }
+    if (newUrl === cinemaVideoUrl) {
+      return;
     }
-  }, [isCinemaInitiator, signalRConnection, roomId]);
+
+    setCinemaVideoUrl(newUrl);
+
+    if (signalRConnection) {
+      signalRConnection.invoke('ChangeCinemaVideo', roomId, newUrl)
+        .catch((err: any) => console.error('VideoCall: Error changing cinema video:', err));
+    }
+  }, [isCinemaInitiator, cinemaVideoUrl, signalRConnection, roomId]);
 
   return (
     <div ref={containerRef} className={`video-call-container ${isFullscreen ? 'fullscreen' : ''}`}>
@@ -377,7 +368,6 @@ const VideoCall: React.FC<ExtendedVideoCallProps> = ({
       </div>
 
       <div className={`video-body ${layout}`}>
-        {/* Удалённое видео */}
         <div className={`video-box remote ${speaking ? "speaking" : ""}`}>
           {remoteStream && remoteStream.getVideoTracks().some(t => t.enabled) ? (
             <video autoPlay playsInline ref={remoteVideoRef} className="video-stream" />
@@ -393,7 +383,6 @@ const VideoCall: React.FC<ExtendedVideoCallProps> = ({
           )}
         </div>
 
-        {/* Локальное видео */}
         <div ref={localContainerRef} className={`video-box local ${speaking ? "speaking" : ""}`}>
           {localScreenOn ? (
             <video autoPlay muted playsInline ref={localScreenRef} className="video-stream" />
@@ -406,13 +395,11 @@ const VideoCall: React.FC<ExtendedVideoCallProps> = ({
           {layout === 'pip' && <div className="drag-handle" title="Перетащите для перемещения">⋮⋮</div>}
         </div>
 
-        {/* Блок YouTube (третий экран) */}
         {cinemaActive && cinemaVideoUrl && (
           <div className="video-box cinema">
             <div style={{ position: 'relative', width: '100%', height: '100%' }}>
               {signalRConnection ? (
                 <YouTubeCinema
-                  key={cinemaVideoUrl}  // ← Гарантирует пересоздание при смене ссылки
                   videoUrl={cinemaVideoUrl}
                   roomId={roomId}
                   connection={signalRConnection}
