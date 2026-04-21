@@ -197,7 +197,6 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
         handleQualityChange,
         currentVideoQuality: rtcConnection.currentVideoQuality,
         isWaitingForRemote,
-        // NEW: пробрасываем состояние ICE‑соединения
         iceConnectionState: rtcConnection.iceConnectionState,
     };
 };

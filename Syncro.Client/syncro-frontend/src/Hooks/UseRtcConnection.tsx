@@ -74,7 +74,6 @@ const UseRtcConnection = ({
         }
     }, []);
 
-    // NEW: Состояние для отслеживания ICE‑соединения
     const [iceConnectionState, setIceConnectionState] = useState<RTCIceConnectionState>('new');
 
     const ICE_SERVERS: RTCConfiguration = {
@@ -322,7 +321,6 @@ const UseRtcConnection = ({
         };
 
         peerConnection.onconnectionstatechange = () => {
-            // CHANGED: Обновляем состояние ICE‑соединения
             setIceConnectionState(peerConnection.iceConnectionState);
 
             switch (peerConnection.connectionState) {
@@ -529,7 +527,6 @@ const UseRtcConnection = ({
             failedServersRef.current.clear();
             connectionAttemptsRef.current = 0;
 
-            // CHANGED: Сбрасываем состояние ICE при завершении звонка
             setIceConnectionState('closed');
 
             if (connectionRef.current?.state === "Connected" && currentRoomIdRef.current) {
@@ -819,7 +816,6 @@ const UseRtcConnection = ({
         currentVideoQuality,
         currentVolume,
         videoChatHubConnection: connectionRef.current,
-        // NEW: экспортируем состояние ICE‑соединения
         iceConnectionState,
     };
 };

@@ -172,7 +172,7 @@ const ChatPage = () => {
     handleAudioFiltersChange,
     handleQualityChange,
     currentVideoQuality,
-    iceConnectionState, // NEW: получаем состояние
+    iceConnectionState,
   } = useCallManagement({
     currentFriend,
     currentUserId
@@ -454,7 +454,7 @@ const ChatPage = () => {
                     signalRConnection={rtcConnection.videoChatHubConnection}
                     currentUserId={currentUserId || ''}
                     isWaitingForRemote={isWaitingForRemote}
-                    iceConnectionState={iceConnectionState} // NEW: передаём состояние
+                    iceConnectionState={iceConnectionState}
                   />
                 </motion.div>
               )}
