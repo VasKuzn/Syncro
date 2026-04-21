@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import UseRtcConnection, { VideoQuality } from './UseRtcConnection';
 import { UseCallManagementProps } from '../Types/ChatTypes';
-import endCallSound from '../assets/minimizing_call.mp3'; // ← импорт звука
+import endCallSound from '../assets/minimizing_call.mp3';
 
 interface AudioFilters {
     echoCancellation: boolean;
@@ -197,5 +197,7 @@ export const useCallManagement = ({ currentFriend }: UseCallManagementProps, bas
         handleQualityChange,
         currentVideoQuality: rtcConnection.currentVideoQuality,
         isWaitingForRemote,
+        // NEW: пробрасываем состояние ICE‑соединения
+        iceConnectionState: rtcConnection.iceConnectionState,
     };
 };

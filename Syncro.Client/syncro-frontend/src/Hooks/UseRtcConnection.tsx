@@ -74,6 +74,9 @@ const UseRtcConnection = ({
         }
     }, []);
 
+    // NEW: Состояние для отслеживания ICE‑соединения
+    const [iceConnectionState, setIceConnectionState] = useState<RTCIceConnectionState>('new');
+
     const ICE_SERVERS: RTCConfiguration = {
         iceServers: [
             {
@@ -319,6 +322,9 @@ const UseRtcConnection = ({
         };
 
         peerConnection.onconnectionstatechange = () => {
+            // CHANGED: Обновляем состояние ICE‑соединения
+            setIceConnectionState(peerConnection.iceConnectionState);
+
             switch (peerConnection.connectionState) {
                 case "failed":
                     console.error("PeerConnection failed");
@@ -413,54 +419,77 @@ const UseRtcConnection = ({
         try {
             const audioConstraints = audioFilters || { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
             const videoConstraints = VIDEO_QUALITY_SETTINGS[currentVideoQuality];
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: { ...(typeof constraints.video === 'object' ? constraints.video : {}), width: videoConstraints.width, height: videoConstraints.height },
-                audio: audioConstraints
-            });
-            const audioContext = new AudioContext();
-            const source = audioContext.createMediaStreamSource(stream);
-            const gainNode = audioContext.createGain();
-            const destination = audioContext.createMediaStreamDestination();
-            gainNode.gain.value = volume;
-            source.connect(gainNode);
-            gainNode.connect(destination);
-            audioContextRef.current = audioContext;
-            gainNodeRef.current = gainNode;
-            sourceNodeRef.current = source;
-            const processedAudioTrack = destination.stream.getAudioTracks()[0];
-            const processedStream = new MediaStream([processedAudioTrack]);
-            stream.getVideoTracks().forEach(track => processedStream.addTrack(track));
-            processedStreamRef.current = processedStream;
-            localStreamRef.current = processedStream;
-            if (onLocalStream) onLocalStream(processedStream);
-            const videoTrack = processedStream.getVideoTracks()[0];
-            if (videoTrack && peerConnectionRef.current) {
-                const sender = peerConnectionRef.current.getSenders().find(s => s.track?.kind === "video");
-                if (sender) {
-                    const parameters = sender.getParameters();
-                    if (!parameters.encodings) parameters.encodings = [{}];
-                    parameters.encodings[0].maxBitrate = VIDEO_QUALITY_SETTINGS[currentVideoQuality].bitrate;
-                    await sender.setParameters(parameters);
+
+            let stream: MediaStream | null = null;
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { ...(typeof constraints.video === 'object' ? constraints.video : {}), width: videoConstraints.width, height: videoConstraints.height },
+                    audio: audioConstraints
+                });
+            } catch (fullErr) {
+                console.warn("Could not get full stream (video+audio), trying audio only:", fullErr);
+                // Пробуем только аудио
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: false, audio: audioConstraints });
+                } catch (audioErr) {
+                    console.warn("Could not get audio stream, trying video only:", audioErr);
+                    // Пробуем только видео
+                    try {
+                        stream = await navigator.mediaDevices.getUserMedia({ video: { width: videoConstraints.width, height: videoConstraints.height }, audio: false });
+                    } catch (videoErr) {
+                        console.warn("Could not get any media stream, proceeding without local media:", videoErr);
+                        // Ничего не получилось – звонок без локальных треков
+                        stream = null;
+                    }
                 }
             }
-            return processedStream;
-        } catch (err) {
-            console.warn("Error getting full stream, trying audio only:", err);
-            try {
-                const audioStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
-                if (localStreamRef.current) localStreamRef.current.getTracks().forEach(t => t.stop());
-                localStreamRef.current = audioStream;
-                if (onLocalStream) onLocalStream(audioStream);
-                return audioStream;
-            } catch (audioErr) {
-                console.error("Error getting audio stream:", audioErr);
-                if (onCallEnded) onCallEnded("local_error");
-                throw audioErr;
+
+            // Если поток получен, обрабатываем аудио с фильтрами
+            if (stream) {
+                const audioContext = new AudioContext();
+                const source = audioContext.createMediaStreamSource(stream);
+                const gainNode = audioContext.createGain();
+                const destination = audioContext.createMediaStreamDestination();
+                gainNode.gain.value = volume;
+                source.connect(gainNode);
+                gainNode.connect(destination);
+                audioContextRef.current = audioContext;
+                gainNodeRef.current = gainNode;
+                sourceNodeRef.current = source;
+                const processedAudioTrack = destination.stream.getAudioTracks()[0];
+                const processedStream = new MediaStream([processedAudioTrack]);
+                stream.getVideoTracks().forEach(track => processedStream.addTrack(track));
+                processedStreamRef.current = processedStream;
+                localStreamRef.current = processedStream;
+                if (onLocalStream) onLocalStream(processedStream);
+
+                const videoTrack = processedStream.getVideoTracks()[0];
+                if (videoTrack && peerConnectionRef.current) {
+                    const sender = peerConnectionRef.current.getSenders().find(s => s.track?.kind === "video");
+                    if (sender) {
+                        const parameters = sender.getParameters();
+                        if (!parameters.encodings) parameters.encodings = [{}];
+                        parameters.encodings[0].maxBitrate = VIDEO_QUALITY_SETTINGS[currentVideoQuality].bitrate;
+                        await sender.setParameters(parameters);
+                    }
+                }
+                return processedStream;
+            } else {
+                // Без медиа – создаём пустой поток или оставляем null
+                localStreamRef.current = null;
+                if (onLocalStream) onLocalStream(null as any); // можно передать null, если компонент готов
+                return null;
             }
+        } catch (err) {
+            console.error("Unexpected error in getLocalStream:", err);
+            // Если случилось что-то неожиданное – тоже не прерываем звонок
+            localStreamRef.current = null;
+            if (onLocalStream) onLocalStream(null as any);
+            return null;
         } finally {
             getLocalStreamLockRef.current = false;
         }
-    }, [onLocalStream, currentVideoQuality, onCallEnded]);
+    }, [onLocalStream, currentVideoQuality]);
 
     // ====================== ОСНОВНЫЕ ФУНКЦИИ ЗВОНКА ======================
     // Функция завершения звонка (должна быть объявлена до createOffer)
@@ -499,6 +528,9 @@ const UseRtcConnection = ({
             iceCandidateBufferRef.current.clear();
             failedServersRef.current.clear();
             connectionAttemptsRef.current = 0;
+
+            // CHANGED: Сбрасываем состояние ICE при завершении звонка
+            setIceConnectionState('closed');
 
             if (connectionRef.current?.state === "Connected" && currentRoomIdRef.current) {
                 try {
@@ -576,7 +608,11 @@ const UseRtcConnection = ({
             }
             const peerConnection = initializePeerConnection(roomId);
             if (!localStreamRef.current) {
-                try { await getLocalStream(); } catch (err) { console.error("Error getting local stream", err); }
+                try {
+                    await getLocalStream();
+                } catch (err) {
+                    console.error("Error getting local stream, proceeding without media:", err);
+                }
             }
             if (localStreamRef.current) {
                 localStreamRef.current.getTracks().forEach(track => {
@@ -735,6 +771,9 @@ const UseRtcConnection = ({
                     iceCandidateBufferRef.current.clear();
                     currentRoomIdRef.current = null;
 
+                    // CHANGED: Сбрасываем состояние ICE при получении CallEnded
+                    setIceConnectionState('closed');
+
                     onCallEnded?.(senderId);
                 });
                 connection.onclose((error) => { console.warn("SignalR connection closed:", error); setIsConnected(false); });
@@ -780,6 +819,8 @@ const UseRtcConnection = ({
         currentVideoQuality,
         currentVolume,
         videoChatHubConnection: connectionRef.current,
+        // NEW: экспортируем состояние ICE‑соединения
+        iceConnectionState,
     };
 };
 

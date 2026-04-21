@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { VideoCallProps } from "../../Types/ChatTypes";
 import CallSettings from '../../Utils/CallSettings';
 import { VideoQuality } from '../../Hooks/UseRtcConnection';
-import { UseDraggable } from '../../Hooks/useDraggable';
+import { UseDraggable } from '../../Hooks/UseDraggable';
 import { HubConnection } from '@microsoft/signalr';
 import { extractYouTubeVideoId } from '../../Utils/youtubeHelpers';
 import micMuteSound from '../../assets/microphone_mute_sound.mp3';
@@ -18,6 +18,7 @@ interface ExtendedVideoCallProps extends VideoCallProps {
   roomId: string;
   signalRConnection: HubConnection | null;
   currentUserId: string;
+  iceConnectionState?: RTCIceConnectionState; // NEW
 }
 
 const VideoCall: React.FC<ExtendedVideoCallProps> = ({
@@ -33,6 +34,7 @@ const VideoCall: React.FC<ExtendedVideoCallProps> = ({
   roomId,
   signalRConnection,
   currentUserId,
+  iceConnectionState = 'new', // NEW с дефолтным значением
 }) => {
   const [localVideoOn, setLocalVideoOn] = useState(false);
   const [localScreenOn, setLocalScreenOn] = useState(false);
@@ -358,6 +360,10 @@ const VideoCall: React.FC<ExtendedVideoCallProps> = ({
     }
   }, [isCinemaInitiator, cinemaVideoUrl, signalRConnection, roomId]);
 
+  // NEW: Логика определения, показывать ли текст ожидания
+  const isRemoteConnected = iceConnectionState === 'connected' || iceConnectionState === 'completed';
+  const shouldShowWaiting = isWaitingForRemote && !remoteStream && !isRemoteConnected;
+
   return (
     <div ref={containerRef} className={`video-call-container ${isFullscreen ? 'fullscreen' : ''}`}>
       <div className="video-top">
@@ -374,7 +380,8 @@ const VideoCall: React.FC<ExtendedVideoCallProps> = ({
           ) : (
             <div className="remote-avatar-container">
               <img src={remoteAvatarUrl} className="video-avatar" alt="Remote user" />
-              {isWaitingForRemote && <div className="waiting-text">Ждем подключения пользователя..</div>}
+              {/* CHANGED: используем shouldShowWaiting вместо прямого isWaitingForRemote */}
+              {shouldShowWaiting && <div className="waiting-text">Ждем подключения пользователя..</div>}
             </div>
           )}
           <div className="user-name">{remoteUserName}</div>
