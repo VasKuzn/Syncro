@@ -541,7 +541,7 @@ const ChatPage = () => {
                     transition={{ duration: 0.2 }}
                   >
                     <span className="typing-nickname">{typingFriendNickname}</span>
-                    <span className="typing-text"> typing</span>
+                    <span className="typing-text"> печатает</span>
                     <span className="typing-dots">
                       <span>.</span>
                       <span>.</span>
