@@ -1,3 +1,4 @@
+// GroupChatPage.tsx
 import { useRef, useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Message from '../Components/ChatPage/MessageComponent';
@@ -24,6 +25,10 @@ const GroupChatPage = () => {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [messageInputValue, setMessageInputValue] = useState('');
     const [showScrollDownButton, setShowScrollDownButton] = useState(false);
+    const [isTyping, setIsTyping] = useState(false);
+    const [typingUserNickname, setTypingUserNickname] = useState<string | null>(null);
+    const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const currentUserNicknameRef = useRef<string | null>(null);
 
     const {
         groupId,
@@ -38,12 +43,17 @@ const GroupChatPage = () => {
     } = useGroupChatInitialization(baseUrl);
     const safeGroupId = groupId ?? null;
 
+    useEffect(() => {
+        currentUserNicknameRef.current = currentUser?.nickname || null;
+    }, [currentUser?.nickname]);
+
     const {
         messages,
         isUploading,
         isLoadingMessages,
         handleSend: sendMessage,
-        shouldScrollToBottomRef
+        shouldScrollToBottomRef,
+        hub
     } = useGroupMessageManagement({
         groupId: safeGroupId,
         currentUserId,
@@ -70,6 +80,62 @@ const GroupChatPage = () => {
         const isScrolledUp = chat.scrollHeight - chat.scrollTop - chat.clientHeight > 300;
         setShowScrollDownButton(isScrolledUp || search.isSearchActive);
     }, [search.isSearchActive]);
+
+    // Подписка на события печати
+    useEffect(() => {
+        const handleUserTyping = (nickname: string) => {
+            if (nickname !== currentUserNicknameRef.current) {
+                setTypingUserNickname(nickname);
+                setIsTyping(true);
+
+                if (typingTimeoutRef.current) {
+                    clearTimeout(typingTimeoutRef.current);
+                }
+
+                typingTimeoutRef.current = setTimeout(() => {
+                    setIsTyping(false);
+                    setTypingUserNickname(null);
+                }, 5000);
+            }
+        };
+
+        const handleUserStoppedTyping = () => {
+            setIsTyping(false);
+            setTypingUserNickname(null);
+            if (typingTimeoutRef.current) {
+                clearTimeout(typingTimeoutRef.current);
+            }
+        };
+
+        if (hub) {
+            hub.onUserTyping(handleUserTyping);
+            hub.onUserStoppedTyping(handleUserStoppedTyping);
+        }
+
+        return () => {
+            if (typingTimeoutRef.current) {
+                clearTimeout(typingTimeoutRef.current);
+            }
+        };
+    }, [hub]);
+
+    const handleInputTyping = useCallback(async () => {
+        if (!safeGroupId || !currentUser?.nickname) return;
+        try {
+            await hub?.sendTyping(currentUser.nickname);
+        } catch (error) {
+            console.error('Failed to send typing notification:', error);
+        }
+    }, [safeGroupId, currentUser?.nickname, hub]);
+
+    const handleInputStopTyping = useCallback(async () => {
+        if (!safeGroupId) return;
+        try {
+            await hub?.stopTyping();
+        } catch (error) {
+            console.error('Failed to send stop typing notification:', error);
+        }
+    }, [safeGroupId, hub]);
 
     useEffect(() => {
         if (shouldScrollToBottomRef.current && !isLoadingMessages && messages.length > 0) {
@@ -150,14 +216,13 @@ const GroupChatPage = () => {
         );
     };
 
-    if (loading) return <div className="loading">Загрузка...</div>;
+    if (loading) return <div className="loading">Загрузка...</div>; //loading-spinner
     if (error || !group) return <div className="error">{error || 'Группа не найдена'}</div>;
 
     return (
         <MainComponent
             chatContent={
                 <>
-                    {/* Шапка как в обычном чате, но с информацией о группе */}
                     <AnimatePresence>
                         <motion.div
                             className="call-button-container"
@@ -184,7 +249,6 @@ const GroupChatPage = () => {
                                 </div>
                             </div>
 
-                            {/* Аватарки участников в шапке */}
                             <ParticipantsAvatars />
 
                             <AnimatePresence>
@@ -253,7 +317,6 @@ const GroupChatPage = () => {
                         </motion.div>
                     </AnimatePresence>
 
-                    {/* Кнопка скролла вниз */}
                     <AnimatePresence>
                         {showScrollDownButton && (
                             <motion.button
@@ -271,7 +334,6 @@ const GroupChatPage = () => {
                         )}
                     </AnimatePresence>
 
-                    {/* Сообщения */}
                     <motion.div
                         className="messages"
                         ref={chatRef}
@@ -318,12 +380,31 @@ const GroupChatPage = () => {
                         <div ref={messagesEndRef} />
                     </motion.div>
 
-                    {/* Поле ввода сообщения */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2, duration: 0.3 }}
                     >
+                        <AnimatePresence>
+                            {isTyping && typingUserNickname && (
+                                <motion.div
+                                    className="typing-indicator"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: 10 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    <span className="typing-nickname">{typingUserNickname}</span>
+                                    <span className="typing-text"> печатает</span>
+                                    <span className="typing-dots">
+                                        <span>.</span>
+                                        <span>.</span>
+                                        <span>.</span>
+                                    </span>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
                         <MessageInput
                             onSend={handleSend}
                             isUploading={isUploading}
@@ -331,6 +412,8 @@ const GroupChatPage = () => {
                             onValueChange={setMessageInputValue}
                             onToggleEmojiPicker={() => setShowEmojiPicker(!showEmojiPicker)}
                             showEmojiPicker={showEmojiPicker}
+                            onTyping={handleInputTyping}
+                            onStopTyping={handleInputStopTyping}
                         />
                         {showEmojiPicker && (
                             <motion.div

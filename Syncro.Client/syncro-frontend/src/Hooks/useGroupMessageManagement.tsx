@@ -1,3 +1,4 @@
+// useGroupMessageManagement.ts
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { PersonalMessageData } from '../Types/ChatTypes';
 import { UserInfo } from '../Types/UserInfo';
@@ -23,7 +24,6 @@ export const useGroupMessageManagement = ({
     const processedMessagesRef = useRef<Set<string>>(new Set());
     const shouldScrollToBottomRef = useRef(false);
 
-    // Обновляем одно сообщение в списке
     const updateMessage = useCallback((message: PersonalMessageData) => {
         setMessages(prev => {
             const existingIndex = prev.findIndex(m => m.id === message.id);
@@ -36,7 +36,6 @@ export const useGroupMessageManagement = ({
         });
     }, []);
 
-    // Загружаем историю сообщений
     const loadMessages = useCallback(async () => {
         if (!groupId) return;
 
@@ -51,17 +50,15 @@ export const useGroupMessageManagement = ({
         } finally {
             setIsLoadingMessages(false);
         }
-    }, [groupId]);
+    }, [groupId, baseUrl]);
 
     useEffect(() => {
         loadMessages();
     }, [loadMessages]);
 
-    // Обработчик новых сообщений
     const handleNewMessage = useCallback((message: PersonalMessageData) => {
         const messageId = message.id;
 
-        // Проверяем, не обработали ли уже это сообщение
         if (processedMessagesRef.current.has(messageId)) {
             return;
         }
@@ -70,10 +67,8 @@ export const useGroupMessageManagement = ({
         updateMessage(message);
     }, [updateMessage]);
 
-    // Подключаемся к SignalR
-    useGroupMessagesHub(groupId, handleNewMessage, baseUrl);
+    const hub = useGroupMessagesHub(groupId, handleNewMessage, baseUrl);
 
-    // Отправка сообщения
     const handleSend = useCallback(async (text: string, media?: {
         file: File;
         mediaUrl: string;
@@ -82,7 +77,6 @@ export const useGroupMessageManagement = ({
     }) => {
         if (!currentUserId || !groupId) return;
 
-        // Создаем временное сообщение для оптимистичного UI
         const tempMessageId = crypto.randomUUID();
         const tempMessage: PersonalMessageData = {
             id: tempMessageId,
@@ -101,16 +95,14 @@ export const useGroupMessageManagement = ({
             mediaUrl: media?.mediaUrl,
             mediaType: media?.mediaType,
             fileName: media?.fileName,
-            isEncrypted: false // Группы пока без шифрования
+            isEncrypted: false
         };
 
-        // Добавляем временное сообщение
         setMessages(prev => [...prev, tempMessage]);
         shouldScrollToBottomRef.current = true;
 
         try {
             if (media?.file) {
-                // Отправляем медиа
                 setIsUploading(true);
                 await uploadMediaMessage(tempMessageId, {
                     file: media.file,
@@ -121,17 +113,15 @@ export const useGroupMessageManagement = ({
                     isEncrypted: false
                 }, baseUrl, csrfToken);
             } else {
-                // Отправляем текстовое сообщение
                 await createMessage(tempMessage, baseUrl, csrfToken);
             }
         } catch (error) {
             console.error('Failed to send message:', error);
-            // Удаляем временное сообщение при ошибке
             setMessages(prev => prev.filter(m => m.id !== tempMessageId));
         } finally {
             setIsUploading(false);
         }
-    }, [currentUserId, groupId, currentUser]);
+    }, [currentUserId, groupId, currentUser, baseUrl, csrfToken]);
 
     return {
         messages,
@@ -140,6 +130,7 @@ export const useGroupMessageManagement = ({
         isLoadingMessages,
         loadMessages,
         handleSend,
-        shouldScrollToBottomRef
+        shouldScrollToBottomRef,
+        hub // возвращаем hub для доступа к методам печати
     };
 };

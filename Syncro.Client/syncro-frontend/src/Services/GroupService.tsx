@@ -70,7 +70,7 @@ export const createGroup = async (data: {
     conferenceName: string,
     groupConferenceType: number  // пока просто 0
 }, baseUrl: string, csrfToken: string | null): Promise<GroupConference> => {
-
+    debugger;
     const response = await fetch(`${baseUrl}/api/groupconference`, {
         method: 'POST',
         credentials: 'include',

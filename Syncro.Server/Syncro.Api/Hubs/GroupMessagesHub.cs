@@ -19,6 +19,17 @@ namespace Syncro.Api.Hubs
         {
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"groupConference-{groupConferenceId}");
         }
+        public async Task SendTyping(string groupConferenceId, string userNickname)
+        {
+            await Clients.GroupExcept($"groupConference-{groupConferenceId}", Context.ConnectionId)
+                .SendAsync("UserTyping", userNickname);
+        }
+
+        public async Task StopTyping(string groupConferenceId)
+        {
+            await Clients.GroupExcept($"groupConference-{groupConferenceId}", Context.ConnectionId)
+                .SendAsync("UserStoppedTyping");
+        }
 
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
