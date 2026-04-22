@@ -1,4 +1,3 @@
-// GroupChatPage.tsx
 import { useRef, useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Message from '../Components/ChatPage/MessageComponent';

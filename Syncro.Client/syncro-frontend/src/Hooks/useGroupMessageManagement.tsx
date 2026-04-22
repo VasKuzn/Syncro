@@ -1,4 +1,3 @@
-// useGroupMessageManagement.ts
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { PersonalMessageData } from '../Types/ChatTypes';
 import { UserInfo } from '../Types/UserInfo';
