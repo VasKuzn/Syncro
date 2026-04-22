@@ -1,10 +1,8 @@
-// useGroupMessagesHub.ts
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { HubConnection, HubConnectionBuilder, HttpTransportType } from '@microsoft/signalr';
 import { PersonalMessageData } from '../Types/ChatTypes';
 
-type TypingCallback = (nickname: string) => void;
-type StopTypingCallback = () => void;
+type TypingUsersChangedCallback = (users: Set<string>) => void;
 
 const useGroupMessagesHub = (
     groupId: string | null,
@@ -13,12 +11,48 @@ const useGroupMessagesHub = (
 ) => {
     const connectionRef = useRef<HubConnection | null>(null);
     const onMessageReceivedRef = useRef(onMessageReceived);
-    const typingCallbacksRef = useRef<TypingCallback[]>([]);
-    const stopTypingCallbacksRef = useRef<StopTypingCallback[]>([]);
+    const typingUsersRef = useRef<Set<string>>(new Set());
+    const typingTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+    const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
+    const typingCallbacksRef = useRef<TypingUsersChangedCallback[]>([]);
 
     useEffect(() => {
         onMessageReceivedRef.current = onMessageReceived;
     }, [onMessageReceived]);
+
+    const notifyTypingUsersChanged = useCallback((users: Set<string>) => {
+        setTypingUsers(new Set(users));
+        typingCallbacksRef.current.forEach(cb => cb(users));
+    }, []);
+
+    const addTypingUser = useCallback((nickname: string) => {
+        if (typingTimeoutsRef.current.has(nickname)) {
+            clearTimeout(typingTimeoutsRef.current.get(nickname)!);
+        }
+
+        const newSet = new Set(typingUsersRef.current);
+        newSet.add(nickname);
+        typingUsersRef.current = newSet;
+        notifyTypingUsersChanged(newSet);
+
+        const timeout = setTimeout(() => {
+            removeTypingUser(nickname);
+        }, 5000);
+        typingTimeoutsRef.current.set(nickname, timeout);
+    }, [notifyTypingUsersChanged]);
+
+    const removeTypingUser = useCallback((nickname: string) => {
+        const timeout = typingTimeoutsRef.current.get(nickname);
+        if (timeout) {
+            clearTimeout(timeout);
+            typingTimeoutsRef.current.delete(nickname);
+        }
+
+        const newSet = new Set(typingUsersRef.current);
+        newSet.delete(nickname);
+        typingUsersRef.current = newSet;
+        notifyTypingUsersChanged(newSet);
+    }, [notifyTypingUsersChanged]);
 
     const registerEventHandlers = useCallback((connection: HubConnection) => {
         connection.off("ReceiveGroupMessage");
@@ -32,13 +66,17 @@ const useGroupMessagesHub = (
         });
 
         connection.on("UserTyping", (nickname: string) => {
-            typingCallbacksRef.current.forEach(cb => cb(nickname));
+            addTypingUser(nickname);
         });
 
-        connection.on("UserStoppedTyping", () => {
-            stopTypingCallbacksRef.current.forEach(cb => cb());
+        connection.on("UserStoppedTyping", (nickname?: string) => {
+            if (nickname) {
+                removeTypingUser(nickname);
+            } else {
+                typingUsersRef.current.forEach(user => removeTypingUser(user));
+            }
         });
-    }, [groupId]);
+    }, [groupId, addTypingUser, removeTypingUser]);
 
     useEffect(() => {
         const startConnection = async () => {
@@ -71,6 +109,9 @@ const useGroupMessagesHub = (
         startConnection();
 
         return () => {
+            typingTimeoutsRef.current.forEach(timeout => clearTimeout(timeout));
+            typingTimeoutsRef.current.clear();
+
             if (connectionRef.current) {
                 connectionRef.current.invoke("UnsubscribeFromGroupConference", groupId)
                     .then(() => connectionRef.current?.stop())
@@ -97,19 +138,16 @@ const useGroupMessagesHub = (
         }
     }, [groupId]);
 
-    const onUserTyping = useCallback((callback: TypingCallback) => {
+    const onTypingUsersChanged = useCallback((callback: TypingUsersChangedCallback) => {
         typingCallbacksRef.current.push(callback);
-    }, []);
-
-    const onUserStoppedTyping = useCallback((callback: StopTypingCallback) => {
-        stopTypingCallbacksRef.current.push(callback);
+        callback(typingUsersRef.current);
     }, []);
 
     return {
         sendTyping,
         stopTyping,
-        onUserTyping,
-        onUserStoppedTyping
+        onTypingUsersChanged,
+        typingUsers,
     };
 };
 

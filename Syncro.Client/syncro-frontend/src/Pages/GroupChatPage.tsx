@@ -25,9 +25,7 @@ const GroupChatPage = () => {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [messageInputValue, setMessageInputValue] = useState('');
     const [showScrollDownButton, setShowScrollDownButton] = useState(false);
-    const [isTyping, setIsTyping] = useState(false);
-    const [typingUserNickname, setTypingUserNickname] = useState<string | null>(null);
-    const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
     const currentUserNicknameRef = useRef<string | null>(null);
 
     const {
@@ -81,42 +79,16 @@ const GroupChatPage = () => {
         setShowScrollDownButton(isScrolledUp || search.isSearchActive);
     }, [search.isSearchActive]);
 
-    // Подписка на события печати
     useEffect(() => {
-        const handleUserTyping = (nickname: string) => {
-            if (nickname !== currentUserNicknameRef.current) {
-                setTypingUserNickname(nickname);
-                setIsTyping(true);
-
-                if (typingTimeoutRef.current) {
-                    clearTimeout(typingTimeoutRef.current);
-                }
-
-                typingTimeoutRef.current = setTimeout(() => {
-                    setIsTyping(false);
-                    setTypingUserNickname(null);
-                }, 5000);
-            }
-        };
-
-        const handleUserStoppedTyping = () => {
-            setIsTyping(false);
-            setTypingUserNickname(null);
-            if (typingTimeoutRef.current) {
-                clearTimeout(typingTimeoutRef.current);
-            }
-        };
-
         if (hub) {
-            hub.onUserTyping(handleUserTyping);
-            hub.onUserStoppedTyping(handleUserStoppedTyping);
+            hub.onTypingUsersChanged((users) => {
+                const filtered = new Set(users);
+                if (currentUserNicknameRef.current) {
+                    filtered.delete(currentUserNicknameRef.current);
+                }
+                setTypingUsers(filtered);
+            });
         }
-
-        return () => {
-            if (typingTimeoutRef.current) {
-                clearTimeout(typingTimeoutRef.current);
-            }
-        };
     }, [hub]);
 
     const handleInputTyping = useCallback(async () => {
@@ -182,7 +154,6 @@ const GroupChatPage = () => {
     }) => {
         setMessageInputValue('');
         setShowEmojiPicker(false);
-
         await sendMessage(text, media);
     }, [sendMessage]);
 
@@ -216,7 +187,22 @@ const GroupChatPage = () => {
         );
     };
 
-    if (loading) return <div className="loading">Загрузка...</div>; //loading-spinner
+    const getTypingText = () => {
+        const usersArray = Array.from(typingUsers);
+        if (usersArray.length === 0) return null;
+
+        if (usersArray.length === 1) {
+            return `${usersArray[0]} печатает`;
+        } else if (usersArray.length === 2) {
+            return `${usersArray[0]} и ${usersArray[1]} печатают`;
+        } else {
+            return `${usersArray[0]} и ещё ${usersArray.length - 1} печатают`;
+        }
+    };
+
+    const typingIndicatorText = getTypingText();
+
+    if (loading) return <div className="loading">Загрузка...</div>;
     if (error || !group) return <div className="error">{error || 'Группа не найдена'}</div>;
 
     return (
@@ -232,9 +218,7 @@ const GroupChatPage = () => {
                             transition={{ duration: 0.3, ease: "easeOut" }}
                         >
                             <div className="group-info-header">
-                                <div
-                                    className="group-profile-preview"
-                                >
+                                <div className="group-profile-preview">
                                     <img
                                         src={group.conferenceAvatar || logo}
                                         alt={group.conferenceName}
@@ -386,7 +370,7 @@ const GroupChatPage = () => {
                         transition={{ delay: 0.2, duration: 0.3 }}
                     >
                         <AnimatePresence>
-                            {isTyping && typingUserNickname && (
+                            {typingIndicatorText && (
                                 <motion.div
                                     className="typing-indicator"
                                     initial={{ opacity: 0, y: 10 }}
@@ -394,8 +378,7 @@ const GroupChatPage = () => {
                                     exit={{ opacity: 0, y: 10 }}
                                     transition={{ duration: 0.2 }}
                                 >
-                                    <span className="typing-nickname">{typingUserNickname}</span>
-                                    <span className="typing-text"> печатает</span>
+                                    <span className="typing-text">{typingIndicatorText}</span>
                                     <span className="typing-dots">
                                         <span>.</span>
                                         <span>.</span>
