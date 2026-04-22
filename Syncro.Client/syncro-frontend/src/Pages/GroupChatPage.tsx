@@ -79,18 +79,6 @@ const GroupChatPage = () => {
         setShowScrollDownButton(isScrolledUp || search.isSearchActive);
     }, [search.isSearchActive]);
 
-    useEffect(() => {
-        if (hub) {
-            hub.onTypingUsersChanged((users) => {
-                const filtered = new Set(users);
-                if (currentUserNicknameRef.current) {
-                    filtered.delete(currentUserNicknameRef.current);
-                }
-                setTypingUsers(filtered);
-            });
-        }
-    }, [hub]);
-
     const handleInputTyping = useCallback(async () => {
         if (!safeGroupId || !currentUser?.nickname) return;
         try {
@@ -99,6 +87,19 @@ const GroupChatPage = () => {
             console.error('Failed to send typing notification:', error);
         }
     }, [safeGroupId, currentUser?.nickname, hub]);
+
+    const handleTypingUsersChanged = useCallback((users: Set<string>) => {
+        const filtered = new Set(users);
+        if (currentUserNicknameRef.current) {
+            filtered.delete(currentUserNicknameRef.current);
+        }
+        setTypingUsers(filtered);
+    }, []);
+    useEffect(() => {
+        if (hub) {
+            hub.onTypingUsersChanged(handleTypingUsersChanged);
+        }
+    }, [hub, handleTypingUsersChanged]);
 
     const handleInputStopTyping = useCallback(async () => {
         if (!safeGroupId) return;

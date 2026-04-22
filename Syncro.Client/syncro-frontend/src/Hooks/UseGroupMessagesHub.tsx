@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useEffect, useRef, useCallback, useState, useMemo } from 'react';
 import { HubConnection, HubConnectionBuilder, HttpTransportType } from '@microsoft/signalr';
 import { PersonalMessageData } from '../Types/ChatTypes';
 
@@ -140,15 +140,16 @@ const useGroupMessagesHub = (
 
     const onTypingUsersChanged = useCallback((callback: TypingUsersChangedCallback) => {
         typingCallbacksRef.current.push(callback);
-        callback(typingUsersRef.current);
     }, []);
 
-    return {
+    const hubApi = useMemo(() => ({
         sendTyping,
         stopTyping,
         onTypingUsersChanged,
         typingUsers,
-    };
+    }), [sendTyping, stopTyping, onTypingUsersChanged, typingUsers]);
+
+    return hubApi;
 };
 
 export default useGroupMessagesHub;
