@@ -24,6 +24,7 @@ const GroupChatPage = () => {
     const emojiPickerRef = useRef<HTMLDivElement>(null);
     const messageRefs = useRef<Map<number, HTMLDivElement>>(new Map());
     const { baseUrl, csrfToken } = useCsrf();
+    const isStartingCallRef = useRef(false);
 
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [messageInputValue, setMessageInputValue] = useState('');
@@ -79,7 +80,6 @@ const GroupChatPage = () => {
         handleAudioFiltersChange,
         replaceVideoTrack,
         currentVideoQuality,
-        // Входящий звонок
         incomingCall,
         incomingInitiatorId,
         acceptIncomingCall,
@@ -92,8 +92,21 @@ const GroupChatPage = () => {
     });
     // =====================================
 
-    // Находим данные инициатора входящего звонка
+    // Находим данные инициатора входящего звонка для отображения в CallWindow
     const initiatorUser = participants.find(p => p.id === incomingInitiatorId);
+
+    // Обработчик нажатия кнопки "Начать звонок" – передаём массив ID участников группы
+    const handleStartCall = useCallback(() => {
+        if (isStartingCallRef.current) return; // уже идёт процесс
+        isStartingCallRef.current = true;
+        const participantIds = participants
+            .map(p => p.id?.toString())
+            .filter((id): id is string => id !== undefined);
+
+        startCall(participantIds).finally(() => {
+            isStartingCallRef.current = false;
+        });
+    }, [participants, startCall]);
 
     const scrollToBottom = useCallback(() => {
         if (messagesEndRef.current) {
@@ -236,6 +249,7 @@ const GroupChatPage = () => {
             return `${usersArray[0]} и ещё ${usersArray.length - 1} печатают`;
         }
     };
+
     const typingIndicatorText = getTypingText();
 
     if (loading) return <div className="loading">Загрузка...</div>;
@@ -274,7 +288,7 @@ const GroupChatPage = () => {
                             {/* ===== КНОПКА ГРУППОВОГО ЗВОНКА ===== */}
                             <motion.button
                                 className="call-button"
-                                onClick={startCall}
+                                onClick={handleStartCall}
                                 disabled={!group || !currentUser || inCall}
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}

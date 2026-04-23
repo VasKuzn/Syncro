@@ -34,16 +34,15 @@ export const useGroupCallManagement = ({
         autoGainControl: true
     });
 
-    // Состояния для входящего звонка
+    // Входящий звонок
     const [incomingCall, setIncomingCall] = useState(false);
     const [incomingRoomId, setIncomingRoomId] = useState<string | null>(null);
     const [incomingInitiatorId, setIncomingInitiatorId] = useState<string | null>(null);
 
     const hubConnectionRef = useRef<HubConnection | null>(null);
     const aloneTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const connectionPromiseRef = useRef<Promise<HubConnection> | null>(null);
+    const isMountedRef = useRef(false);
 
-    // Коллбэки для RTC
     const handleRemoteStream = useCallback((userId: string, stream: MediaStream) => {
         setRemoteStreams(prev => new Map(prev).set(userId, stream));
     }, []);
@@ -56,7 +55,6 @@ export const useGroupCallManagement = ({
         });
     }, []);
 
-    // Инициализация RTC-хука (будет вызван, когда roomId определён)
     const rtcConnection = useGroupRtcConnection({
         roomId: roomId || '',
         signalRConnection: hubConnectionRef.current,
@@ -66,73 +64,83 @@ export const useGroupCallManagement = ({
         currentUserId,
     });
 
-    // Подключение к SignalR (единожды)
-    const getHubConnection = useCallback(async (): Promise<HubConnection> => {
-        if (hubConnectionRef.current?.state === 'Connected') {
-            return hubConnectionRef.current;
-        }
-        if (!connectionPromiseRef.current) {
-            connectionPromiseRef.current = (async () => {
-                const connection = new HubConnectionBuilder()
-                    .withUrl(`${baseUrl}/videochathub`, {
-                        transport: 1,
-                        withCredentials: true
-                    })
-                    .configureLogging(LogLevel.Warning)
-                    .withAutomaticReconnect()
-                    .build();
-
-                connection.on("UserJoinedGroupCall", (userId: string) => {
-                    setParticipants(prev => new Set(prev).add(userId));
-                    if (userId !== currentUserId) {
-                        rtcConnection.callUser(userId);
-                    }
-                });
-
-                connection.on("UserLeftGroupCall", (userId: string) => {
-                    setParticipants(prev => {
-                        const next = new Set(prev);
-                        next.delete(userId);
-                        return next;
-                    });
-                    handleRemoteStreamRemoved(userId);
-                });
-
-                connection.on("GroupCallStarted", (groupId: string, callRoomId: string, initiatorId: string) => {
-                    if (groupId === groupId) {
-                        setIncomingCall(true);
-                        setIncomingRoomId(callRoomId);
-                        setIncomingInitiatorId(initiatorId);
-                    }
-                });
-
-                connection.on("UserConnected", () => {
-                    // Можно оставить пустым, чтобы избежать предупреждений
-                });
-
-                await connection.start();
-                console.log('Group call SignalR connected');
-                return connection;
-            })();
-        }
-        return connectionPromiseRef.current;
-    }, [baseUrl, currentUserId, groupId, rtcConnection, handleRemoteStreamRemoved]);
-
+    // ОДНОКРАТНАЯ инициализация SignalR при монтировании
     useEffect(() => {
-        getHubConnection().then(conn => {
-            hubConnectionRef.current = conn;
-        }).catch(console.error);
+        isMountedRef.current = true;
+        const connection = new HubConnectionBuilder()
+            .withUrl(`${baseUrl}/videochathub`, { transport: 1, withCredentials: true })
+            .configureLogging(LogLevel.Warning)
+            .withAutomaticReconnect()
+            .build();
+
+        connection.on("UserJoinedGroupCall", (userId: string) => {
+            console.log(`👤 [GROUP CALL] User ${userId} joined`);
+            setParticipants(prev => new Set(prev).add(userId));
+            if (userId !== currentUserId) {
+                console.log(`📞 [SIGNAL] Calling new participant: ${userId}`);
+                rtcConnection.callUser(userId);
+            }
+        });
+
+        connection.on("UserLeftGroupCall", (userId: string) => {
+            console.log(`🚪 [GROUP CALL] User ${userId} left`);
+            setParticipants(prev => {
+                const next = new Set(prev);
+                next.delete(userId);
+                return next;
+            });
+            handleRemoteStreamRemoved(userId);
+        });
+
+        connection.on("GroupCallStarted", (incomingGroupId: string, callRoomId: string, initiatorId: string) => {
+            console.log(`📞 [GROUP CALL] Incoming call for room: ${callRoomId}, from: ${initiatorId}`);
+            if (incomingGroupId === groupId) {
+                setIncomingCall(true);
+                setIncomingRoomId(callRoomId);
+                setIncomingInitiatorId(initiatorId);
+            }
+        });
+
+        connection.on("UserConnected", () => { });
+
+        connection.start()
+            .then(() => {
+                if (isMountedRef.current) {
+                    hubConnectionRef.current = connection;
+                    console.log('✅ [GROUP CALL] SignalR connected');
+                }
+            })
+            .catch(err => console.error('❌ [GROUP CALL] SignalR start error', err));
 
         return () => {
+            isMountedRef.current = false;
             if (hubConnectionRef.current) {
                 hubConnectionRef.current.stop().catch(console.error);
                 hubConnectionRef.current = null;
-                connectionPromiseRef.current = null;
             }
         };
-    }, [getHubConnection]);
+    }, [baseUrl, groupId]);
 
-    // Таймер для одного участника
+    // Ожидание готового соединения
+    const waitForConnection = useCallback(async (): Promise<HubConnection> => {
+        if (hubConnectionRef.current?.state === 'Connected') {
+            return hubConnectionRef.current;
+        }
+        return new Promise((resolve, reject) => {
+            const checkInterval = setInterval(() => {
+                if (hubConnectionRef.current?.state === 'Connected') {
+                    clearInterval(checkInterval);
+                    resolve(hubConnectionRef.current);
+                }
+            }, 100);
+            setTimeout(() => {
+                clearInterval(checkInterval);
+                reject(new Error('Timeout waiting for SignalR connection'));
+            }, 15000);
+        });
+    }, []);
+
+    // Таймер одиночества
     useEffect(() => {
         if (participants.size === 1 && inCall) {
             aloneTimerRef.current = setTimeout(() => {
@@ -150,43 +158,78 @@ export const useGroupCallManagement = ({
     }, [participants.size, inCall]);
 
     const joinCall = useCallback(async (callRoomId: string) => {
-        const connection = await getHubConnection();
-        setRoomId(callRoomId);
-        await connection.invoke("JoinGroupCall", callRoomId);
-        await rtcConnection.getLocalStream(
-            { video: true, audio: true },
-            audioFilters,
-            microphoneVolume
-        );
-        setInCall(true);
-        setIncomingCall(false);
-        setIncomingRoomId(null);
-        setIncomingInitiatorId(null);
-    }, [getHubConnection, rtcConnection, audioFilters, microphoneVolume]);
+        try {
+            const connection = await waitForConnection();
+            console.log(`🔗 [GROUP CALL] Joining room: ${callRoomId}`);
+            setRoomId(callRoomId);
+            setInCall(true);
 
-    const startCall = useCallback(async () => {
-        if (!groupId) return;
-        const connection = await getHubConnection();
+            await connection.invoke("JoinGroupCall", callRoomId);
 
-        // Проверяем, нет ли уже активного звонка в группе
-        const existingRoomId = await connection.invoke<string>("GetActiveGroupCall", groupId);
-        if (existingRoomId) {
-            await joinCall(existingRoomId);
-            return;
+            // Асинхронно запрашиваем медиа
+            rtcConnection.getLocalStream(
+                { video: true, audio: true },
+                audioFilters,
+                microphoneVolume
+            ).catch(mediaErr => console.warn('⚠️ Local media failed:', mediaErr));
+
+            // Инициируем соединения со всеми текущими участниками
+            participants.forEach(id => {
+                if (id !== currentUserId) {
+                    rtcConnection.callUser(id);
+                }
+            });
+
+            setIncomingCall(false);
+            setIncomingRoomId(null);
+            setIncomingInitiatorId(null);
+        } catch (err) {
+            console.error('❌ Failed to join call', err);
+            setRoomId(null);
+            setInCall(false);
         }
+    }, [waitForConnection, rtcConnection, audioFilters, microphoneVolume, participants, currentUserId]);
 
-        // Создаём новый звонок; передаём всех участников группы, чтобы сервер оповестил их
-        const participantIds = Array.from(participants);
-        const newRoomId = await connection.invoke<string>("CreateGroupCall", groupId, participantIds);
-        setRoomId(newRoomId);
-        await connection.invoke("JoinGroupCall", newRoomId);
-        await rtcConnection.getLocalStream(
-            { video: true, audio: true },
-            audioFilters,
-            microphoneVolume
-        );
-        setInCall(true);
-    }, [groupId, getHubConnection, rtcConnection, audioFilters, microphoneVolume, participants, joinCall]);
+    const startCall = useCallback(async (participantIds: string[]) => {
+        if (!groupId) return;
+        try {
+            const connection = await waitForConnection();
+
+            const existingRoomId = await connection.invoke<string>("GetActiveGroupCall", groupId);
+            if (existingRoomId) {
+                console.log(`🚀 [GROUP CALL] Joining existing active call: ${existingRoomId}`);
+                await joinCall(existingRoomId);
+                return;
+            }
+
+            const newRoomId = await connection.invoke<string>("CreateGroupCall", groupId, participantIds);
+            console.log(`🚀 [GROUP CALL] Created new room: ${newRoomId}`);
+            if (!newRoomId) throw new Error("No roomId returned");
+
+            setRoomId(newRoomId);
+            setInCall(true);
+
+            await connection.invoke("JoinGroupCall", newRoomId);
+
+            rtcConnection.getLocalStream(
+                { video: true, audio: true },
+                audioFilters,
+                microphoneVolume
+            ).catch(mediaErr => console.warn('⚠️ Local media failed:', mediaErr));
+
+            // Звоним всем участникам (кроме себя) – на случай, если кто-то уже в комнате
+            participantIds.forEach(id => {
+                if (id !== currentUserId) {
+                    rtcConnection.callUser(id);
+                }
+            });
+
+        } catch (err) {
+            console.error('❌ Failed to start group call', err);
+            setRoomId(null);
+            setInCall(false);
+        }
+    }, [groupId, waitForConnection, rtcConnection, audioFilters, microphoneVolume, joinCall, currentUserId]);
 
     const acceptIncomingCall = useCallback(async () => {
         if (!incomingRoomId) return;
@@ -236,13 +279,11 @@ export const useGroupCallManagement = ({
         startCall,
         joinCall,
         endCall: handleEndCall,
-        // Входящий звонок
         incomingCall,
         incomingRoomId,
         incomingInitiatorId,
         acceptIncomingCall,
         rejectIncomingCall,
-        // Управление медиа
         microphoneVolume,
         audioFilters,
         handleVolumeChange,

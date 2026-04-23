@@ -325,11 +325,12 @@ export const useGroupRtcConnection = ({
     }, []);
 
     // Вызов нового участника (инициация)
-    const callUser = useCallback(async (targetUserId: string) => {
+    const callUser = useCallback((targetUserId: string) => {
+        if (targetUserId === currentUserId) return;
         if (peerConnectionsRef.current.has(targetUserId)) return;
+        console.log(`📞 [RTC] Calling user ${targetUserId}`);
         createPeerConnection(targetUserId);
-        // Negotiation needed запустится автоматически при добавлении треков
-    }, [createPeerConnection]);
+    }, [createPeerConnection, currentUserId]);
 
     // Завершение всех соединений
     const endCall = useCallback(() => {
