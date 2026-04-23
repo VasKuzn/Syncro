@@ -11,8 +11,11 @@ import '../Styles/Chat.css';
 import '../Styles/GroupChat.css';
 import searchIcon from '../assets/search3.png';
 import arrowDownIcon from '../assets/arrow-down.png';
+import callIcon from '../assets/callicon.svg';
 import logo from '../assets/logo.png';
 import { useCsrf } from '../Contexts/CsrfProvider';
+import { useGroupCallManagement } from '../Hooks/UseGroupCallMenagement';
+import GroupVideoCall from '../Components/GroupChat/GroupVideoCall';
 
 const GroupChatPage = () => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -59,6 +62,31 @@ const GroupChatPage = () => {
 
     const search = useChatSearch(messages);
 
+    // ========== ГРУППОВОЙ ЗВОНОК ==========
+    const {
+        inCall,
+        roomId,
+        participants: callParticipants,
+        remoteStreams,
+        localStream,
+        startCall,
+        endCall,
+        microphoneVolume,
+        audioFilters,
+        handleVolumeChange,
+        handleQualityChange,
+        handleAudioFiltersChange,
+        replaceVideoTrack,
+        signalRConnection,
+        currentVideoQuality,
+    } = useGroupCallManagement({
+        groupId: group?.id?.toString() || groupId?.toString() || '',
+        currentUserId: currentUserId?.toString() || '',
+        currentUser: currentUser || { nickname: '', avatar: '' },
+        baseUrl,
+    });
+    // =====================================
+
     const scrollToBottom = useCallback(() => {
         if (messagesEndRef.current) {
             messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -94,6 +122,7 @@ const GroupChatPage = () => {
         }
         setTypingUsers(filtered);
     }, []);
+
     useEffect(() => {
         if (hub) {
             hub.onTypingUsersChanged(handleTypingUsersChanged);
@@ -234,6 +263,19 @@ const GroupChatPage = () => {
                             </div>
 
                             <ParticipantsAvatars />
+
+                            {/* ===== КНОПКА ГРУППОВОГО ЗВОНКА ===== */}
+                            <motion.button
+                                className="call-button"
+                                onClick={startCall}
+                                disabled={!group || !currentUser || inCall}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                title="Начать групповой звонок"
+                            >
+                                <img className="call-state-img" src={callIcon} alt="Вызов" width="16" height="16" />
+                            </motion.button>
+                            {/* =================================== */}
 
                             <AnimatePresence>
                                 {search.isSearchActive && (
@@ -411,6 +453,37 @@ const GroupChatPage = () => {
                             </motion.div>
                         )}
                     </motion.div>
+
+                    {/* ===== МОДАЛЬНОЕ ОКНО ГРУППОВОГО ЗВОНКА ===== */}
+                    <AnimatePresence>
+                        {inCall && roomId && (
+                            <GroupVideoCall
+                                roomId={roomId}
+                                participants={Array.from(callParticipants).map(id => {
+                                    const participant = participants.find(p => p.id === id);
+                                    return {
+                                        id,
+                                        nickname: participant?.nickname || id,
+                                        avatar: participant?.avatar,
+                                    };
+                                })}
+                                localStream={localStream}
+                                remoteStreams={remoteStreams}
+                                onEndCall={endCall}
+                                localUserName={currentUser?.nickname || ''}
+                                localAvatarUrl={currentUser?.avatar || logo}
+                                replaceVideoTrack={replaceVideoTrack}
+                                currentUserId={currentUserId?.toString() || ''}
+                                onVolumeChange={handleVolumeChange}
+                                onQualityChange={handleQualityChange}
+                                onAudioFiltersChange={handleAudioFiltersChange}
+                                currentVolume={microphoneVolume}
+                                currentQuality={currentVideoQuality}
+                                currentFilters={audioFilters}
+                            />
+                        )}
+                    </AnimatePresence>
+                    {/* =========================================== */}
                 </>
             }
             friends={friends}

@@ -7,7 +7,10 @@ namespace Syncro.Api.Hubs
     {
         private static readonly ConcurrentDictionary<string, string> _userConnections = new();
         private static readonly ConcurrentDictionary<string, CallRoom> _activeCalls = new();
-        private static readonly ConcurrentDictionary<string, HashSet<string>> _roomParticipants = new(); // Отслеживаем кто в комнате
+        private static readonly ConcurrentDictionary<string, HashSet<string>> _roomParticipants = new();
+
+        // ========== ГРУППОВЫЕ ЗВОНКИ ==========
+        private static readonly ConcurrentDictionary<string, GroupCallRoom> _groupCalls = new();
 
         public override async Task OnConnectedAsync()
         {
@@ -29,7 +32,7 @@ namespace Syncro.Api.Hubs
                 Console.WriteLine($"User disconnected: {userId}");
                 _userConnections.TryRemove(userId, out _);
 
-                // Очищаем комнаты при отключении
+                // Очищаем персональные комнаты
                 foreach (var room in _activeCalls.Values)
                 {
                     if (room.Participants.Contains(userId))
@@ -37,10 +40,20 @@ namespace Syncro.Api.Hubs
                         await EndCall(room.RoomId);
                     }
                 }
+
+                // Удаляем пользователя из всех групповых комнат
+                foreach (var room in _groupCalls.Values)
+                {
+                    if (room.Participants.Contains(userId))
+                    {
+                        await LeaveGroupCallInternal(room.RoomId, userId);
+                    }
+                }
             }
             await base.OnDisconnectedAsync(exception);
         }
 
+        // ==================== ПЕРСОНАЛЬНЫЕ ЗВОНКИ (существующие) ====================
         public async Task<string> CreateCall(string targetUserId)
         {
             var callerId = Context.UserIdentifier;
@@ -58,14 +71,10 @@ namespace Syncro.Api.Hubs
                 CreatedAt = DateTime.UtcNow
             };
 
-            // Добавляем вызывающего в комнату
             await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
-
-            // Инициализируем список участников комнаты
             _roomParticipants[roomId] = new HashSet<string> { callerId };
 
             Console.WriteLine($"Room created: {roomId}, Caller: {callerId}, Target: {targetUserId}");
-
             return roomId;
         }
 
@@ -81,16 +90,12 @@ namespace Syncro.Api.Hubs
             {
                 await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
 
-                // Добавляем пользователя в список участников комнаты
                 if (!_roomParticipants.ContainsKey(roomId))
-                {
                     _roomParticipants[roomId] = new HashSet<string>();
-                }
                 _roomParticipants[roomId].Add(userId);
 
                 Console.WriteLine($"User {userId} joined room {roomId}");
 
-                // Уведомляем другого участника о присоединении
                 var otherParticipant = callRoom.Participants.FirstOrDefault(p => p != userId);
                 if (otherParticipant != null && _roomParticipants[roomId].Contains(otherParticipant))
                 {
@@ -138,9 +143,8 @@ namespace Syncro.Api.Hubs
         {
             var userId = Context.UserIdentifier;
 
-            // Проверяем, что оба участника в комнате
             if (_roomParticipants.TryGetValue(roomId, out var participants) &&
-                participants.Count == 2) // Оба участника присоединились
+                participants.Count == 2)
             {
                 Console.WriteLine($"SendIceCandidate: User {userId} sending ICE to room {roomId} (both participants ready)");
 
@@ -157,8 +161,6 @@ namespace Syncro.Api.Hubs
             else
             {
                 Console.WriteLine($"SendIceCandidate: User {userId} sending ICE to room {roomId} - waiting for other participant");
-                // Можно буферизовать на сервере, если нужно
-                // Но лучше буферизовать на клиенте, как мы уже делаем
             }
         }
 
@@ -169,7 +171,6 @@ namespace Syncro.Api.Hubs
 
             if (_activeCalls.TryRemove(roomId, out var callRoom))
             {
-                // Удаляем из отслеживания участников
                 _roomParticipants.TryRemove(roomId, out _);
 
                 foreach (var participantId in callRoom.Participants)
@@ -183,6 +184,109 @@ namespace Syncro.Api.Hubs
                 Console.WriteLine($"Call ended in room {roomId}");
             }
         }
+
+        // ==================== ГРУППОВЫЕ ЗВОНКИ ====================
+        public async Task<string> CreateGroupCall(string groupId)
+        {
+            var userId = Context.UserIdentifier;
+            if (string.IsNullOrEmpty(userId)) return null;
+
+            var roomId = Guid.NewGuid().ToString();
+            var room = new GroupCallRoom
+            {
+                RoomId = roomId,
+                GroupId = groupId,
+                Participants = new HashSet<string> { userId },
+                CreatedAt = DateTime.UtcNow
+            };
+            _groupCalls[roomId] = room;
+
+            await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
+            Console.WriteLine($"Group call room created: {roomId} for group {groupId} by user {userId}");
+
+            return roomId;
+        }
+
+        public async Task JoinGroupCall(string roomId)
+        {
+            var userId = Context.UserIdentifier;
+            if (string.IsNullOrEmpty(userId)) return;
+
+            if (_groupCalls.TryGetValue(roomId, out var room))
+            {
+                if (room.Participants.Add(userId))
+                {
+                    await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
+                    // Уведомляем всех о новом участнике
+                    await Clients.Group(roomId).SendAsync("UserJoinedGroupCall", userId);
+                    Console.WriteLine($"User {userId} joined group call {roomId}");
+                }
+            }
+        }
+
+        public async Task LeaveGroupCall(string roomId)
+        {
+            var userId = Context.UserIdentifier;
+            if (string.IsNullOrEmpty(userId)) return;
+            await LeaveGroupCallInternal(roomId, userId);
+        }
+
+        private async Task LeaveGroupCallInternal(string roomId, string userId)
+        {
+            if (_groupCalls.TryGetValue(roomId, out var room))
+            {
+                if (room.Participants.Remove(userId))
+                {
+                    await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomId);
+                    await Clients.Group(roomId).SendAsync("UserLeftGroupCall", userId);
+                    Console.WriteLine($"User {userId} left group call {roomId}");
+
+                    if (room.Participants.Count == 0)
+                    {
+                        _groupCalls.TryRemove(roomId, out _);
+                        Console.WriteLine($"Group call room {roomId} removed (empty)");
+                    }
+                }
+            }
+        }
+
+        public async Task SendOfferToUser(string roomId, string targetUserId, string offer)
+        {
+            var userId = Context.UserIdentifier;
+            if (_groupCalls.TryGetValue(roomId, out var room) && room.Participants.Contains(userId))
+            {
+                if (_userConnections.TryGetValue(targetUserId, out var connectionId))
+                {
+                    await Clients.Client(connectionId).SendAsync("ReceiveGroupOffer", userId, roomId, offer);
+                }
+            }
+        }
+
+        public async Task SendAnswerToUser(string roomId, string targetUserId, string answer)
+        {
+            var userId = Context.UserIdentifier;
+            if (_groupCalls.TryGetValue(roomId, out var room) && room.Participants.Contains(userId))
+            {
+                if (_userConnections.TryGetValue(targetUserId, out var connectionId))
+                {
+                    await Clients.Client(connectionId).SendAsync("ReceiveGroupAnswer", userId, roomId, answer);
+                }
+            }
+        }
+
+        public async Task SendIceCandidateToUser(string roomId, string targetUserId, string candidate)
+        {
+            var userId = Context.UserIdentifier;
+            if (_groupCalls.TryGetValue(roomId, out var room) && room.Participants.Contains(userId))
+            {
+                if (_userConnections.TryGetValue(targetUserId, out var connectionId))
+                {
+                    await Clients.Client(connectionId).SendAsync("ReceiveGroupIceCandidate", userId, roomId, candidate);
+                }
+            }
+        }
+
+        // ==================== CINEMA MODE (существующий) ====================
         public async Task StartCinemaMode(string roomId, string videoUrl)
         {
             var userId = Context.UserIdentifier;
@@ -190,7 +294,6 @@ namespace Syncro.Api.Hubs
 
             if (_activeCalls.TryGetValue(roomId, out var callRoom) && callRoom.Participants.Contains(userId))
             {
-                // Отправляем всем участникам комнаты, включая инициатора
                 await Clients.Group(roomId).SendAsync("CinemaModeStarted", videoUrl, userId);
                 Console.WriteLine($"StartCinemaMode: Cinema mode started in room {roomId}");
             }
@@ -223,7 +326,6 @@ namespace Syncro.Api.Hubs
 
             if (_activeCalls.TryGetValue(roomId, out var callRoom) && callRoom.Participants.Contains(userId))
             {
-                // Отправляем действие остальным участникам комнаты
                 await Clients.OthersInGroup(roomId).SendAsync("PlayerActionReceived", action, data, userId);
                 Console.WriteLine($"SyncPlayerAction: Sent to others in group");
             }
@@ -240,7 +342,6 @@ namespace Syncro.Api.Hubs
 
             if (_activeCalls.TryGetValue(roomId, out var callRoom) && callRoom.Participants.Contains(userId))
             {
-                // Отправляем новый URL всем в комнате
                 await Clients.Group(roomId).SendAsync("CinemaVideoChanged", newVideoUrl, userId);
                 Console.WriteLine($"ChangeCinemaVideo: Video changed in room {roomId}");
             }
@@ -251,11 +352,20 @@ namespace Syncro.Api.Hubs
         }
     }
 
+    // ==================== ВСПОМОГАТЕЛЬНЫЕ КЛАССЫ ====================
     public class CallRoom
     {
         public string RoomId { get; set; }
         public string InitiatorId { get; set; }
         public List<string> Participants { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+
+    public class GroupCallRoom
+    {
+        public string RoomId { get; set; }
+        public string GroupId { get; set; }
+        public HashSet<string> Participants { get; set; } = new();
         public DateTime CreatedAt { get; set; }
     }
 }
