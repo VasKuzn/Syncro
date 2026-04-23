@@ -16,6 +16,7 @@ import logo from '../assets/logo.png';
 import { useCsrf } from '../Contexts/CsrfProvider';
 import { useGroupCallManagement } from '../Hooks/UseGroupCallMenagement';
 import GroupVideoCall from '../Components/GroupChat/GroupVideoCall';
+import CallWindow from '../Components/ChatPage/CallWindowComponent';
 
 const GroupChatPage = () => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -77,15 +78,22 @@ const GroupChatPage = () => {
         handleQualityChange,
         handleAudioFiltersChange,
         replaceVideoTrack,
-        signalRConnection,
         currentVideoQuality,
+        // Входящий звонок
+        incomingCall,
+        incomingInitiatorId,
+        acceptIncomingCall,
+        rejectIncomingCall,
     } = useGroupCallManagement({
-        groupId: group?.id?.toString() || groupId?.toString() || '',
+        groupId: groupId?.toString() || '',
         currentUserId: currentUserId?.toString() || '',
         currentUser: currentUser || { nickname: '', avatar: '' },
         baseUrl,
     });
     // =====================================
+
+    // Находим данные инициатора входящего звонка
+    const initiatorUser = participants.find(p => p.id === incomingInitiatorId);
 
     const scrollToBottom = useCallback(() => {
         if (messagesEndRef.current) {
@@ -228,7 +236,6 @@ const GroupChatPage = () => {
             return `${usersArray[0]} и ещё ${usersArray.length - 1} печатают`;
         }
     };
-
     const typingIndicatorText = getTypingText();
 
     if (loading) return <div className="loading">Загрузка...</div>;
@@ -271,9 +278,9 @@ const GroupChatPage = () => {
                                 disabled={!group || !currentUser || inCall}
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
-                                title="Начать групповой звонок"
+                                title={inCall ? "Звонок активен" : "Начать групповой звонок"}
                             >
-                                <img className="call-state-img" src={callIcon} alt="Вызов" width="16" height="16" />
+                                <img src={callIcon} alt="Вызов" width="16" height="16" />
                             </motion.button>
                             {/* =================================== */}
 
@@ -454,7 +461,20 @@ const GroupChatPage = () => {
                         )}
                     </motion.div>
 
-                    {/* ===== МОДАЛЬНОЕ ОКНО ГРУППОВОГО ЗВОНКА ===== */}
+                    {/* ===== ОКНО ВХОДЯЩЕГО ЗВОНКА ===== */}
+                    <AnimatePresence>
+                        {incomingCall && initiatorUser && (
+                            <CallWindow
+                                isIncoming={true}
+                                userName={initiatorUser.nickname}
+                                avatarUrl={initiatorUser.avatar || logo}
+                                onAccept={acceptIncomingCall}
+                                onReject={rejectIncomingCall}
+                            />
+                        )}
+                    </AnimatePresence>
+
+                    {/* ===== МОДАЛЬНОЕ ОКНО АКТИВНОГО ЗВОНКА ===== */}
                     <AnimatePresence>
                         {inCall && roomId && (
                             <GroupVideoCall
@@ -483,7 +503,6 @@ const GroupChatPage = () => {
                             />
                         )}
                     </AnimatePresence>
-                    {/* =========================================== */}
                 </>
             }
             friends={friends}

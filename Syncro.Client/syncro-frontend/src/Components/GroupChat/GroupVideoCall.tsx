@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import CallSettings from '../../Utils/CallSettings';
 import { VideoQuality } from '../../Hooks/UseGroupRtcConnection';
@@ -8,8 +8,6 @@ interface GroupParticipant {
     id: string;
     nickname: string;
     avatar?: string;
-    isLocal?: boolean;
-    stream?: MediaStream;
 }
 
 interface GroupVideoCallProps {
@@ -58,7 +56,6 @@ const GroupVideoCall: React.FC<GroupVideoCallProps> = ({
     const screenStreamRef = useRef<MediaStream | null>(null);
     const currentVideoTrackRef = useRef<MediaStreamTrack | null>(null);
 
-    // Звуки
     const audioMicMute = useRef<HTMLAudioElement | null>(null);
     const audioMicOn = useRef<HTMLAudioElement | null>(null);
     const audioCamera = useRef<HTMLAudioElement | null>(null);
@@ -73,13 +70,11 @@ const GroupVideoCall: React.FC<GroupVideoCallProps> = ({
         audioRef.current?.play().catch(() => { });
     };
 
-    // Обновление локального видео
     useEffect(() => {
         if (localVideoRef.current && localStream) {
             localVideoRef.current.srcObject = localStream;
             localVideoRef.current.play().catch(console.warn);
         }
-        // Обновляем состояние треков
         if (localStream) {
             const videoTrack = localStream.getVideoTracks()[0];
             setLocalVideoOn(!!videoTrack && videoTrack.enabled);
@@ -88,7 +83,6 @@ const GroupVideoCall: React.FC<GroupVideoCallProps> = ({
         }
     }, [localStream]);
 
-    // Обновление удалённых видео при изменении remoteStreams
     useEffect(() => {
         remoteStreams.forEach((stream, userId) => {
             const videoElement = remoteVideoRefs.current.get(userId);
@@ -116,7 +110,7 @@ const GroupVideoCall: React.FC<GroupVideoCallProps> = ({
                         replaceVideoTrack(newTrack);
                         setLocalVideoOn(true);
                     })
-                    .catch(err => console.error("Error getting camera:", err));
+                    .catch(console.error);
             }
         }
     }, [localStream, localScreenOn, replaceVideoTrack]);
@@ -141,22 +135,17 @@ const GroupVideoCall: React.FC<GroupVideoCallProps> = ({
                 if (!screenTrack) return;
 
                 currentVideoTrackRef.current = localStream?.getVideoTracks()[0] || null;
-
                 if (localStream) {
                     if (currentVideoTrackRef.current) {
                         localStream.removeTrack(currentVideoTrackRef.current);
                     }
                     localStream.addTrack(screenTrack);
                 }
-
                 replaceVideoTrack(screenTrack);
                 screenStreamRef.current = screenStream;
                 setLocalScreenOn(true);
                 setLocalVideoOn(false);
-
-                screenTrack.onended = () => {
-                    handleStopScreenShare();
-                };
+                screenTrack.onended = () => handleStopScreenShare();
             } catch (err) {
                 console.error("Screen share failed", err);
             }
@@ -195,57 +184,57 @@ const GroupVideoCall: React.FC<GroupVideoCallProps> = ({
         return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
     }, []);
 
-    // Обнаружение говорящего (упрощённо)
-    useEffect(() => {
-        if (!localStream) return;
-        const audioContext = new AudioContext();
-        const analyser = audioContext.createAnalyser();
-        const source = audioContext.createMediaStreamSource(localStream);
-        source.connect(analyser);
+    // Формируем список всех участников (локальный + удалённые)
+    const allParticipants = useMemo(() => {
+        const list: Array<GroupParticipant & { isLocal?: boolean; stream?: MediaStream }> = [
+            {
+                id: currentUserId,
+                nickname: localUserName,
+                avatar: localAvatarUrl,
+                isLocal: true,
+                stream: localStream || undefined,
+            },
+            ...participants
+                .filter(p => p.id !== currentUserId)
+                .map(p => ({
+                    ...p,
+                    isLocal: false,
+                    stream: remoteStreams.get(p.id),
+                }))
+        ];
+        return list;
+    }, [currentUserId, localUserName, localAvatarUrl, localStream, participants, remoteStreams]);
 
-        const dataArray = new Uint8Array(analyser.frequencyBinCount);
-        const checkSpeaking = () => {
-            analyser.getByteFrequencyData(dataArray);
-            const average = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
-            if (average > 30) {
-                setSpeakingUserId(currentUserId);
-            } else if (speakingUserId === currentUserId) {
-                setSpeakingUserId(null);
-            }
-            requestAnimationFrame(checkSpeaking);
-        };
-        checkSpeaking();
-
-        return () => {
-            audioContext.close();
-        };
-    }, [localStream, currentUserId, speakingUserId]);
-
-    // Формируем список всех участников для отображения
-    const allParticipants: GroupParticipant[] = [
-        {
-            id: currentUserId,
-            nickname: localUserName,
-            avatar: localAvatarUrl,
-            isLocal: true,
-            stream: localStream || undefined,
-        },
-        ...participants
-            .filter(p => p.id !== currentUserId)
-            .map(p => ({
-                ...p,
-                isLocal: false,
-                stream: remoteStreams.get(p.id),
-            }))
-    ];
-
-    // Определяем, показывает ли участник экран
-    const isScreenShare = (participant: GroupParticipant) => {
-        const stream = participant.stream;
+    const isScreenShare = (stream?: MediaStream) => {
         if (!stream) return false;
         const videoTrack = stream.getVideoTracks()[0];
         return videoTrack?.label?.toLowerCase().includes('screen') ||
             videoTrack?.label?.toLowerCase().includes('display');
+    };
+
+    // Определяем CSS-свойства для сетки в зависимости от количества участников
+    const gridStyle = useMemo(() => {
+        const count = allParticipants.length;
+        if (count <= 1) {
+            return { gridTemplateColumns: '1fr' };
+        }
+        if (count === 2) {
+            return { gridTemplateColumns: '1fr 1fr' };
+        }
+        if (count === 3) {
+            return { gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr' };
+        }
+        // Для 4 и более — автоматически подбираем количество колонок
+        const cols = Math.ceil(Math.sqrt(count));
+        return { gridTemplateColumns: `repeat(${cols}, 1fr)` };
+    }, [allParticipants.length]);
+
+    // Для случая 3 участников нужно явно указать, что третий элемент занимает весь второй ряд
+    const getTileStyle = (index: number) => {
+        if (allParticipants.length === 3 && index === 2) {
+            return { gridColumn: 'span 2' };
+        }
+        return {};
     };
 
     return (
@@ -262,15 +251,16 @@ const GroupVideoCall: React.FC<GroupVideoCallProps> = ({
                 </div>
             </div>
 
-            <div className="video-grid">
-                {allParticipants.map(participant => {
+            <div className="video-grid" style={gridStyle}>
+                {allParticipants.map((participant, index) => {
                     const isSpeaking = speakingUserId === participant.id;
-                    const screenSharing = isScreenShare(participant);
+                    const screenSharing = isScreenShare(participant.stream);
 
                     return (
                         <div
                             key={participant.id}
                             className={`video-tile ${isSpeaking ? 'speaking' : ''} ${screenSharing ? 'screen-share' : ''}`}
+                            style={getTileStyle(index)}
                         >
                             {participant.isLocal ? (
                                 <video

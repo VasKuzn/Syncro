@@ -9,8 +9,9 @@ namespace Syncro.Api.Hubs
         private static readonly ConcurrentDictionary<string, CallRoom> _activeCalls = new();
         private static readonly ConcurrentDictionary<string, HashSet<string>> _roomParticipants = new();
 
-        // ========== ГРУППОВЫЕ ЗВОНКИ ==========
+        // Групповые звонки
         private static readonly ConcurrentDictionary<string, GroupCallRoom> _groupCalls = new();
+        private static readonly ConcurrentDictionary<string, string> _activeGroupCallByGroup = new();
 
         public override async Task OnConnectedAsync()
         {
@@ -41,7 +42,7 @@ namespace Syncro.Api.Hubs
                     }
                 }
 
-                // Удаляем пользователя из всех групповых комнат
+                // Удаляем пользователя из групповых комнат
                 foreach (var room in _groupCalls.Values)
                 {
                     if (room.Participants.Contains(userId))
@@ -53,7 +54,7 @@ namespace Syncro.Api.Hubs
             await base.OnDisconnectedAsync(exception);
         }
 
-        // ==================== ПЕРСОНАЛЬНЫЕ ЗВОНКИ (существующие) ====================
+        // ==================== ПЕРСОНАЛЬНЫЕ ЗВОНКИ ====================
         public async Task<string> CreateCall(string targetUserId)
         {
             var callerId = Context.UserIdentifier;
@@ -62,7 +63,6 @@ namespace Syncro.Api.Hubs
             if (string.IsNullOrEmpty(callerId)) return null;
 
             var roomId = Guid.NewGuid().ToString();
-
             _activeCalls[roomId] = new CallRoom
             {
                 RoomId = roomId,
@@ -186,10 +186,21 @@ namespace Syncro.Api.Hubs
         }
 
         // ==================== ГРУППОВЫЕ ЗВОНКИ ====================
-        public async Task<string> CreateGroupCall(string groupId)
+        /// <summary>
+        /// Создает новый групповой звонок или возвращает существующий, если он уже активен.
+        /// participantIds – список всех участников группы, необходим для отправки уведомлений.
+        /// </summary>
+        public async Task<string> CreateGroupCall(string groupId, List<string> participantIds)
         {
             var userId = Context.UserIdentifier;
             if (string.IsNullOrEmpty(userId)) return null;
+
+            // Проверяем, нет ли уже активного звонка в этой группе
+            if (_activeGroupCallByGroup.TryGetValue(groupId, out var existingRoomId))
+            {
+                Console.WriteLine($"Group {groupId} already has an active call: {existingRoomId}");
+                return existingRoomId;
+            }
 
             var roomId = Guid.NewGuid().ToString();
             var room = new GroupCallRoom
@@ -200,11 +211,29 @@ namespace Syncro.Api.Hubs
                 CreatedAt = DateTime.UtcNow
             };
             _groupCalls[roomId] = room;
+            _activeGroupCallByGroup[groupId] = roomId;
 
             await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
             Console.WriteLine($"Group call room created: {roomId} for group {groupId} by user {userId}");
 
+            // Оповещаем всех участников группы (кроме инициатора)
+            foreach (var participantId in participantIds.Where(id => id != userId))
+            {
+                if (_userConnections.TryGetValue(participantId, out var connectionId))
+                {
+                    await Clients.Client(connectionId).SendAsync("GroupCallStarted", groupId, roomId, userId);
+                }
+            }
+
             return roomId;
+        }
+
+        /// <summary>
+        /// Возвращает ID активного группового звонка для указанной группы или null.
+        /// </summary>
+        public string? GetActiveGroupCall(string groupId)
+        {
+            return _activeGroupCallByGroup.TryGetValue(groupId, out var roomId) ? roomId : null;
         }
 
         public async Task JoinGroupCall(string roomId)
@@ -244,6 +273,7 @@ namespace Syncro.Api.Hubs
                     if (room.Participants.Count == 0)
                     {
                         _groupCalls.TryRemove(roomId, out _);
+                        _activeGroupCallByGroup.TryRemove(room.GroupId, out _);
                         Console.WriteLine($"Group call room {roomId} removed (empty)");
                     }
                 }
