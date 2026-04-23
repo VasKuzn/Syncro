@@ -1,4 +1,5 @@
 import { HubConnection } from "@microsoft/signalr";
+import { VideoQuality } from "../Hooks/UseGroupRtcConnection";
 
 export interface GroupConf {
     id: string;
@@ -14,14 +15,20 @@ export interface GroupParticipant {
 
 export interface GroupVideoCallProps {
     roomId: string;
-    groupId: string;
-    participants: GroupParticipant[];
+    participants: { id: string; nickname: string; avatar: string }[];
     localStream: MediaStream | null;
     remoteStreams: Map<string, MediaStream>;
     onEndCall: () => void;
     localUserName: string;
     localAvatarUrl: string;
     replaceVideoTrack: (track: MediaStreamTrack) => void;
-    signalRConnection: HubConnection | null;
     currentUserId: string;
+    onVolumeChange: (volume: number) => void;
+    onQualityChange: (quality: VideoQuality) => void;
+    onAudioFiltersChange: (filters: { echoCancellation: boolean; noiseSuppression: boolean; autoGainControl: boolean }) => void;
+    currentVolume: number;
+    currentQuality: VideoQuality;
+    currentFilters: {
+        echoCancellation: boolean; noiseSuppression: boolean; autoGainControl: boolean
+    }
 }

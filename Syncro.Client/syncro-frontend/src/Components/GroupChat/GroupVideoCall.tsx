@@ -1,32 +1,8 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import CallSettings from '../../Utils/CallSettings';
-import { VideoQuality } from '../../Hooks/UseGroupRtcConnection';
 import micMuteSound from '../../assets/microphone_mute_sound.mp3';
-
-interface GroupParticipant {
-    id: string;
-    nickname: string;
-    avatar?: string;
-}
-
-interface GroupVideoCallProps {
-    roomId: string;
-    participants: GroupParticipant[];
-    localStream: MediaStream | null;
-    remoteStreams: Map<string, MediaStream>;
-    onEndCall: () => void;
-    localUserName: string;
-    localAvatarUrl: string;
-    replaceVideoTrack: (track: MediaStreamTrack) => void;
-    currentUserId: string;
-    onVolumeChange: (volume: number) => void;
-    onQualityChange: (quality: VideoQuality) => void;
-    onAudioFiltersChange: (filters: { echoCancellation: boolean; noiseSuppression: boolean; autoGainControl: boolean }) => void;
-    currentVolume: number;
-    currentQuality: VideoQuality;
-    currentFilters: { echoCancellation: boolean; noiseSuppression: boolean; autoGainControl: boolean };
-}
+import { GroupVideoCallProps } from '../../Types/GroupConf';
 
 const GroupVideoCall: React.FC<GroupVideoCallProps> = ({
     participants,
@@ -186,24 +162,12 @@ const GroupVideoCall: React.FC<GroupVideoCallProps> = ({
 
     // Формируем список всех участников (локальный + удалённые)
     const allParticipants = useMemo(() => {
-        const list: Array<GroupParticipant & { isLocal?: boolean; stream?: MediaStream }> = [
-            {
-                id: currentUserId,
-                nickname: localUserName,
-                avatar: localAvatarUrl,
-                isLocal: true,
-                stream: localStream || undefined,
-            },
-            ...participants
-                .filter(p => p.id !== currentUserId)
-                .map(p => ({
-                    ...p,
-                    isLocal: false,
-                    stream: remoteStreams.get(p.id),
-                }))
-        ];
-        return list;
-    }, [currentUserId, localUserName, localAvatarUrl, localStream, participants, remoteStreams]);
+        return participants.map(p => ({
+            ...p,
+            isLocal: p.id === currentUserId,
+            stream: p.id === currentUserId ? (localStream || undefined) : remoteStreams.get(p.id)
+        }));
+    }, [participants, remoteStreams, localStream, currentUserId]);
 
     const isScreenShare = (stream?: MediaStream) => {
         if (!stream) return false;

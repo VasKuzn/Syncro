@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect, useState } from 'react';
+import { useRef, useCallback, useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Message from '../Components/ChatPage/MessageComponent';
 import MessageInput from '../Components/ChatPage/MessageInput';
@@ -94,7 +94,26 @@ const GroupChatPage = () => {
 
     // Находим данные инициатора входящего звонка для отображения в CallWindow
     const initiatorUser = participants.find(p => p.id === incomingInitiatorId);
-
+    const callParticipantsDisplay = useMemo(() => {
+        const display = [];
+        // Добавляем локального пользователя
+        display.push({
+            id: currentUserId?.toString() || '',
+            nickname: currentUser?.nickname || 'Вы',
+            avatar: currentUser?.avatar || logo,
+        });
+        // Добавляем остальных участников звонка (из callParticipants, исключая себя)
+        Array.from(callParticipants).forEach(id => {
+            if (id === currentUserId?.toString()) return;
+            const user = participants.find(p => p.id === id);
+            display.push({
+                id,
+                nickname: user?.nickname || id,
+                avatar: user?.avatar || logo,
+            });
+        });
+        return display;
+    }, [callParticipants, currentUserId, currentUser, participants]);
     // Обработчик нажатия кнопки "Начать звонок" – передаём массив ID участников группы
     const handleStartCall = useCallback(() => {
         if (isStartingCallRef.current) return; // уже идёт процесс
@@ -493,14 +512,7 @@ const GroupChatPage = () => {
                         {inCall && roomId && (
                             <GroupVideoCall
                                 roomId={roomId}
-                                participants={Array.from(callParticipants).map(id => {
-                                    const participant = participants.find(p => p.id === id);
-                                    return {
-                                        id,
-                                        nickname: participant?.nickname || id,
-                                        avatar: participant?.avatar,
-                                    };
-                                })}
+                                participants={callParticipantsDisplay}
                                 localStream={localStream}
                                 remoteStreams={remoteStreams}
                                 onEndCall={endCall}
