@@ -111,7 +111,7 @@ export const useGroupRtcConnection = ({
         }
     }, []);
 
-    // Функция для отправки всех буферизированных ICE‑кандидатов
+    // Сброс буферизованных ICE-кандидатов при восстановлении SignalR
     const flushAllIceCandidates = useCallback(() => {
         if (!signalRConnection || signalRConnection.state !== 'Connected') return;
         peerConnectionsRef.current.forEach((state, userId) => {
@@ -237,7 +237,10 @@ export const useGroupRtcConnection = ({
     }, [onLocalStream, currentVideoQuality]);
 
     const createPeerConnection = useCallback((targetUserId: string, roomId: string): RTCPeerConnection => {
-        if (targetUserId === currentUserId) return null!;
+        if (targetUserId === currentUserId) {
+            console.warn(`[RTC] Attempted to create PeerConnection for self, ignoring`);
+            return null!;
+        }
         const existing = peerConnectionsRef.current.get(targetUserId);
         if (existing) return existing.pc;
 
@@ -261,10 +264,11 @@ export const useGroupRtcConnection = ({
             try {
                 state.makingOffer = true;
                 await pc.setLocalDescription();
-                signalRConnection?.invoke("SendOfferToUser", roomId, targetUserId, JSON.stringify(pc.localDescription));
-                console.log(`[SIGNAL] Sent offer to ${targetUserId} for room ${roomId}`);
+                console.log(`[SIGNAL] Invoking SendOfferToUser to ${targetUserId} room ${roomId}`);
+                await signalRConnection?.invoke("SendOfferToUser", roomId, targetUserId, JSON.stringify(pc.localDescription));
+                console.log(`[SIGNAL] Offer sent successfully to ${targetUserId}`);
             } catch (err) {
-                console.error("negotiationneeded error", err);
+                console.error("[SIGNAL] Failed to send offer:", err);
             } finally {
                 state.makingOffer = false;
             }
@@ -315,6 +319,12 @@ export const useGroupRtcConnection = ({
 
     const handleReceiveOffer = useCallback(async (fromUserId: string, roomId: string, offerString: string) => {
         console.log(`[SIGNAL] Received offer from ${fromUserId} for room ${roomId}`);
+
+        if (fromUserId === currentUserId) {
+            console.warn('[SIGNAL] Ignoring offer from self');
+            return;
+        }
+
         let state = peerConnectionsRef.current.get(fromUserId);
         if (!state) {
             createPeerConnection(fromUserId, roomId);
@@ -325,7 +335,6 @@ export const useGroupRtcConnection = ({
 
         const offerCollision = state.makingOffer || pc.signalingState !== "stable";
         if (offerCollision) {
-            state.ignoreOffer = true;
             console.warn(`[SIGNAL] Offer collision, ignoring from ${fromUserId}`);
             return;
         }
@@ -343,7 +352,7 @@ export const useGroupRtcConnection = ({
         } catch (err) {
             console.error("handleReceiveOffer error", err);
         }
-    }, [signalRConnection, createPeerConnection]);
+    }, [signalRConnection, createPeerConnection, currentUserId]);
 
     const handleReceiveAnswer = useCallback(async (fromUserId: string, roomId: string, answerString: string) => {
         console.log(`[SIGNAL] Received answer from ${fromUserId} for room ${roomId}`);
@@ -382,7 +391,10 @@ export const useGroupRtcConnection = ({
     }, [createPeerConnection]);
 
     const callUser = useCallback((targetUserId: string, roomId: string) => {
-        if (targetUserId === currentUserId) return;
+        if (targetUserId === currentUserId) {
+            console.warn(`[RTC] Skipping call to self (${targetUserId})`);
+            return;
+        }
         if (peerConnectionsRef.current.has(targetUserId)) return;
         console.log(`[RTC] Calling user ${targetUserId} in room ${roomId}`);
         createPeerConnection(targetUserId, roomId);
@@ -422,6 +434,7 @@ export const useGroupRtcConnection = ({
         if (gainNodeRef.current) gainNodeRef.current.gain.value = volume;
         setCurrentVolume(volume);
     }, []);
+
     const applyAudioFilters = useCallback(async (filters: AudioFilters, volume: number) => {
         if (!localStreamRef.current) return;
         try {
@@ -455,13 +468,10 @@ export const useGroupRtcConnection = ({
             const processedStream = new MediaStream([processedAudioTrack]);
             localStreamRef.current.getVideoTracks().forEach(track => processedStream.addTrack(track));
             processedStreamRef.current = processedStream;
-
-            // Заменяем аудио трек во всех соединениях
             peerConnectionsRef.current.forEach(state => {
                 const audioSender = state.pc.getSenders().find(s => s.track?.kind === "audio");
                 if (audioSender) audioSender.replaceTrack(processedAudioTrack).catch(console.error);
             });
-
             localStreamRef.current = processedStream;
             onLocalStream(processedStream);
             originalAudioTrack.stop();
@@ -471,23 +481,28 @@ export const useGroupRtcConnection = ({
     }, [onLocalStream]);
 
     const setVideoQuality = useCallback(async (quality: VideoQuality) => {
-        setCurrentVideoQuality(quality);
         if (!localStreamRef.current) return;
+        const settings = VIDEO_QUALITY_SETTINGS[quality];
+        setCurrentVideoQuality(quality);
         const videoTrack = localStreamRef.current.getVideoTracks()[0];
         if (!videoTrack) return;
-        const settings = VIDEO_QUALITY_SETTINGS[quality];
-        await videoTrack.applyConstraints({ width: settings.width, height: settings.height });
-        peerConnectionsRef.current.forEach(async state => {
-            const sender = state.pc.getSenders().find(s => s.track?.kind === "video");
-            if (sender) {
-                const params = sender.getParameters();
-                if (!params.encodings) params.encodings = [{}];
-                params.encodings[0].maxBitrate = settings.bitrate;
-                await sender.setParameters(params);
-            }
-        });
+        try {
+            await videoTrack.applyConstraints({ width: settings.width, height: settings.height });
+            peerConnectionsRef.current.forEach(async state => {
+                const sender = state.pc.getSenders().find(s => s.track?.kind === "video");
+                if (sender) {
+                    const parameters = sender.getParameters();
+                    if (!parameters.encodings) parameters.encodings = [{}];
+                    parameters.encodings[0].maxBitrate = settings.bitrate;
+                    await sender.setParameters(parameters);
+                }
+            });
+        } catch (err) {
+            console.error("Failed to set video quality:", err);
+        }
     }, []);
 
+    // Отправляем буферизованные ICE при подключении SignalR
     useEffect(() => {
         if (signalRConnection?.state === 'Connected') {
             flushAllIceCandidates();

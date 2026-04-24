@@ -278,11 +278,38 @@ namespace Syncro.Api.Hubs
         public async Task SendOfferToUser(string roomId, string targetUserId, string offer)
         {
             var userId = Context.UserIdentifier;
+            Console.WriteLine($"[SIGNAL] SendOfferToUser: from={userId}, to={targetUserId}, room={roomId}");
+
             if (_groupCalls.TryGetValue(roomId, out var room) && room.Participants.Contains(userId))
             {
                 if (_userConnections.TryGetValue(targetUserId, out var connectionId))
                 {
+                    Console.WriteLine($"[SIGNAL] Forwarding offer to connection {connectionId}");
                     await Clients.Client(connectionId).SendAsync("ReceiveGroupOffer", userId, roomId, offer);
+                }
+                else
+                {
+                    Console.WriteLine($"[SIGNAL] WARNING: target user {targetUserId} not found in _userConnections");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"[SIGNAL] WARNING: room {roomId} not found or user {userId} not participant");
+            }
+        }
+
+        public async Task SendIceCandidateToUser(string roomId, string targetUserId, string candidate)
+        {
+            var userId = Context.UserIdentifier;
+            if (_groupCalls.TryGetValue(roomId, out var room) && room.Participants.Contains(userId))
+            {
+                if (_userConnections.TryGetValue(targetUserId, out var connectionId))
+                {
+                    await Clients.Client(connectionId).SendAsync("ReceiveGroupIceCandidate", userId, roomId, candidate);
+                }
+                else
+                {
+                    Console.WriteLine($"[ICE] WARNING: target user {targetUserId} not found in _userConnections");
                 }
             }
         }
@@ -295,18 +322,6 @@ namespace Syncro.Api.Hubs
                 if (_userConnections.TryGetValue(targetUserId, out var connectionId))
                 {
                     await Clients.Client(connectionId).SendAsync("ReceiveGroupAnswer", userId, roomId, answer);
-                }
-            }
-        }
-
-        public async Task SendIceCandidateToUser(string roomId, string targetUserId, string candidate)
-        {
-            var userId = Context.UserIdentifier;
-            if (_groupCalls.TryGetValue(roomId, out var room) && room.Participants.Contains(userId))
-            {
-                if (_userConnections.TryGetValue(targetUserId, out var connectionId))
-                {
-                    await Clients.Client(connectionId).SendAsync("ReceiveGroupIceCandidate", userId, roomId, candidate);
                 }
             }
         }

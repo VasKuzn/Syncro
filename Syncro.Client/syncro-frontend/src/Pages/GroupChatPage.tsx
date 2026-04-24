@@ -18,6 +18,20 @@ import { useGroupCallManagement } from '../Hooks/UseGroupCallMenagement';
 import GroupVideoCall from '../Components/GroupChat/GroupVideoCall';
 import CallWindow from '../Components/ChatPage/CallWindowComponent';
 
+async function fetchCurrentUser(baseUrl: string): Promise<string | null> {
+    try {
+        const response = await fetch(`${baseUrl}/api/accounts/current`, {
+            credentials: "include",
+        });
+        if (!response.ok) throw new Error("Failed to fetch current user");
+        const data = await response.json();
+        return data.userId || null;
+    } catch (error) {
+        console.error("Error fetching user:", error);
+        return null;
+    }
+}
+
 const GroupChatPage = () => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const chatRef = useRef<HTMLDivElement>(null);
@@ -34,7 +48,7 @@ const GroupChatPage = () => {
 
     const {
         groupId,
-        currentUserId,
+        currentUserId: rawCurrentUserId,
         currentUser,
         group,
         participants,
@@ -44,6 +58,19 @@ const GroupChatPage = () => {
         getSenderInfo
     } = useGroupChatInitialization(baseUrl);
     const safeGroupId = groupId ?? null;
+
+    // Гарантируем наличие currentUserId — ждём либо из контекста, либо подгружаем через API
+    const [finalUserId, setFinalUserId] = useState<string>('');
+
+    useEffect(() => {
+        if (rawCurrentUserId) {
+            setFinalUserId(rawCurrentUserId.toString());
+        } else {
+            fetchCurrentUser(baseUrl).then(id => {
+                if (id) setFinalUserId(id);
+            });
+        }
+    }, [rawCurrentUserId, baseUrl]);
 
     useEffect(() => {
         currentUserNicknameRef.current = currentUser?.nickname || null;
@@ -58,13 +85,13 @@ const GroupChatPage = () => {
         hub
     } = useGroupMessageManagement({
         groupId: safeGroupId,
-        currentUserId,
+        currentUserId: finalUserId,
         currentUser
     }, baseUrl, csrfToken);
 
     const search = useChatSearch(messages);
 
-    // ========== ГРУППОВОЙ ЗВОНОК ==========
+    // Групповой звонок — используем finalUserId
     const {
         inCall,
         roomId,
@@ -86,25 +113,21 @@ const GroupChatPage = () => {
         rejectIncomingCall,
     } = useGroupCallManagement({
         groupId: groupId?.toString() || '',
-        currentUserId: currentUserId?.toString() || '',
+        currentUserId: finalUserId,
         currentUser: currentUser || { nickname: '', avatar: '' },
         baseUrl,
     });
-    // =====================================
 
-    // Находим данные инициатора входящего звонка для отображения в CallWindow
     const initiatorUser = participants.find(p => p.id === incomingInitiatorId);
     const callParticipantsDisplay = useMemo(() => {
         const display = [];
-        // Добавляем локального пользователя
         display.push({
-            id: currentUserId?.toString() || '',
+            id: finalUserId || '',
             nickname: currentUser?.nickname || 'Вы',
             avatar: currentUser?.avatar || logo,
         });
-        // Добавляем остальных участников звонка (из callParticipants, исключая себя)
         Array.from(callParticipants).forEach(id => {
-            if (id === currentUserId?.toString()) return;
+            if (id === finalUserId) return;
             const user = participants.find(p => p.id === id);
             display.push({
                 id,
@@ -113,10 +136,14 @@ const GroupChatPage = () => {
             });
         });
         return display;
-    }, [callParticipants, currentUserId, currentUser, participants]);
-    // Обработчик нажатия кнопки "Начать звонок" – передаём массив ID участников группы
+    }, [callParticipants, finalUserId, currentUser, participants]);
+
     const handleStartCall = useCallback(() => {
-        if (isStartingCallRef.current) return; // уже идёт процесс
+        if (isStartingCallRef.current) return;
+        if (!finalUserId) {
+            console.warn('Cannot start call: currentUserId not available yet');
+            return;
+        }
         isStartingCallRef.current = true;
         const participantIds = participants
             .map(p => p.id?.toString())
@@ -125,7 +152,7 @@ const GroupChatPage = () => {
         startCall(participantIds).finally(() => {
             isStartingCallRef.current = false;
         });
-    }, [participants, startCall]);
+    }, [participants, startCall, finalUserId]);
 
     const scrollToBottom = useCallback(() => {
         if (messagesEndRef.current) {
@@ -271,7 +298,8 @@ const GroupChatPage = () => {
 
     const typingIndicatorText = getTypingText();
 
-    if (loading) return <div className="loading">Загрузка...</div>;
+    // Ждём пока определится finalUserId
+    if (loading || !finalUserId) return <div className="loading">Загрузка...</div>;
     if (error || !group) return <div className="error">{error || 'Группа не найдена'}</div>;
 
     return (
@@ -304,18 +332,16 @@ const GroupChatPage = () => {
 
                             <ParticipantsAvatars />
 
-                            {/* ===== КНОПКА ГРУППОВОГО ЗВОНКА ===== */}
                             <motion.button
                                 className="call-button"
                                 onClick={handleStartCall}
-                                disabled={!group || !currentUser || inCall}
+                                disabled={!group || !currentUser || inCall || !finalUserId}
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 title={inCall ? "Звонок активен" : "Начать групповой звонок"}
                             >
                                 <img src={callIcon} alt="Вызов" width="16" height="16" />
                             </motion.button>
-                            {/* =================================== */}
 
                             <AnimatePresence>
                                 {search.isSearchActive && (
@@ -433,7 +459,7 @@ const GroupChatPage = () => {
                                     >
                                         <Message
                                             {...msg}
-                                            isOwnMessage={msg.accountId === currentUserId}
+                                            isOwnMessage={msg.accountId === finalUserId}
                                             avatarUrl={senderInfo.avatar}
                                             previousMessageAuthor={i > 0 ? messages[i - 1].accountNickname : null}
                                             previousMessageDate={i > 0 ? messages[i - 1].messageDateSent : null}
@@ -494,7 +520,6 @@ const GroupChatPage = () => {
                         )}
                     </motion.div>
 
-                    {/* ===== ОКНО ВХОДЯЩЕГО ЗВОНКА ===== */}
                     <AnimatePresence>
                         {incomingCall && initiatorUser && (
                             <CallWindow
@@ -507,7 +532,6 @@ const GroupChatPage = () => {
                         )}
                     </AnimatePresence>
 
-                    {/* ===== МОДАЛЬНОЕ ОКНО АКТИВНОГО ЗВОНКА ===== */}
                     <AnimatePresence>
                         {inCall && roomId && (
                             <GroupVideoCall
@@ -519,7 +543,7 @@ const GroupChatPage = () => {
                                 localUserName={currentUser?.nickname || ''}
                                 localAvatarUrl={currentUser?.avatar || logo}
                                 replaceVideoTrack={replaceVideoTrack}
-                                currentUserId={currentUserId?.toString() || ''}
+                                currentUserId={finalUserId}
                                 onVolumeChange={handleVolumeChange}
                                 onQualityChange={handleQualityChange}
                                 onAudioFiltersChange={handleAudioFiltersChange}

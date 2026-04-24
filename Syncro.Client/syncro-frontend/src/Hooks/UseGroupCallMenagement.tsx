@@ -11,7 +11,7 @@ interface AudioFilters {
 
 interface UseGroupCallManagementProps {
     groupId: string;
-    currentUserId: string;
+    currentUserId: string;   // может менятьcя со временем
     currentUser: { nickname: string; avatar?: string };
     baseUrl: string;
 }
@@ -43,6 +43,12 @@ export const useGroupCallManagement = ({
     const isMountedRef = useRef(false);
     const currentRoomIdRef = useRef<string | null>(null);
 
+    // ↑↑↑ ГЛАВНОЕ ИЗМЕНЕНИЕ: ref для актуального currentUserId
+    const currentUserIdRef = useRef<string>(currentUserId);
+    useEffect(() => {
+        currentUserIdRef.current = currentUserId;
+    }, [currentUserId]);
+
     const handleRemoteStream = useCallback((userId: string, stream: MediaStream) => {
         setRemoteStreams(prev => new Map(prev).set(userId, stream));
     }, []);
@@ -60,7 +66,7 @@ export const useGroupCallManagement = ({
         onRemoteStream: handleRemoteStream,
         onRemoteStreamRemoved: handleRemoteStreamRemoved,
         onLocalStream: setLocalStream,
-        currentUserId,
+        currentUserId,   // передаём актуальный пропс (хук сам обновит всё)
     });
 
     useEffect(() => {
@@ -96,13 +102,17 @@ export const useGroupCallManagement = ({
             .withAutomaticReconnect()
             .build();
 
+        // ↓↓↓ Все проверки используют currentUserIdRef.current
         connection.on("UserJoinedGroupCall", (userId: string) => {
             console.log(`👤 [GROUP CALL] User ${userId} joined`);
             setParticipants(prev => new Set(prev).add(userId));
             const currentRoom = currentRoomIdRef.current;
-            if (userId !== currentUserId && currentRoom) {
+            const myId = currentUserIdRef.current;
+            if (userId !== myId && myId && currentRoom) {
                 console.log(`📞 [SIGNAL] Calling new participant: ${userId}`);
                 rtcConnection.callUser(userId, currentRoom);
+            } else if (!myId) {
+                console.warn('⚠️ currentUserId is empty, cannot call user');
             } else if (!currentRoom) {
                 console.warn(`⚠️ UserJoinedGroupCall but roomId is null, skipping call to ${userId}`);
             }
@@ -148,6 +158,7 @@ export const useGroupCallManagement = ({
         };
     }, [baseUrl, groupId]);
 
+    // Таймер одиночества
     useEffect(() => {
         if (participants.size === 1 && inCall) {
             aloneTimerRef.current = setTimeout(() => {
@@ -182,7 +193,8 @@ export const useGroupCallManagement = ({
                 microphoneVolume
             ).catch(mediaErr => console.warn('⚠️ Local media failed:', mediaErr));
 
-            // НЕ звоним существующим участникам – они сами позвонят нам через UserJoinedGroupCall
+            // Не вызываем callUser – участники позвонят нам через UserJoinedGroupCall
+
             setIncomingCall(false);
             setIncomingRoomId(null);
             setIncomingInitiatorId(null);
@@ -192,7 +204,7 @@ export const useGroupCallManagement = ({
             setInCall(false);
             currentRoomIdRef.current = null;
         }
-    }, [waitForConnection, rtcConnection, audioFilters, microphoneVolume, currentUserId]);
+    }, [waitForConnection, rtcConnection, audioFilters, microphoneVolume]);
 
     const startCall = useCallback(async (participantIds: string[]) => {
         if (!groupId) return;
@@ -222,14 +234,15 @@ export const useGroupCallManagement = ({
                 microphoneVolume
             ).catch(mediaErr => console.warn('⚠️ Local media failed:', mediaErr));
 
-            // НЕ звоним существующим участникам – они позвонят нам через UserJoinedGroupCall
+            // Не вызываем callUser
+
         } catch (err) {
             console.error('❌ Failed to start group call', err);
             setRoomId(null);
             setInCall(false);
             currentRoomIdRef.current = null;
         }
-    }, [groupId, waitForConnection, rtcConnection, audioFilters, microphoneVolume, joinCall, currentUserId]);
+    }, [groupId, waitForConnection, rtcConnection, audioFilters, microphoneVolume, joinCall]);
 
     const acceptIncomingCall = useCallback(async () => {
         if (!incomingRoomId) return;
@@ -250,12 +263,12 @@ export const useGroupCallManagement = ({
         setInCall(false);
         setRoomId(null);
         currentRoomIdRef.current = null;
-        setParticipants(new Set([currentUserId]));
+        setParticipants(new Set([currentUserIdRef.current]));
         setRemoteStreams(new Map());
         try {
             new Audio(endCallSound).play().catch(() => { });
         } catch { }
-    }, [rtcConnection, currentUserId]);
+    }, [rtcConnection]);
 
     const handleVolumeChange = useCallback((volume: number) => {
         setMicrophoneVolume(volume);
