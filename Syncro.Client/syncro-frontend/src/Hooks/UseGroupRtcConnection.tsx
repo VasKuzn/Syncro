@@ -111,7 +111,6 @@ export const useGroupRtcConnection = ({
         }
     }, []);
 
-    // Сброс буферизованных ICE-кандидатов при восстановлении SignalR
     const flushAllIceCandidates = useCallback(() => {
         if (!signalRConnection || signalRConnection.state !== 'Connected') return;
         peerConnectionsRef.current.forEach((state, userId) => {
@@ -198,7 +197,6 @@ export const useGroupRtcConnection = ({
                 localStreamRef.current = processedStream;
                 onLocalStream(processedStream);
 
-                // Добавляем треки во все уже созданные PeerConnection
                 for (const [userId, state] of peerConnectionsRef.current.entries()) {
                     for (const track of processedStream.getTracks()) {
                         if (!state.pc.getSenders().find(s => s.track?.id === track.id)) {
@@ -502,24 +500,15 @@ export const useGroupRtcConnection = ({
         }
     }, []);
 
-    // Отправляем буферизованные ICE при подключении SignalR
+    // Отправляем буферизованные ICE при восстановлении подключения SignalR
     useEffect(() => {
         if (signalRConnection?.state === 'Connected') {
             flushAllIceCandidates();
         }
     }, [signalRConnection?.state, flushAllIceCandidates]);
 
-    useEffect(() => {
-        if (!signalRConnection) return;
-        signalRConnection.on("ReceiveGroupOffer", handleReceiveOffer);
-        signalRConnection.on("ReceiveGroupAnswer", handleReceiveAnswer);
-        signalRConnection.on("ReceiveGroupIceCandidate", handleIceCandidate);
-        return () => {
-            signalRConnection.off("ReceiveGroupOffer", handleReceiveOffer);
-            signalRConnection.off("ReceiveGroupAnswer", handleReceiveAnswer);
-            signalRConnection.off("ReceiveGroupIceCandidate", handleIceCandidate);
-        };
-    }, [signalRConnection, handleReceiveOffer, handleReceiveAnswer, handleIceCandidate]);
+    // ========== ИЗМЕНЕНИЕ: убран useEffect с подпиской на сигнальные события ==========
+    // Подписка теперь выполняется напрямую в useGroupCallMenagement после старта соединения
 
     return {
         getLocalStream,
@@ -532,5 +521,9 @@ export const useGroupRtcConnection = ({
         applyAudioFilters,
         currentVideoQuality,
         currentVolume,
+        // Публичные обработчики сигналов
+        handleOffer: handleReceiveOffer,
+        handleAnswer: handleReceiveAnswer,
+        handleIce: handleIceCandidate,
     };
 };

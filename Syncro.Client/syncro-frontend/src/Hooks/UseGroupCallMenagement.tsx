@@ -11,7 +11,7 @@ interface AudioFilters {
 
 interface UseGroupCallManagementProps {
     groupId: string;
-    currentUserId: string;   // может менятьcя со временем
+    currentUserId: string;
     currentUser: { nickname: string; avatar?: string };
     baseUrl: string;
 }
@@ -43,7 +43,6 @@ export const useGroupCallManagement = ({
     const isMountedRef = useRef(false);
     const currentRoomIdRef = useRef<string | null>(null);
 
-    // ↑↑↑ ГЛАВНОЕ ИЗМЕНЕНИЕ: ref для актуального currentUserId
     const currentUserIdRef = useRef<string>(currentUserId);
     useEffect(() => {
         currentUserIdRef.current = currentUserId;
@@ -66,7 +65,13 @@ export const useGroupCallManagement = ({
         onRemoteStream: handleRemoteStream,
         onRemoteStreamRemoved: handleRemoteStreamRemoved,
         onLocalStream: setLocalStream,
-        currentUserId,   // передаём актуальный пропс (хук сам обновит всё)
+        currentUserId,
+    });
+
+    // ref для актуальных методов rtcConnection, чтобы использовать в подписках без переподключения
+    const rtcRef = useRef(rtcConnection);
+    useEffect(() => {
+        rtcRef.current = rtcConnection;
     });
 
     useEffect(() => {
@@ -102,7 +107,7 @@ export const useGroupCallManagement = ({
             .withAutomaticReconnect()
             .build();
 
-        // ↓↓↓ Все проверки используют currentUserIdRef.current
+        // === Обработчики, не зависящие от WebRTC ===
         connection.on("UserJoinedGroupCall", (userId: string) => {
             console.log(`👤 [GROUP CALL] User ${userId} joined`);
             setParticipants(prev => new Set(prev).add(userId));
@@ -110,7 +115,7 @@ export const useGroupCallManagement = ({
             const myId = currentUserIdRef.current;
             if (userId !== myId && myId && currentRoom) {
                 console.log(`📞 [SIGNAL] Calling new participant: ${userId}`);
-                rtcConnection.callUser(userId, currentRoom);
+                rtcRef.current.callUser(userId, currentRoom);
             } else if (!myId) {
                 console.warn('⚠️ currentUserId is empty, cannot call user');
             } else if (!currentRoom) {
@@ -126,7 +131,7 @@ export const useGroupCallManagement = ({
                 return next;
             });
             handleRemoteStreamRemoved(userId);
-            rtcConnection.closePeerConnection(userId);
+            rtcRef.current.closePeerConnection(userId);
         });
 
         connection.on("GroupCallStarted", (incomingGroupId: string, callRoomId: string, initiatorId: string) => {
@@ -144,13 +149,28 @@ export const useGroupCallManagement = ({
             .then(() => {
                 if (isMountedRef.current) {
                     hubConnectionRef.current = connection;
-                    console.log('✅ [GROUP CALL] SignalR connected');
+                    // ========== ГЛАВНОЕ ИЗМЕНЕНИЕ ==========
+                    // Немедленная подписка на сигнальные события WebRTC
+                    connection.on("ReceiveGroupOffer", (fromUserId: string, roomId: string, offer: string) => {
+                        rtcRef.current.handleOffer(fromUserId, roomId, offer);
+                    });
+                    connection.on("ReceiveGroupAnswer", (fromUserId: string, roomId: string, answer: string) => {
+                        rtcRef.current.handleAnswer(fromUserId, roomId, answer);
+                    });
+                    connection.on("ReceiveGroupIceCandidate", (fromUserId: string, roomId: string, candidate: string) => {
+                        rtcRef.current.handleIce(fromUserId, roomId, candidate);
+                    });
+                    console.log('✅ [GROUP CALL] SignalR connected + WebRTC handlers registered');
                 }
             })
             .catch(err => console.error('❌ [GROUP CALL] SignalR start error', err));
 
         return () => {
             isMountedRef.current = false;
+            // отписываемся от сигнальных событий
+            connection.off("ReceiveGroupOffer");
+            connection.off("ReceiveGroupAnswer");
+            connection.off("ReceiveGroupIceCandidate");
             if (hubConnectionRef.current) {
                 hubConnectionRef.current.stop().catch(console.error);
                 hubConnectionRef.current = null;
@@ -193,8 +213,6 @@ export const useGroupCallManagement = ({
                 microphoneVolume
             ).catch(mediaErr => console.warn('⚠️ Local media failed:', mediaErr));
 
-            // Не вызываем callUser – участники позвонят нам через UserJoinedGroupCall
-
             setIncomingCall(false);
             setIncomingRoomId(null);
             setIncomingInitiatorId(null);
@@ -233,8 +251,6 @@ export const useGroupCallManagement = ({
                 audioFilters,
                 microphoneVolume
             ).catch(mediaErr => console.warn('⚠️ Local media failed:', mediaErr));
-
-            // Не вызываем callUser
 
         } catch (err) {
             console.error('❌ Failed to start group call', err);
