@@ -9,7 +9,6 @@ namespace Syncro.Api.Hubs
         private static readonly ConcurrentDictionary<string, CallRoom> _activeCalls = new();
         private static readonly ConcurrentDictionary<string, HashSet<string>> _roomParticipants = new();
 
-        // Групповые звонки
         private static readonly ConcurrentDictionary<string, GroupCallRoom> _groupCalls = new();
         private static readonly ConcurrentDictionary<string, string> _activeGroupCallByGroup = new();
 

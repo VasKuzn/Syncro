@@ -42,6 +42,7 @@ export const useGroupCallManagement = ({
     const aloneTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isMountedRef = useRef(false);
     const currentRoomIdRef = useRef<string | null>(null);
+    const isStartingCallRef = useRef(false);
 
     const currentUserIdRef = useRef<string>(currentUserId);
     useEffect(() => {
@@ -68,7 +69,6 @@ export const useGroupCallManagement = ({
         currentUserId,
     });
 
-    // ref для актуальных методов rtcConnection, чтобы использовать в подписках без переподключения
     const rtcRef = useRef(rtcConnection);
     useEffect(() => {
         rtcRef.current = rtcConnection;
@@ -107,14 +107,11 @@ export const useGroupCallManagement = ({
             .withAutomaticReconnect()
             .build();
 
-        // === Обработчики, не зависящие от WebRTC ===
         connection.on("UserJoinedGroupCall", (userId: string) => {
-            console.log(`👤 [GROUP CALL] User ${userId} joined`);
             setParticipants(prev => new Set(prev).add(userId));
             const currentRoom = currentRoomIdRef.current;
             const myId = currentUserIdRef.current;
             if (userId !== myId && myId && currentRoom) {
-                console.log(`📞 [SIGNAL] Calling new participant: ${userId}`);
                 rtcRef.current.callUser(userId, currentRoom);
             } else if (!myId) {
                 console.warn('⚠️ currentUserId is empty, cannot call user');
@@ -124,7 +121,6 @@ export const useGroupCallManagement = ({
         });
 
         connection.on("UserLeftGroupCall", (userId: string) => {
-            console.log(`🚪 [GROUP CALL] User ${userId} left`);
             setParticipants(prev => {
                 const next = new Set(prev);
                 next.delete(userId);
@@ -135,7 +131,6 @@ export const useGroupCallManagement = ({
         });
 
         connection.on("GroupCallStarted", (incomingGroupId: string, callRoomId: string, initiatorId: string) => {
-            console.log(`📞 [GROUP CALL] Incoming call for room: ${callRoomId}, from: ${initiatorId}`);
             if (incomingGroupId === groupId) {
                 setIncomingCall(true);
                 setIncomingRoomId(callRoomId);
@@ -149,8 +144,6 @@ export const useGroupCallManagement = ({
             .then(() => {
                 if (isMountedRef.current) {
                     hubConnectionRef.current = connection;
-                    // ========== ГЛАВНОЕ ИЗМЕНЕНИЕ ==========
-                    // Немедленная подписка на сигнальные события WebRTC
                     connection.on("ReceiveGroupOffer", (fromUserId: string, roomId: string, offer: string) => {
                         rtcRef.current.handleOffer(fromUserId, roomId, offer);
                     });
@@ -167,7 +160,9 @@ export const useGroupCallManagement = ({
 
         return () => {
             isMountedRef.current = false;
-            // отписываемся от сигнальных событий
+            // При размонтировании полностью освобождаем медиа-ресурсы
+            rtcRef.current.endCall();
+            // Отписываемся от сигналов
             connection.off("ReceiveGroupOffer");
             connection.off("ReceiveGroupAnswer");
             connection.off("ReceiveGroupIceCandidate");
@@ -196,6 +191,7 @@ export const useGroupCallManagement = ({
     }, [participants.size, inCall]);
 
     const joinCall = useCallback(async (callRoomId: string) => {
+        if (!callRoomId) return;
         try {
             const connection = await waitForConnection();
             setRoomId(callRoomId);
@@ -203,7 +199,6 @@ export const useGroupCallManagement = ({
             currentRoomIdRef.current = callRoomId;
 
             const currentParticipants: string[] = await connection.invoke<string[]>("JoinGroupCall", callRoomId);
-            console.log(`🔗 Joined room ${callRoomId}, current participants:`, currentParticipants);
 
             setParticipants(new Set(currentParticipants));
 
@@ -225,13 +220,13 @@ export const useGroupCallManagement = ({
     }, [waitForConnection, rtcConnection, audioFilters, microphoneVolume]);
 
     const startCall = useCallback(async (participantIds: string[]) => {
-        if (!groupId) return;
+        if (!groupId || isStartingCallRef.current) return;
+        isStartingCallRef.current = true;
         try {
             const connection = await waitForConnection();
 
             const existingRoomId = await connection.invoke<string>("GetActiveGroupCall", groupId);
             if (existingRoomId) {
-                console.log(`🚀 Joining existing active call: ${existingRoomId}`);
                 await joinCall(existingRoomId);
                 return;
             }
@@ -257,6 +252,8 @@ export const useGroupCallManagement = ({
             setRoomId(null);
             setInCall(false);
             currentRoomIdRef.current = null;
+        } finally {
+            isStartingCallRef.current = false;
         }
     }, [groupId, waitForConnection, rtcConnection, audioFilters, microphoneVolume, joinCall]);
 

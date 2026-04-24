@@ -59,7 +59,6 @@ const GroupChatPage = () => {
     } = useGroupChatInitialization(baseUrl);
     const safeGroupId = groupId ?? null;
 
-    // Гарантируем наличие currentUserId — ждём либо из контекста, либо подгружаем через API
     const [finalUserId, setFinalUserId] = useState<string>('');
 
     useEffect(() => {
@@ -91,7 +90,6 @@ const GroupChatPage = () => {
 
     const search = useChatSearch(messages);
 
-    // Групповой звонок — используем finalUserId
     const {
         inCall,
         roomId,
@@ -298,7 +296,6 @@ const GroupChatPage = () => {
 
     const typingIndicatorText = getTypingText();
 
-    // Ждём пока определится finalUserId
     if (loading || !finalUserId) return <div className="loading">Загрузка...</div>;
     if (error || !group) return <div className="error">{error || 'Группа не найдена'}</div>;
 

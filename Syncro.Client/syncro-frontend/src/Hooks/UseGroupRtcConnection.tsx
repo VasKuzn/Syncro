@@ -30,6 +30,7 @@ interface PeerConnectionState {
     iceCandidateBuffer: RTCIceCandidateInit[];
     isConnected: boolean;
     roomId: string;
+    polite: boolean;
 }
 
 interface UseGroupRtcConnectionParams {
@@ -111,6 +112,23 @@ export const useGroupRtcConnection = ({
         }
     }, []);
 
+    const releaseLocalMedia = useCallback(() => {
+        if (processedStreamRef.current) {
+            processedStreamRef.current.getTracks().forEach(t => t.stop());
+            processedStreamRef.current = null;
+        }
+        if (localStreamRef.current) {
+            localStreamRef.current.getTracks().forEach(t => t.stop());
+            localStreamRef.current = null;
+        }
+        if (audioContextRef.current) {
+            audioContextRef.current.close().catch(() => { });
+            audioContextRef.current = null;
+            gainNodeRef.current = null;
+            sourceNodeRef.current = null;
+        }
+    }, []);
+
     const flushAllIceCandidates = useCallback(() => {
         if (!signalRConnection || signalRConnection.state !== 'Connected') return;
         peerConnectionsRef.current.forEach((state, userId) => {
@@ -118,7 +136,6 @@ export const useGroupRtcConnection = ({
                 const candidate = state.iceCandidateBuffer.shift()!;
                 signalRConnection.invoke("SendIceCandidateToUser", state.roomId, userId, JSON.stringify(candidate))
                     .catch(err => console.error("Error sending buffered ICE candidate:", err));
-                console.log(`[ICE] Flushed buffered candidate for user ${userId}`);
             }
         });
     }, [signalRConnection]);
@@ -126,7 +143,6 @@ export const useGroupRtcConnection = ({
     const closePeerConnection = useCallback((userId: string) => {
         const state = peerConnectionsRef.current.get(userId);
         if (state) {
-            console.log(`[RTC] Closing PeerConnection for user ${userId}`);
             state.pc.close();
             peerConnectionsRef.current.delete(userId);
         }
@@ -140,6 +156,11 @@ export const useGroupRtcConnection = ({
         const startTime = Date.now();
         while (getLocalStreamLockRef.current && Date.now() - startTime < 10000) {
             await new Promise(resolve => setTimeout(resolve, 50));
+        }
+
+        // Прежде чем запрашивать новый стрим, полностью останавливаем старый
+        if (localStreamRef.current) {
+            releaseLocalMedia();
         }
 
         if (localStreamRef.current) {
@@ -201,7 +222,6 @@ export const useGroupRtcConnection = ({
                     for (const track of processedStream.getTracks()) {
                         if (!state.pc.getSenders().find(s => s.track?.id === track.id)) {
                             state.pc.addTrack(track, processedStream);
-                            console.log(`[RTC] Late-added ${track.kind} track to existing peer ${userId}`);
                         }
                     }
                 }
@@ -232,7 +252,7 @@ export const useGroupRtcConnection = ({
         } finally {
             getLocalStreamLockRef.current = false;
         }
-    }, [onLocalStream, currentVideoQuality]);
+    }, [onLocalStream, currentVideoQuality, releaseLocalMedia]);
 
     const createPeerConnection = useCallback((targetUserId: string, roomId: string): RTCPeerConnection => {
         if (targetUserId === currentUserId) {
@@ -245,7 +265,7 @@ export const useGroupRtcConnection = ({
         const rankedServers = turnServerRankerRef.current?.rankServers(ICE_SERVERS.iceServers || []) || ICE_SERVERS.iceServers;
         const pc = new RTCPeerConnection({ ...ICE_SERVERS, iceServers: rankedServers });
 
-        console.log(`[RTC] PeerConnection created for user ${targetUserId} in room ${roomId}`);
+        const polite = currentUserId < targetUserId;
 
         const state: PeerConnectionState = {
             pc,
@@ -255,6 +275,7 @@ export const useGroupRtcConnection = ({
             iceCandidateBuffer: [],
             isConnected: false,
             roomId,
+            polite,
         };
         peerConnectionsRef.current.set(targetUserId, state);
 
@@ -262,9 +283,7 @@ export const useGroupRtcConnection = ({
             try {
                 state.makingOffer = true;
                 await pc.setLocalDescription();
-                console.log(`[SIGNAL] Invoking SendOfferToUser to ${targetUserId} room ${roomId}`);
                 await signalRConnection?.invoke("SendOfferToUser", roomId, targetUserId, JSON.stringify(pc.localDescription));
-                console.log(`[SIGNAL] Offer sent successfully to ${targetUserId}`);
             } catch (err) {
                 console.error("[SIGNAL] Failed to send offer:", err);
             } finally {
@@ -278,14 +297,12 @@ export const useGroupRtcConnection = ({
                     signalRConnection.invoke("SendIceCandidateToUser", roomId, targetUserId, JSON.stringify(event.candidate.toJSON()))
                         .catch(err => console.error("Error sending ICE candidate:", err));
                 } else {
-                    console.warn(`[ICE] Candidate buffered (SignalR not connected) for user ${targetUserId}`);
                     state.iceCandidateBuffer.push(event.candidate.toJSON());
                 }
             }
         };
 
         pc.ontrack = (event) => {
-            console.log(`[TRACK] Received ${event.track.kind} from ${targetUserId}`);
             const stream = state.remoteStream;
             if (!stream.getTracks().some(t => t.id === event.track.id)) {
                 stream.addTrack(event.track);
@@ -294,7 +311,6 @@ export const useGroupRtcConnection = ({
         };
 
         pc.onconnectionstatechange = () => {
-            console.log(`[ICE] ${targetUserId} state: ${pc.iceConnectionState}`);
             if (pc.connectionState === 'connected') {
                 state.isConnected = true;
             } else if (pc.connectionState === 'failed' || pc.connectionState === 'closed') {
@@ -309,14 +325,12 @@ export const useGroupRtcConnection = ({
             });
         } else {
             pc.createDataChannel('keepalive', { negotiated: false });
-            console.log(`[RTC] No local stream yet, created keepalive data channel for ${targetUserId}`);
         }
 
         return pc;
     }, [signalRConnection, onRemoteStream, onRemoteStreamRemoved, currentUserId, closePeerConnection]);
 
     const handleReceiveOffer = useCallback(async (fromUserId: string, roomId: string, offerString: string) => {
-        console.log(`[SIGNAL] Received offer from ${fromUserId} for room ${roomId}`);
 
         if (fromUserId === currentUserId) {
             console.warn('[SIGNAL] Ignoring offer from self');
@@ -332,9 +346,12 @@ export const useGroupRtcConnection = ({
         const offer = JSON.parse(offerString);
 
         const offerCollision = state.makingOffer || pc.signalingState !== "stable";
+
         if (offerCollision) {
-            console.warn(`[SIGNAL] Offer collision, ignoring from ${fromUserId}`);
-            return;
+            if (!state.polite) {
+                return;
+            }
+            await pc.setLocalDescription({ type: "rollback" });
         }
 
         try {
@@ -346,14 +363,12 @@ export const useGroupRtcConnection = ({
             const answer = await pc.createAnswer();
             await pc.setLocalDescription(answer);
             signalRConnection?.invoke("SendAnswerToUser", roomId, fromUserId, JSON.stringify(answer));
-            console.log(`[SIGNAL] Sent answer to ${fromUserId} for room ${roomId}`);
         } catch (err) {
             console.error("handleReceiveOffer error", err);
         }
     }, [signalRConnection, createPeerConnection, currentUserId]);
 
     const handleReceiveAnswer = useCallback(async (fromUserId: string, roomId: string, answerString: string) => {
-        console.log(`[SIGNAL] Received answer from ${fromUserId} for room ${roomId}`);
         const state = peerConnectionsRef.current.get(fromUserId);
         if (!state) return;
         try {
@@ -369,7 +384,6 @@ export const useGroupRtcConnection = ({
     }, []);
 
     const handleIceCandidate = useCallback(async (fromUserId: string, roomId: string, candidateString: string) => {
-        console.log(`[ICE] Received candidate from ${fromUserId} for room ${roomId}`);
         let state = peerConnectionsRef.current.get(fromUserId);
         if (!state) {
             createPeerConnection(fromUserId, roomId);
@@ -378,7 +392,6 @@ export const useGroupRtcConnection = ({
         const candidate = JSON.parse(candidateString);
         if (!state.pc.remoteDescription) {
             state.iceCandidateBuffer.push(candidate);
-            console.log(`[ICE] Candidate buffered (no remote description) for ${fromUserId}`);
         } else {
             try {
                 await state.pc.addIceCandidate(candidate);
@@ -394,34 +407,18 @@ export const useGroupRtcConnection = ({
             return;
         }
         if (peerConnectionsRef.current.has(targetUserId)) return;
-        console.log(`[RTC] Calling user ${targetUserId} in room ${roomId}`);
         createPeerConnection(targetUserId, roomId);
     }, [createPeerConnection, currentUserId]);
 
     const endCall = useCallback(() => {
-        console.log(`[RTC] Ending group call, cleaning up ${peerConnectionsRef.current.size} peer connections`);
         peerConnectionsRef.current.forEach((state) => {
             state.pc.close();
         });
         peerConnectionsRef.current.clear();
-        if (localStreamRef.current) {
-            localStreamRef.current.getTracks().forEach(t => t.stop());
-            localStreamRef.current = null;
-        }
-        if (processedStreamRef.current) {
-            processedStreamRef.current.getTracks().forEach(t => t.stop());
-            processedStreamRef.current = null;
-        }
-        if (audioContextRef.current) {
-            audioContextRef.current.close().catch(() => { });
-            audioContextRef.current = null;
-            gainNodeRef.current = null;
-            sourceNodeRef.current = null;
-        }
-    }, []);
+        releaseLocalMedia();
+    }, [releaseLocalMedia]);
 
     const replaceVideoTrack = useCallback((track: MediaStreamTrack) => {
-        console.log(`[RTC] Replacing video track in ${peerConnectionsRef.current.size} peers`);
         peerConnectionsRef.current.forEach(state => {
             const sender = state.pc.getSenders().find(s => s.track?.kind === "video");
             if (sender) sender.replaceTrack(track).catch(console.error);
@@ -500,15 +497,11 @@ export const useGroupRtcConnection = ({
         }
     }, []);
 
-    // Отправляем буферизованные ICE при восстановлении подключения SignalR
     useEffect(() => {
         if (signalRConnection?.state === 'Connected') {
             flushAllIceCandidates();
         }
     }, [signalRConnection?.state, flushAllIceCandidates]);
-
-    // ========== ИЗМЕНЕНИЕ: убран useEffect с подпиской на сигнальные события ==========
-    // Подписка теперь выполняется напрямую в useGroupCallMenagement после старта соединения
 
     return {
         getLocalStream,
@@ -521,7 +514,6 @@ export const useGroupRtcConnection = ({
         applyAudioFilters,
         currentVideoQuality,
         currentVolume,
-        // Публичные обработчики сигналов
         handleOffer: handleReceiveOffer,
         handleAnswer: handleReceiveAnswer,
         handleIce: handleIceCandidate,
