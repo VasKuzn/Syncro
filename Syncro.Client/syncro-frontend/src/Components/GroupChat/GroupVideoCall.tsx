@@ -46,6 +46,7 @@ const GroupVideoCall: React.FC<GroupVideoCallProps> = ({
         audioRef.current?.play().catch(() => { });
     };
 
+    // Подключение локального видео
     useEffect(() => {
         if (localVideoRef.current && localStream) {
             localVideoRef.current.srcObject = localStream;
@@ -59,6 +60,7 @@ const GroupVideoCall: React.FC<GroupVideoCallProps> = ({
         }
     }, [localStream]);
 
+    // Подключение удалённых видео
     useEffect(() => {
         remoteStreams.forEach((stream, userId) => {
             const videoElement = remoteVideoRefs.current.get(userId);
@@ -160,7 +162,7 @@ const GroupVideoCall: React.FC<GroupVideoCallProps> = ({
         return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
     }, []);
 
-    // Формируем список всех участников (локальный + удалённые)
+    // Актуальные участники звонка: только те, что пришли из пропсов
     const allParticipants = useMemo(() => {
         return participants.map(p => ({
             ...p,
@@ -176,7 +178,7 @@ const GroupVideoCall: React.FC<GroupVideoCallProps> = ({
             videoTrack?.label?.toLowerCase().includes('display');
     };
 
-    // Определяем CSS-свойства для сетки в зависимости от количества участников
+    // Определяем стиль сетки динамически по количеству участников
     const gridStyle = useMemo(() => {
         const count = allParticipants.length;
         if (count <= 1) {
@@ -188,12 +190,11 @@ const GroupVideoCall: React.FC<GroupVideoCallProps> = ({
         if (count === 3) {
             return { gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr' };
         }
-        // Для 4 и более — автоматически подбираем количество колонок
+        // 4 и более — автоматическая сетка
         const cols = Math.ceil(Math.sqrt(count));
         return { gridTemplateColumns: `repeat(${cols}, 1fr)` };
     }, [allParticipants.length]);
 
-    // Для случая 3 участников нужно явно указать, что третий элемент занимает весь второй ряд
     const getTileStyle = (index: number) => {
         if (allParticipants.length === 3 && index === 2) {
             return { gridColumn: 'span 2' };

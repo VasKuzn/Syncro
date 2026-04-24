@@ -186,10 +186,6 @@ namespace Syncro.Api.Hubs
         }
 
         // ==================== ГРУППОВЫЕ ЗВОНКИ ====================
-        /// <summary>
-        /// Создает новый групповой звонок или возвращает существующий, если он уже активен.
-        /// participantIds – список всех участников группы, необходим для отправки уведомлений.
-        /// </summary>
         public async Task<string> CreateGroupCall(string groupId, List<string> participantIds)
         {
             var userId = Context.UserIdentifier;
@@ -228,29 +224,28 @@ namespace Syncro.Api.Hubs
             return roomId;
         }
 
-        /// <summary>
-        /// Возвращает ID активного группового звонка для указанной группы или null.
-        /// </summary>
         public string? GetActiveGroupCall(string groupId)
         {
             return _activeGroupCallByGroup.TryGetValue(groupId, out var roomId) ? roomId : null;
         }
 
-        public async Task JoinGroupCall(string roomId)
+        public async Task<List<string>> JoinGroupCall(string roomId)
         {
             var userId = Context.UserIdentifier;
-            if (string.IsNullOrEmpty(userId)) return;
+            if (string.IsNullOrEmpty(userId)) return new List<string>();
 
             if (_groupCalls.TryGetValue(roomId, out var room))
             {
                 if (room.Participants.Add(userId))
                 {
                     await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
-                    // Уведомляем всех о новом участнике
                     await Clients.Group(roomId).SendAsync("UserJoinedGroupCall", userId);
                     Console.WriteLine($"User {userId} joined group call {roomId}");
                 }
+                // Возвращаем актуальный список участников всем, кто подключается
+                return room.Participants.ToList();
             }
+            return new List<string>();
         }
 
         public async Task LeaveGroupCall(string roomId)
@@ -316,7 +311,7 @@ namespace Syncro.Api.Hubs
             }
         }
 
-        // ==================== CINEMA MODE (существующий) ====================
+        // ==================== CINEMA MODE ====================
         public async Task StartCinemaMode(string roomId, string videoUrl)
         {
             var userId = Context.UserIdentifier;
@@ -382,7 +377,6 @@ namespace Syncro.Api.Hubs
         }
     }
 
-    // ==================== ВСПОМОГАТЕЛЬНЫЕ КЛАССЫ ====================
     public class CallRoom
     {
         public string RoomId { get; set; }
