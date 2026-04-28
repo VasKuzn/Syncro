@@ -69,7 +69,7 @@ namespace Syncro.Api.Extensions
                 "/swagger"
             };
 
-            //app.UseMiddleware<AntiDirectAccessMiddleware>(excludedPaths);
+            app.UseMiddleware<AntiDirectAccessMiddleware>(excludedPaths);
 
         }
         public static void ConfigureEndpoints(this WebApplication app)
