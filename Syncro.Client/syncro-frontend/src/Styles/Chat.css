@@ -623,6 +623,10 @@ video::-webkit-media-controls-panel {
   border: 1px solid #333;
   border-top: none;
   /* Убираем верхнюю границу */
+
+  /* === НОВОЕ: делаем контейнер отслеживаемым по размерам === */
+  container-type: size;
+  container-name: video-call;
 }
 
 .video-call-container.fullscreen {
@@ -2046,4 +2050,125 @@ video::-webkit-media-controls-panel {
   color: white;
   text-align: center;
   padding: 20px;
+}
+
+/* ==================== */
+/* АДАПТАЦИЯ ПОД РАЗМЕРЫ ОКНА ЗВОНКА (container queries) */
+/* ==================== */
+
+/* Средняя ширина: до 600px */
+@container video-call (max-width: 600px) {
+  .video-body.grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 2px;
+  }
+
+  .video-body.pip .video-box.local {
+    width: 140px;
+    height: 105px;
+    bottom: 10px;
+    right: 10px;
+  }
+
+  .video-controls {
+    padding: 8px;
+    gap: 6px;
+  }
+
+  .control-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .control-btn img.icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .user-name {
+    font-size: 11px;
+    padding: 2px 6px;
+  }
+
+  .video-top {
+    height: 42px;
+    padding: 0 10px;
+  }
+
+  .participants {
+    font-size: 13px;
+  }
+
+  .video-info .icon {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+/* Узкое окно: до 400px */
+@container video-call (max-width: 400px) {
+  .video-body.pip .video-box.local {
+    width: 100px;
+    height: 75px;
+    bottom: 8px;
+    right: 8px;
+  }
+
+  .control-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .video-controls {
+    gap: 4px;
+    padding: 6px;
+  }
+
+  .video-top {
+    height: 36px;
+  }
+
+  .video-info .icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .participants {
+    font-size: 12px;
+  }
+}
+
+/* Низкое окно: высота до 350px */
+@container video-call (max-height: 350px) {
+  .video-controls {
+    padding: 4px 8px;
+    gap: 4px;
+  }
+
+  .control-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .video-top {
+    height: 36px;
+  }
+
+  .video-avatar {
+    width: 64px;
+    height: 64px;
+  }
+
+  .waiting-text {
+    font-size: 12px;
+    bottom: 40px;
+  }
+
+  .user-name {
+    font-size: 10px;
+    padding: 2px 4px;
+    bottom: 4px;
+    left: 4px;
+  }
 }
