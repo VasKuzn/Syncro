@@ -26,12 +26,15 @@ body {
     border-bottom: 1px solid #2D3748;
 }
 
+/* Основной контейнер: строка на десктопе, колонка на мобильных */
 .body-container {
     display: flex;
     height: 100%;
     width: 100%;
     flex-direction: row;
     border: none;
+    overflow: hidden;
+    /* предотвращаем выход за границы */
 }
 
 .sidebar-container {
@@ -41,8 +44,10 @@ body {
     flex-shrink: 0;
     min-width: 372px;
     border: none;
+    /* на узких экранах разрешим сжиматься и изменим высоту через медиа */
 }
 
+/* Область друзей – занимает всё оставшееся место */
 .friends {
     display: flex;
     flex-direction: column;
@@ -50,7 +55,12 @@ body {
     background-color: #151838;
     outline: none;
     border: none;
-    width: 100%;
+    flex: 1;
+    /* вместо width:100% */
+    min-width: 0;
+    /* позволяет сжиматься */
+    overflow: hidden;
+    /* чтобы контент не вылезал */
 }
 
 .group-chats-container {
@@ -72,6 +82,7 @@ body {
     flex-direction: column;
     flex: 1;
     min-width: 300px;
+    /* базовый минимум, изменим в медиа */
     position: relative;
     overflow-y: scroll;
     scrollbar-width: none;
@@ -223,22 +234,32 @@ body {
     margin: 7px;
 }
 
+/* Навигация друзей – ВАЖНО: включаем перенос */
 .friends-nav {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
+    /* разрешаем перенос строк */
     font-size: large;
     width: 100%;
-    height: 5%;
+    min-height: 5%;
+    /* вместо height, чтобы расти */
     flex-direction: row;
     padding: 8px 8px 8px 30px;
     outline: none;
     border: none;
     gap: 8px;
     margin-top: 6px;
+    box-sizing: border-box;
+    /* чтобы padding не увеличивал ширину */
 }
 
+/* Поле ввода внутри навигации тоже должно адаптироваться */
 .friends-nav .input-container {
     padding: 10px;
+    flex: 1 1 200px;
+    /* гибкое сжатие */
+    min-width: 150px;
 }
 
 .button-friends-status {
@@ -254,6 +275,10 @@ body {
     color: #ffffff;
     transition: all 0.2s ease;
     cursor: pointer;
+    white-space: nowrap;
+    /* текст не переносится внутри кнопки */
+    flex-shrink: 0;
+    /* не сжимать кнопки меньше контента */
 }
 
 .button-friends-status.active {
@@ -351,15 +376,15 @@ body {
     display: flex;
     flex-grow: 1 1 auto;
     padding: 5px 20px 10px 5px;
+    box-sizing: border-box;
 }
-
-
 
 .input-box {
     display: flex;
     padding: 5px 5px;
     background-color: #07081C;
     border-radius: 10px;
+    width: 100%;
 }
 
 .friends-search {
@@ -665,334 +690,213 @@ body {
     background-color: #a1a1aa;
 }
 
-.friend-details-popover {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 200;
-    background: #23244a;
-    border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), 0 1.5px 8px #3b82f6;
-    padding: 28px 28px 20px 24px;
-    min-width: 260px;
-    max-width: 90vw;
-    animation: popover-fade-in 0.2s;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    overflow: auto;
-}
+/* ----------------------------- */
+/*         АДАПТИВНОСТЬ          */
+/* ----------------------------- */
 
-@media (max-width: 700px) {
-    .friend-details-popover {
-        min-width: 80vw;
-        max-width: 98vw;
-        padding: 12px 4px 12px 8px;
+/* Планшеты и небольшие ноутбуки (ширина до 1280px) */
+@media (max-width: 1280px) {
+    .sidebar-container {
+        min-width: 300px;
+        /* немного уже */
+    }
+
+    .main-sidebar-content {
+        min-width: 250px;
+    }
+
+    .friends-nav {
+        padding-left: 15px;
+        gap: 5px;
+    }
+
+    .button-friends-status {
+        font-size: 0.9rem;
+        padding: 5px 10px;
+        margin: 5px 3px;
+    }
+
+    .friends-nav .input-container {
+        min-width: 120px;
+        padding: 5px;
+    }
+
+    .friends-search {
+        font-size: 0.9rem;
     }
 }
 
-.friend-details-popover .close-popover {
-    position: absolute;
-    top: 12px;
-    right: 16px;
-    background: transparent;
-    border: none;
-    color: #fff;
-    font-size: 1.7rem;
-    cursor: pointer;
-    transition: color 0.2s, transform 0.15s;
-    z-index: 11;
-    padding: 0 4px;
-    line-height: 1;
-}
-
-.friend-details-popover .close-popover:hover {
-    color: #f87171;
-    transform: scale(1.2) rotate(90deg);
-}
-
-.friend-details-popover .friend-request-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 10px;
-}
-
-.friend-details-popover .accept-button,
-.friend-details-popover .decline-button {
-    width: 100%;
-    border: none;
-    border-radius: 8px;
-    padding: 12px 0;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.1s;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.08);
-    outline: none;
-    margin: 0;
-    text-align: center;
-    letter-spacing: 0.02em;
-}
-
-.friend-details-popover .accept-button {
-    background: linear-gradient(90deg, #22c55e 60%, #16a34a 100%);
-    color: #fff;
-}
-
-.friend-details-popover .accept-button:hover {
-    background: linear-gradient(90deg, #16a34a 60%, #22c55e 100%);
-    box-shadow: 0 4px 16px rgba(34, 197, 94, 0.18);
-}
-
-.friend-details-popover .decline-button {
-    background: linear-gradient(90deg, #f87171 60%, #b91c1c 100%);
-    color: #fff;
-}
-
-.friend-details-popover .decline-button:hover {
-    background: linear-gradient(90deg, #b91c1c 60%, #f87171 100%);
-    box-shadow: 0 4px 16px rgba(239, 113, 113, 0.18);
-}
-
-.unread-badge {
-    background: #c77dff;
-    color: white;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    margin-left: 8px;
-}
-
-/* Стили для модального окна */
-.modal-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
+/* Ширина 1100px – кнопки начинают переноситься */
+@media (max-width: 1100px) {
+    .friends-nav {
+        padding: 8px 8px;
+        gap: 5px;
     }
 
-    to {
-        opacity: 1;
+    /* скрываем текстовую метку "Друзья" и оставляем только кнопки-фильтры */
+    .friends-nav>label:first-of-type {
+        display: none;
     }
 }
 
-.friend-details-modal {
-    background: #1E293B;
-    border-radius: 16px;
-    padding: 24px;
-    max-width: 400px;
-    width: 90%;
-    max-height: 90vh;
-    overflow: auto;
-    position: relative;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2), 0 1.5px 8px #3b82f6;
-    animation: modalSlideIn 0.3s ease;
-    border: 1px solid #3B82F6;
-}
+/* Планшеты (вертикальная ориентация) и узкие экраны до 768px */
+@media (max-width: 768px) {
 
-@keyframes modalSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px) scale(0.95);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid #374151;
-}
-
-.modal-header h3 {
-    margin: 0;
-    color: #ffffff;
-    font-size: 1.25rem;
-    font-weight: 600;
-}
-
-.modal-close-btn {
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    color: #9ca3af;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    transition: all 0.2s;
-}
-
-.modal-close-btn:hover {
-    background-color: #374151;
-    color: #ffffff;
-}
-
-.friend-details-modal .friend-header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 20px;
-}
-
-.friend-details-modal .friend-avatar.big {
-    width: 80px;
-    height: 80px;
-    border: 3px solid #3B82F6;
-}
-
-.friend-details-modal .friend-main-info {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.friend-details-modal .nickname {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #ffffff;
-}
-
-.friend-details-modal .full-name {
-    font-size: 0.95rem;
-    color: #9ca3af;
-}
-
-.friend-details-modal .friend-info {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 24px;
-}
-
-.friend-details-modal .info-row {
-    margin-bottom: 8px;
-    font-size: 0.95rem;
-    color: #d1d5db;
-    display: flex;
-    align-items: center;
-}
-
-.friend-details-modal .info-label {
-    color: #9ca3af;
-    margin-right: 8px;
-    min-width: 60px;
-}
-
-.modal-actions {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-.modal-actions .action-btn {
-    flex: 1;
-    padding: 12px 16px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    font-size: 0.95rem;
-    font-weight: 500;
-    transition: all 0.2s;
-    min-width: 140px;
-    text-align: center;
-}
-
-.modal-actions .action-btn.primary {
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-    color: white;
-}
-
-.modal-actions .action-btn.primary:hover {
-    background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-}
-
-.modal-actions .action-btn.danger {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    color: white;
-}
-
-.modal-actions .action-btn.danger:hover {
-    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-}
-
-.modal-actions .action-btn.secondary {
-    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
-    color: white;
-}
-
-.modal-actions .action-btn.secondary:hover {
-    background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
-}
-
-/* Адаптивность для модального окна */
-@media (max-width: 480px) {
-    .friend-details-modal {
-        width: 95%;
-        padding: 20px;
-    }
-
-    .modal-actions {
+    /* Перестраиваем главный контейнер в колонку */
+    .body-container {
         flex-direction: column;
     }
 
-    .modal-actions .action-btn {
-        min-width: 100%;
+    .sidebar-container {
+        flex-direction: row;
+        /* боковая панель теперь горизонтальная полоса */
+        width: 100%;
+        height: auto;
+        min-width: 0;
+        max-height: 45vh;
+        /* ограничим высоту, чтобы друзья были видны */
+        overflow-y: auto;
+    }
+
+    .group-chats-container {
+        flex-direction: row;
+        width: 100%;
+        height: auto;
+        padding: 5px;
+    }
+
+    .group-chats {
+        flex-direction: row;
+        width: auto;
+        overflow-x: auto;
+        padding: 8px;
+    }
+
+    .group-chat-list {
+        flex-direction: row;
+        gap: 8px;
+        margin-top: 0;
+    }
+
+    .main-sidebar-content {
+        min-width: 0;
+        height: auto;
+        overflow-y: visible;
+        flex: 1;
+    }
+
+    .friends {
+        height: auto;
+        min-height: 50vh;
+    }
+
+    .profile-panel-wrapper {
+        position: static;
+        /* не приклеивать к низу */
+    }
+
+    /* Навигация друзей ещё компактнее */
+    .friends-nav {
+        font-size: 0.8rem;
+        padding: 5px;
+        gap: 3px;
+    }
+
+    .button-friends-status {
+        padding: 4px 8px;
+        font-size: 0.8rem;
+    }
+
+    .friends-nav .input-container {
+        flex-basis: 100%;
+        /* поле ввода занимает всю ширину */
+        order: 10;
+        /* убираем в конец строки */
+        min-width: 0;
+    }
+
+    .input-container {
+        padding: 5px 10px;
+    }
+
+    .friends-list {
+        padding-left: 10px;
+    }
+
+    .friend-item {
+        margin-right: 10px;
     }
 }
 
-/* Стиль для запрета скролла */
-body.modal-open {
-    overflow: hidden;
-}
+/* Телефоны (ширина до 480px) */
+@media (max-width: 480px) {
+    .friends-nav {
+        justify-content: flex-start;
+    }
 
-/* Стили для вкладки Заявки мне */
-.section-title-main {
-    font-size: medium;
-    color: #a1a1aa;
-    margin: 15px 0 10px 10px;
-}
+    /* Делаем кнопки ещё меньше, убираем некоторые длинные названия */
+    .button-friends-status {
+        font-size: 0.7rem;
+        padding: 3px 6px;
+        margin: 2px;
+    }
 
-.section-divider {
-    height: 2px;
-    background: #4A5568;
-    margin: 20px 20px 10px 7px;
-}
+    /* Кнопки "Календарь" и "Рекомендации Steam" можно свернуть в иконки или скрыть текст */
+    .button-friends-status.calendar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        padding: 0;
+        overflow: hidden;
+        white-space: nowrap;
+        text-indent: -9999px;
+        /* скрываем текст, показываем только фон */
+        position: relative;
+    }
 
-.rejected-section {
-    opacity: 0.5;
+    .button-friends-status.calendar::after {
+        content: "📅";
+        /* эмодзи или иконка */
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        text-indent: 0;
+        font-size: 1.2rem;
+    }
+
+    /* Аналогично для Рекомендаций Steam (если вторая кнопка с классом calendar) */
+    /* Можно задать отдельный класс, но оставим как есть – она тоже станет иконкой */
+
+    .sidebar-container {
+        max-height: 40vh;
+    }
+
+    .profile-panel {
+        height: 55px;
+        border-radius: 20px;
+    }
+
+    .profile-info-container {
+        padding: 0 10px;
+    }
+
+    .profile-avatar-container,
+    .profile-avatar {
+        width: 32px;
+        height: 32px;
+    }
+
+    .profile-text-info {
+        font-size: 0.8rem;
+    }
+
+    .profile-button {
+        height: 40px;
+        width: 40px;
+    }
+
+    .friend-details-popover {
+        min-width: 90vw;
+    }
 }
