@@ -226,14 +226,13 @@ body {
     margin: 7px;
 }
 
-/* Tooltip для названий групп */
+/* ---------- Тултип названия группы ---------- */
 .group-icon-wrapper {
     position: relative;
 }
 
 .group-name-tooltip {
     position: absolute;
-    z-index: 9999;
     background: #1E293B;
     color: #fff;
     padding: 4px 8px;
@@ -1090,31 +1089,81 @@ body.modal-open {
 @media (max-width: 768px) {
     .body-container {
         flex-direction: column;
-        position: relative;
-        /* чтобы фиксированный профиль привязывался к body-container */
     }
 
-    /* Группы чатов — приклеены сверху */
+    /* Группы чатов приклеены сверху */
     .sidebar-container {
-        order: -1;
+        position: sticky;
+        top: 0;
+        z-index: 50;
         width: 100%;
         height: auto;
         min-width: 0;
         flex-shrink: 0;
-        position: sticky;
-        top: 0;
-        z-index: 50;
         background-color: #07081C;
         border-bottom: 1px solid #2D3748;
         overflow: hidden;
     }
 
-    /* Скрываем всё содержимое кроме group-chats-container */
+    /* main-sidebar-content: показываем, но скрываем всё, кроме профиля */
     .main-sidebar-content {
+        display: flex;
+        flex-direction: column;
+        position: static;
+        height: auto;
+        min-width: 0;
+        overflow: visible;
+    }
+
+    .main-sidebar-content>*:not(.profile-panel-wrapper) {
         display: none;
     }
 
-    /* Группы занимают всю ширину, без скролла */
+    /* Профиль фиксирован внизу ТОЛЬКО на главной странице (где нет чата) */
+    .main-page:not(:has(.chat-container)) .profile-panel-wrapper {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 200;
+        margin: 0;
+        padding: 6px 12px;
+        background: linear-gradient(to top, #07081C 0%, #07081C 80%, transparent);
+    }
+
+    /* На странице чата профиль полностью скрыт */
+    .main-page:has(.chat-container) .profile-panel-wrapper {
+        display: none;
+    }
+
+    /* Общие стили профиля для мобильных */
+    .profile-panel {
+        height: 52px;
+        border-radius: 26px;
+        max-width: 90%;
+        margin: 0 auto;
+    }
+
+    .profile-info-container {
+        padding: 0 14px;
+    }
+
+    .profile-avatar-container,
+    .profile-avatar {
+        width: 36px;
+        height: 36px;
+    }
+
+    .profile-text-info {
+        font-size: 0.85rem;
+    }
+
+    .profile-button {
+        width: 40px;
+        height: 40px;
+    }
+
+    /* Группы занимают всю ширину */
     .group-chats-container {
         width: 100%;
         flex-direction: row;
@@ -1122,7 +1171,6 @@ body.modal-open {
         padding: 6px 8px;
         gap: 8px;
         overflow: hidden;
-        /* никаких полос прокрутки */
     }
 
     .group-chats {
@@ -1155,7 +1203,7 @@ body.modal-open {
         display: none;
     }
 
-    /* Тултип группы — вниз, поверх всего */
+    /* Тултип группы на мобильных: снизу, поверх всего */
     .group-name-tooltip {
         bottom: auto !important;
         top: 100% !important;
@@ -1163,54 +1211,30 @@ body.modal-open {
         right: auto !important;
         transform: translateX(-50%) !important;
         margin-top: 6px;
-        z-index: 10000;
+        margin-bottom: 0;
     }
 
-    /* Список друзей */
+    /* Список друзей на главной или чат */
     .friends {
         flex: 1 1 auto;
         min-height: 0;
         overflow-y: auto;
         padding-bottom: 70px;
-        /* резерв для фиксированного профиля */
     }
 
-    /* Профиль фиксирован внизу */
-    .profile-panel-wrapper {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        z-index: 100;
-        margin: 0;
-        padding: 6px 12px;
-        background: linear-gradient(to top, #07081C 0%, #07081C 80%, transparent);
-    }
-
-    .profile-panel {
-        height: 52px;
-        border-radius: 26px;
-        max-width: 90%;
-        margin: 0 auto;
-    }
-
-    .profile-info-container {
-        padding: 0 14px;
-    }
-
-    .profile-avatar-container,
-    .profile-avatar {
-        width: 36px;
-        height: 36px;
-    }
-
-    .profile-text-info {
-        font-size: 0.85rem;
-    }
-
-    .profile-button {
-        width: 40px;
-        height: 40px;
+    /* Кнопка звонка всегда видна, приклеена сверху под группами */
+    .chat-container .call-button-container {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        position: sticky;
+        top: 70px;
+        /* высота блока с группами */
+        z-index: 45;
+        /* выше сообщений, ниже групп (50) */
+        background: #151838;
+        padding: 8px 14px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
     }
 
     /* Навигация друзей */
@@ -1269,6 +1293,11 @@ body.modal-open {
     .profile-panel {
         height: 48px;
         border-radius: 24px;
+    }
+
+    /* Корректируем sticky top для кнопки звонка под более компактные группы */
+    .chat-container .call-button-container {
+        top: 60px;
     }
 
     .friends-nav {
