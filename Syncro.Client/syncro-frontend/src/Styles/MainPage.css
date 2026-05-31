@@ -1090,102 +1090,39 @@ body.modal-open {
 @media (max-width: 768px) {
     .body-container {
         flex-direction: column;
+        position: relative;
+        /* чтобы фиксированный профиль привязывался к body-container */
     }
 
+    /* Группы чатов — приклеены сверху */
     .sidebar-container {
-        order: 3;
-        flex-direction: column;
+        order: -1;
         width: 100%;
-        min-width: 0;
         height: auto;
-        max-height: none;
+        min-width: 0;
         flex-shrink: 0;
-        border-top: 1px solid #2D3748;
-        overflow-x: hidden;
-        overflow-y: visible;
-        /* разрешаем tooltip выходить за границы */
-    }
-
-    .friends {
-        order: 1;
-        flex: 1 1 auto;
-        min-height: 0;
-        overflow-y: auto;
-    }
-
-    /* main-sidebar-content: только профиль, всё остальное скрыто */
-    .main-sidebar-content {
-        display: flex;
-        order: 2;
-        flex: none;
-        width: 100%;
-        min-width: 0;
-        height: auto;
-        flex-direction: row;
-        align-items: center;
-        justify-content: flex-end;
-        /* профиль справа, можно изменить */
-        background-color: #0F172A;
-        border-top: 1px solid #2D3748;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background-color: #07081C;
         border-bottom: 1px solid #2D3748;
-        padding: 6px 10px;
-        overflow: visible;
+        overflow: hidden;
     }
 
-    .search-pm,
-    .personal-chats,
-    .pc-list {
+    /* Скрываем всё содержимое кроме group-chats-container */
+    .main-sidebar-content {
         display: none;
-        /* убираем личные сообщения */
     }
 
-    .profile-panel-wrapper {
-        margin-top: 0;
-        padding: 0;
-        background: none;
-        position: static;
-        flex-shrink: 0;
-        display: flex;
-        align-items: center;
-    }
-
-    .profile-panel {
-        height: 48px;
-        border-radius: 24px;
-        padding: 0 10px;
-        width: auto;
-    }
-
-    .profile-info-container {
-        width: auto;
-        padding: 0 10px;
-        gap: 5px;
-    }
-
-    .profile-avatar-container,
-    .profile-avatar {
-        width: 32px;
-        height: 32px;
-    }
-
-    .profile-text-info {
-        font-size: 0.8rem;
-    }
-
-    .profile-button {
-        width: 36px;
-        height: 36px;
-    }
-
-    /* Группы чатов */
+    /* Группы занимают всю ширину, без скролла */
     .group-chats-container {
-        order: 1;
         width: 100%;
         flex-direction: row;
         height: auto;
-        padding: 4px 8px;
+        padding: 6px 8px;
         gap: 8px;
-        overflow-x: hidden;
+        overflow: hidden;
+        /* никаких полос прокрутки */
     }
 
     .group-chats {
@@ -1218,19 +1155,62 @@ body.modal-open {
         display: none;
     }
 
-    /* Тултип группы строго вверх и поверх всех */
-    .group-icon-wrapper {
-        position: relative;
-        z-index: auto;
-    }
-
+    /* Тултип группы — вниз, поверх всего */
     .group-name-tooltip {
-        bottom: 100% !important;
-        top: auto !important;
+        bottom: auto !important;
+        top: 100% !important;
         left: 50% !important;
         right: auto !important;
         transform: translateX(-50%) !important;
-        margin-bottom: 8px;
+        margin-top: 6px;
+        z-index: 10000;
+    }
+
+    /* Список друзей */
+    .friends {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        padding-bottom: 70px;
+        /* резерв для фиксированного профиля */
+    }
+
+    /* Профиль фиксирован внизу */
+    .profile-panel-wrapper {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        margin: 0;
+        padding: 6px 12px;
+        background: linear-gradient(to top, #07081C 0%, #07081C 80%, transparent);
+    }
+
+    .profile-panel {
+        height: 52px;
+        border-radius: 26px;
+        max-width: 90%;
+        margin: 0 auto;
+    }
+
+    .profile-info-container {
+        padding: 0 14px;
+    }
+
+    .profile-avatar-container,
+    .profile-avatar {
+        width: 36px;
+        height: 36px;
+    }
+
+    .profile-text-info {
+        font-size: 0.85rem;
+    }
+
+    .profile-button {
+        width: 40px;
+        height: 40px;
     }
 
     /* Навигация друзей */
@@ -1271,12 +1251,6 @@ body.modal-open {
 }
 
 @media (max-width: 480px) {
-    .sidebar-container {
-        padding: 4px 0;
-        overflow-x: hidden;
-        overflow-y: visible;
-    }
-
     .group-chats-container {
         padding: 4px 6px;
     }
@@ -1290,6 +1264,11 @@ body.modal-open {
         width: 36px;
         height: 36px;
         font-size: 1rem;
+    }
+
+    .profile-panel {
+        height: 48px;
+        border-radius: 24px;
     }
 
     .friends-nav {
