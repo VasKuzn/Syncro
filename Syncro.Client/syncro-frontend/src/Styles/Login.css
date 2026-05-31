@@ -470,3 +470,160 @@ input::placeholder {
   margin: 16px 0;
   color: #666;
 }
+
+/* ---------- АДАПТИВНОСТЬ ---------- */
+/* Планшеты и небольшие ноутбуки (ширина до 1100px) */
+@media (max-width: 1100px) {
+  body {
+    padding: 30px;
+  }
+
+  .main-container {
+    width: 70%;
+    max-width: 500px;
+  }
+
+  .show-element {
+    left: 83%;
+  }
+}
+
+/* Планшеты (≤768px) */
+@media (max-width: 768px) {
+  body {
+    padding: 20px;
+  }
+
+  .centered-container {
+    justify-content: flex-start;
+    padding-top: 40px;
+  }
+
+  .main-container {
+    width: 90%;
+    padding: 20px;
+    box-shadow: none;
+  }
+
+  .log-element {
+    font-size: 15px;
+    padding: 12px;
+    height: 44px;
+  }
+
+  h1 {
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+
+  .buttons button {
+    width: 100%;
+    height: 48px;
+    font-size: 16px;
+  }
+
+  .show-element {
+    left: 82%;
+    bottom: 30px;
+  }
+
+  ul {
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .checkbox-container {
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .alternative-login {
+    margin: 12px 0;
+  }
+
+  footer {
+    margin-top: 20px;
+  }
+}
+
+/* Телефоны (≤480px) */
+@media (max-width: 480px) {
+  body {
+    padding: 10px;
+  }
+
+  .centered-container {
+    padding-top: 20px;
+  }
+
+  .main-container {
+    width: 95%;
+    padding: 16px;
+  }
+
+  .log-element {
+    font-size: 14px;
+    padding: 10px;
+    height: 42px;
+  }
+
+  h1 {
+    font-size: 22px;
+  }
+
+  .buttons button {
+    height: 46px;
+    font-size: 15px;
+  }
+
+  .show-element {
+    left: 78%;
+    bottom: 28px;
+  }
+
+  .checkbox-container label {
+    font-size: 13px;
+  }
+
+  .header-container p {
+    font-size: 14px;
+    margin-bottom: 15px;
+  }
+
+  .downside-elements {
+    padding-left: 20px;
+  }
+
+  .yandex-button {
+    min-height: 35px;
+  }
+}
+
+/* Очень маленькие экраны (≤360px) */
+@media (max-width: 360px) {
+  .main-container {
+    width: 98%;
+    padding: 12px;
+  }
+
+  .log-element {
+    font-size: 13px;
+    padding: 8px;
+    height: 40px;
+  }
+
+  h1 {
+    font-size: 20px;
+  }
+
+  .show-element {
+    left: 75%;
+    bottom: 26px;
+  }
+
+  .buttons button {
+    height: 44px;
+    font-size: 14px;
+  }
+}
