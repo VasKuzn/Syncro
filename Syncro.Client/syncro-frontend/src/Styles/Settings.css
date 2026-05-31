@@ -337,12 +337,6 @@
   margin-bottom: 24px;
 }
 
-@media (max-width: 1200px) {
-  .settings-grid-2 {
-    grid-template-columns: 1fr;
-  }
-}
-
 .settings-field {
   display: flex;
   flex-direction: column;
@@ -661,172 +655,6 @@
 }
 
 /* ==========================================
-   RESPONSIVE ДИЗАЙН
-   ========================================== */
-
-@media (max-width: 1400px) {
-  .settings-profile {
-    padding: 40px 30px;
-  }
-
-  .settings-profile-container {
-    gap: 30px;
-  }
-
-  .settings-avatar {
-    width: 160px;
-    height: 160px;
-  }
-
-  .profile-nickname {
-    font-size: 28px;
-  }
-}
-
-@media (max-width: 1000px) {
-  .settings-page {
-    flex-direction: column;
-  }
-
-  .settings-sidebar {
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    border-right: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 0;
-  }
-
-  .settings-sidebar-button {
-    margin: 0 8px;
-    padding: 8px 16px;
-  }
-
-  .settings-profile {
-    flex: 1;
-  }
-
-  .settings-profile-section {
-    padding: 24px;
-  }
-
-  .settings-profile-container {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 24px;
-  }
-
-  .profile-info-block {
-    align-items: center;
-  }
-
-  .settings-grid-2 {
-    grid-template-columns: 1fr;
-  }
-
-  .settings-avatar {
-    width: 140px;
-    height: 140px;
-  }
-
-  .profile-nickname {
-    font-size: 24px;
-  }
-
-  .section-title {
-    font-size: 18px;
-  }
-}
-
-@media (max-width: 768px) {
-  .settings-profile {
-    padding: 24px 16px;
-    margin-bottom: 20px;
-  }
-
-  .settings-section {
-    margin-bottom: 24px;
-  }
-
-  .settings-profile-section {
-    padding: 16px;
-  }
-
-  .settings-actions {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .settings-button {
-    width: 100%;
-  }
-
-  .logout-modal {
-    margin: 16px;
-    max-width: calc(100% - 32px);
-  }
-
-  .settings-avatar {
-    width: 120px;
-    height: 120px;
-  }
-
-  .profile-nickname {
-    font-size: 20px;
-  }
-
-  .section-title {
-    font-size: 16px;
-  }
-
-  .settings-success-banner {
-    left: 16px;
-    right: 16px;
-    top: 16px;
-  }
-}
-
-@media (max-width: 480px) {
-  .settings-profile {
-    padding: 16px 12px;
-  }
-
-  .settings-profile-section {
-    padding: 12px;
-  }
-
-  .settings-grid-2 {
-    gap: 16px;
-  }
-
-  .settings-button {
-    font-size: 13px;
-    padding: 10px 16px;
-  }
-
-  .section-header {
-    margin-bottom: 16px;
-  }
-
-  .logout-modal {
-    padding: 20px;
-  }
-
-  .logout-modal-header h2 {
-    font-size: 18px;
-  }
-
-  .profile-nickname {
-    font-size: 18px;
-  }
-
-  .section-title {
-    font-size: 14px;
-  }
-}
-
-/* ==========================================
    УТИЛИТЫ И ИИ МОДАЛЬ
    ========================================== */
 
@@ -834,18 +662,6 @@
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   width: 100%;
-}
-
-@media (max-width: 1200px) {
-  .settings-form-container {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .settings-form-container {
-    grid-template-columns: 1fr;
-  }
 }
 
 .column {
@@ -1201,4 +1017,264 @@
   display: flex;
   gap: 12px;
   margin-top: 20px;
+}
+
+/* ==========================================
+   АДАПТИВНОСТЬ
+   ========================================== */
+
+/* Планшеты и небольшие ноутбуки (ширина до 1280px) */
+@media (max-width: 1280px) {
+  .settings-sidebar {
+    flex: 0 0 250px;
+    padding-right: 10px;
+  }
+
+  .settings-pages-container {
+    padding: 30px 15px;
+  }
+
+  .settings-profile {
+    padding: 30px 40px;
+  }
+
+  .settings-profile-section {
+    padding: 24px;
+  }
+
+  .settings-profile-container {
+    gap: 30px;
+  }
+
+  .settings-avatar {
+    width: 160px;
+    height: 160px;
+  }
+
+  .profile-nickname {
+    font-size: 28px;
+  }
+
+  .settings-grid-2 {
+    gap: 20px;
+  }
+}
+
+/* Ширина 1100px – боковая панель становится горизонтальной сверху */
+@media (max-width: 1100px) {
+  .settings-page {
+    flex-direction: column;
+  }
+
+  .settings-sidebar {
+    flex: 0 0 auto;
+    width: 100%;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    background-color: #07081C;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .settings-sidebar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .settings-pages-container {
+    display: flex;
+    flex-direction: row;
+    padding: 8px 12px;
+    height: auto;
+    gap: 4px;
+  }
+
+  .settings-sidebar-button {
+    margin: 0;
+    padding: 8px 14px;
+    white-space: nowrap;
+    font-size: 14px;
+  }
+
+  .settings-profile {
+    padding: 24px 30px;
+  }
+
+  .settings-form-container {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Планшеты (≤768px) и телефоны */
+@media (max-width: 768px) {
+  .settings-profile {
+    padding: 20px 16px;
+    margin-bottom: 20px;
+  }
+
+  .settings-section {
+    margin-bottom: 24px;
+  }
+
+  .settings-profile-section {
+    padding: 16px;
+    margin-bottom: 30px;
+  }
+
+  .settings-profile-container {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 24px;
+  }
+
+  .profile-info-block {
+    align-items: center;
+  }
+
+  .settings-avatar {
+    width: 140px;
+    height: 140px;
+  }
+
+  .profile-nickname {
+    font-size: 24px;
+  }
+
+  .section-title {
+    font-size: 18px;
+  }
+
+  .settings-grid-2 {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .settings-form-container {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-actions {
+    flex-direction: column;
+    gap: 12px;
+    margin: 30px 0;
+    padding: 20px 0;
+  }
+
+  .settings-button {
+    width: 100%;
+  }
+
+  .settings-danger-zone {
+    padding: 20px;
+  }
+
+  .settings-pages-container {
+    padding: 4px 8px;
+  }
+
+  .settings-sidebar-button {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  /* Модальные окна */
+  .logout-modal {
+    margin: 16px;
+    max-width: calc(100% - 32px);
+    padding: 24px;
+  }
+
+  .ai-modal {
+    width: 90%;
+    padding: 20px;
+  }
+
+  .avatar-modal {
+    width: 90%;
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-profile {
+    padding: 16px 12px;
+  }
+
+  .settings-profile-section {
+    padding: 12px;
+  }
+
+  .settings-avatar {
+    width: 120px;
+    height: 120px;
+  }
+
+  .profile-nickname {
+    font-size: 20px;
+  }
+
+  .section-title {
+    font-size: 16px;
+  }
+
+  .settings-button {
+    font-size: 13px;
+    padding: 10px 16px;
+  }
+
+  .section-header {
+    margin-bottom: 16px;
+  }
+
+  .settings-success-banner {
+    left: 16px;
+    right: 16px;
+    top: 16px;
+    font-size: 14px;
+    padding: 10px 16px;
+  }
+
+  .settings-sidebar-button {
+    font-size: 12px;
+    padding: 4px 10px;
+  }
+
+  .logout-modal {
+    padding: 20px;
+  }
+
+  .logout-modal-header h2 {
+    font-size: 18px;
+  }
+
+  .ai-modal {
+    padding: 16px;
+  }
+
+  .ai-modal-header h2 {
+    font-size: 18px;
+  }
+
+  .prompt-input-group label {
+    font-size: 14px;
+  }
+
+  .prompt-input {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .generate-btn {
+    font-size: 14px;
+    padding: 10px 16px;
+  }
 }
