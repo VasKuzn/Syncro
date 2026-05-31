@@ -18,11 +18,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # Установка sshpass для пароль-based аутентификации
       - name: Install sshpass
         run: sudo apt-get update && sudo apt-get install -y sshpass
 
-      # Копирование кода на сервер
       - name: Deploy code to server
         env:
           SSHPASS: ${{ secrets.SERVER_PASSWORD }}
@@ -43,7 +41,6 @@ jobs:
             ./ \
             ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }}:${{ env.SERVER_PATH }}/
 
-      # Построение и запуск docker контейнеров
       - name: Build and run Docker containers
         env:
           SSHPASS: ${{ secrets.SERVER_PASSWORD }}
@@ -53,7 +50,6 @@ jobs:
              docker compose down || true && \
              docker compose up -d --build"
 
-      # Вывод статуса контейнеров
       - name: Check container status
         env:
           SSHPASS: ${{ secrets.SERVER_PASSWORD }}

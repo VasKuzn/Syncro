@@ -1,4 +1,3 @@
-# Backend build stage
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 
 WORKDIR /src
@@ -15,7 +14,6 @@ COPY Syncro.Server/ .
 WORKDIR "/src/Syncro.Api"
 RUN dotnet publish -c Release -o /app/publish
 
-# Backend runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:9.0
 
 WORKDIR /app

@@ -87,7 +87,6 @@ namespace Syncro.Infrastructure.Services
             return recommendation;
         }
 
-        // Вспомогательные классы для десериализации (можно вынести в отдельный файл)
         private class SteamGamesResponse
         {
             public SteamResponse response { get; set; }
