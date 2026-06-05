@@ -2172,3 +2172,131 @@ video::-webkit-media-controls-panel {
     left: 4px;
   }
 }
+
+@media (max-width: 460px) {
+  .message-input-container {
+    padding: 8px 10px;
+    margin: 0 8px;
+    gap: 8px;
+  }
+
+  .message-input-field {
+    padding: 10px 12px;
+    font-size: 0.9rem;
+  }
+
+  .send-button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .send-button svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .sk-class {
+    width: 40px;
+    height: 40px;
+  }
+
+  .sk-class img {
+    width: 28px;
+    height: 28px;
+  }
+
+  /* если есть кнопка смайлов отдельно */
+  .emoji-button {
+    width: 36px;
+    height: 36px;
+  }
+
+  /* уменьшаем превью файла */
+  .file-preview {
+    padding: 8px;
+    margin-bottom: 8px;
+  }
+
+  .file-preview .preview-image {
+    width: 40px;
+    height: 40px;
+  }
+
+  .file-name {
+    font-size: 12px;
+  }
+
+  .remove-file-btn {
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .message-input-container {
+    padding: 6px 8px;
+    margin: 0 6px;
+    gap: 6px;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .message-input-field {
+    padding: 8px 10px;
+    font-size: 0.8rem;
+    border-radius: 8px;
+  }
+
+  .send-button {
+    width: 34px;
+    height: 34px;
+  }
+
+  .send-button svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .sk-class {
+    width: 34px;
+    height: 34px;
+  }
+
+  .sk-class img {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* Превью файла ещё компактнее */
+  .file-preview {
+    padding: 6px 8px;
+    margin-bottom: 6px;
+  }
+
+  .file-preview .preview-image {
+    width: 32px;
+    height: 32px;
+  }
+
+  .file-name {
+    font-size: 11px;
+  }
+
+  .remove-file-btn {
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+  }
+
+  /* Если не помещается — разрешаем перенос кнопок, но сохраняем flex */
+  .message-input-container {
+    flex-wrap: wrap;
+  }
+
+  /* Уменьшаем индикатор печати */
+  .typing-indicator {
+    padding: 6px 10px;
+    margin: 0 8px 4px 8px;
+    font-size: 0.75rem;
+  }
+}

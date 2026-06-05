@@ -603,8 +603,8 @@ input::placeholder {
 /* Очень маленькие экраны (≤360px) */
 @media (max-width: 360px) {
   .main-container {
-    width: 98%;
-    padding: 12px;
+    width: 90%;
+    height: 94%;
   }
 
   .log-element {
@@ -623,7 +623,8 @@ input::placeholder {
   }
 
   .buttons button {
-    height: 44px;
-    font-size: 14px;
+    height: 30px;
+    font-size: 12px;
+    margin: -7px;
   }
 }

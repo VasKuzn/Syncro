@@ -75,7 +75,7 @@ const YandexAuthButton: React.FC<YandexAuthButtonProps> = ({ baseUrl, onSuccess,
         document.head.appendChild(script);
     }, [onSuccess, onError]);
 
-    return <div id={containerId} style={{ minHeight: '48px', display: 'inline-block', width: '15%' }} />;
+    return <div id={containerId} style={{ minHeight: '48px', display: 'inline-block', width: '20%' }} />;
 };
 
 export default YandexAuthButton;
